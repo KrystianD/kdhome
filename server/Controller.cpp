@@ -35,15 +35,15 @@ Controller::Controller()
 	pthread_cond_init(&m_luaCondWait, 0);
 
 	m_httpserver = mg_create_server(this);
-  mg_set_option(m_httpserver, "document_root", "");
-  mg_set_option(m_httpserver, "hide_files_patterns", "*");
-  mg_set_option(m_httpserver, "enable_directory_listing", "no");
+	mg_set_option(m_httpserver, "document_root", "");
+	mg_set_option(m_httpserver, "hide_files_patterns", "*");
+	mg_set_option(m_httpserver, "enable_directory_listing", "no");
 	mg_set_option(m_httpserver, "listening_port", "8080");
-  mg_add_uri_handler(m_httpserver, "/", &handle_hello);
+	mg_add_uri_handler(m_httpserver, "/", &handle_hello);
 }
 Controller::~Controller()
 {
-  mg_destroy_server(&m_httpserver);
+	mg_destroy_server(&m_httpserver);
 	pthread_mutex_destroy(&m_luaMutex);
 }
 
@@ -60,7 +60,8 @@ void Controller::init()
 
 	int res = luaL_dofile(m_lua, "scripts/script1.lua");
 	unprotectLua();
-	if (res) {
+	if (res)
+	{
 		m_logger->logWarning(Format("Script error: {}") << getLuaError());
 		protectLua();
 		lua_close(m_lua);
@@ -70,11 +71,15 @@ void Controller::init()
 	
 	m_delayedCode.clear();
 
-	if (m_lua) {
+	if (m_lua)
+	{
 		protectLua();
-		try {
+		try
+		{
 			if (m_lua) luabind::call_function<void>(m_lua, "onInit");
-		} catch (luabind::error& e) {
+		}
+		catch (luabind::error& e)
+		{
 			m_logger->logWarning(Format("[script] [onInit] {}") << getLuaErrorNOPROTECT());
 		}
 		unprotectLua();
@@ -89,7 +94,7 @@ void Controller::execute()
 	int res;
 
 	m_server.process();
-  mg_poll_server(m_httpserver, 0);
+	mg_poll_server(m_httpserver, 0);
 
 	uint32_t ticks = getTicks();
 	for (int i = m_delayedCode.size() - 1; i >= 0; i--)
