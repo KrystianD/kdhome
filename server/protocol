@@ -1,0 +1,30 @@
+Diagnostic
+
+cmds:
+- 0x00 - ping
+- 0x01 - set session key
+	[key 2B]
+
+OutputProvider
+
+type: 0x0001
+
+commands:
+- 0x00 set outputs (LSB 1 bit per output)
+
+	[outputs count] [1B]
+	[data] [output count / 8 B]
+
+InputProvider
+
+type: 0x0002
+
+commands:
+- 0x00 new state report
+
+	[intputs count] [1B]
+	per input:
+	[low count] [1B]
+	[high count] [1B]
+
+- 0x01 new state request
