@@ -16,7 +16,7 @@ OBJS+=providers/EthernetInputProvider.o
 OBJS+=providers/EthernetIRProvider.o
 OBJS+=$(KDLIB)/Logger.o $(KDLIB)/kutils.o
 OBJS+=3rd/format.o
-OBJS+=lua_funcs_gen.o lua_funcs.o /usr/lib/libtolua++.a
+OBJS+=lua_funcs_gen.o lua_funcs.o /usr/lib/libtolua++5.1.a
 OBJS+=3rd/mongoose-5.0/mongoose.o
 OBJS+=ICURL.o
 

@@ -8,7 +8,7 @@
 #include "lua_funcs.h"
 #include "lua_funcs_gen.h"
 
-#include "3rd/mongoose-5.0/mongoose.h"
+#include "3rd/mongoose.h"
 
 #include "ICURL.h"
 

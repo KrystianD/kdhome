@@ -8,7 +8,7 @@
 // #include "Color.h"
 #include "UdpServer.h"
 #include "IEvent.h"
-#include "3rd/mongoose-5.0/mongoose.h"
+#include "3rd/mongoose.h"
 
 #include <stdint.h>
 #include <string>
