@@ -2,5 +2,6 @@ kdhome.log
 pch.h.gch
 3rd/mongoose-5.0/
 scripts/
-_gen.*
+*_gen.*
 pch.h.gch
+kdhome
