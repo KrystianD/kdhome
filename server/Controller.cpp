@@ -28,7 +28,7 @@ static int handle_hello(struct mg_connection *conn)
 
 // Controller
 Controller::Controller()
- :  m_lua(0), m_stateNextCheckTime(0), m_stateCheckTimeout(0),
+ : m_lua(0), m_stateNextCheckTime(0), m_stateCheckTimeout(0),
    m_inputCheckingEnabled(false), m_luaThreads(0)
 {
 	pthread_mutex_init(&m_luaMutex, 0);
