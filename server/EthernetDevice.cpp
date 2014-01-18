@@ -5,7 +5,7 @@
 
 EthernetDevice::EthernetDevice(UdpServer* server, uint32_t id, const string& ip)
 	: m_server(server), m_id(id), m_ip(ip), m_lastPacketTime(0), m_connected(false), m_lastRecvPacketId(0), m_sendPacketId(0),
-	  m_sessKey(0)
+	  m_sessKey(0), m_registrationDataSendTime(0)
 {
 }
 
@@ -28,7 +28,7 @@ IProvider* EthernetDevice::getProvider(uint16_t type)
 		IProvider *provider = m_providers[i];
 		if (provider->getType() == type)
 		{
-			return provider;;
+			return provider;
 		}
 	}
 	return 0;
@@ -46,32 +46,46 @@ void EthernetDevice::processData(ByteBuffer& buffer)
 
 	logInfo(str(Format("Packet #{} received - type: {} sessKey: {}") << packetId << type << sessKey));
 
-	if (!m_connected && m_sessKey == sessKey)
+	if (m_connected)
 	{
-		markConnected();
-	}
-
-	if (sessKey == 0 || m_sessKey == 0 || m_sessKey != sessKey)
-	{
-		registerDevice();
-		return;
-	}
-
-	if (packetId <= m_lastRecvPacketId)
-	{
-		registerDevice();
-		return;
-	}
-
-	m_lastRecvPacketId = packetId;
-
-	for (size_t i = 0; i < m_providers.size(); i++)
-	{
-		IProvider *provider = m_providers[i];
-		if (provider->getType() == type)
+		if (m_sessKey != sessKey)
 		{
-			provider->processData(buffer);
-			break;
+			markDisconnected();
+			registerDevice();
+			return;
+		}
+
+		if (packetId <= m_lastRecvPacketId)
+		{
+			markDisconnected();
+			registerDevice();
+			return;
+		}
+
+		m_lastRecvPacketId = packetId;
+
+		for (size_t i = 0; i < m_providers.size(); i++)
+		{
+			IProvider *provider = m_providers[i];
+			if (provider->getType() == type)
+			{
+				provider->processData(buffer);
+				break;
+			}
+		}
+	}
+	else // if not connected
+	{
+		if (m_sessKey == sessKey)
+		{
+			markConnected();
+		}
+		else
+		{
+			if (getTicks() - m_registrationDataSendTime > REGISTRATION_DATA_DELAY)
+			{
+				registerDevice();
+			}
 		}
 	}
 }
@@ -84,7 +98,7 @@ void EthernetDevice::checkConnection()
 	uint32_t ticks = getTicks();
 	if (m_connected)
 	{
-		if (ticks - m_lastPacketTime >= 2000)
+		if (ticks - m_lastPacketTime >= PACKETLOSS_DISCONNECT_DELAY)
 		{
 			markDisconnected();
 		}
@@ -150,6 +164,7 @@ void EthernetDevice::registerDevice()
 	buf.append(m_sessKey);
 	logInfo(str(Format("Sending registration data... - sessKey: {}") << m_sessKey));
 	sendData(buf);
+	m_registrationDataSendTime = getTicks();
 }
 
 void EthernetDevice::logInfo(const string& msg)

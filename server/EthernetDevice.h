@@ -32,7 +32,7 @@ private:
 	string m_ip;
 	uint32_t m_id;
 	UdpServer *m_server;
-	uint32_t m_lastPacketTime;
+	uint32_t m_lastPacketTime, m_registrationDataSendTime;
 	bool m_connected;
 
 	uint16_t m_lastRecvPacketId, m_sendPacketId;
