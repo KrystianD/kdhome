@@ -220,9 +220,9 @@ void Controller::setOutput(int num, bool on)
 		p->setOutputState(num - dev->getID(), on);
 
 		if (on)
-			m_logger->logInfo(Format("[expander] Output {} enabled") << getOutputName(num));
+			m_logger->logInfo(Format("[output] Output {} enabled") << getOutputName(num));
 		else
-			m_logger->logInfo(Format("[expander] Output {} disabled") << getOutputName(num));
+			m_logger->logInfo(Format("[output] Output {} disabled") << getOutputName(num));
 	}
 }
 bool Controller::getOutput(int num)
@@ -551,7 +551,8 @@ int Controller::processHttpRequest(mg_connection* conn)
 	protectLua();
 	try
 	{
-		if (m_lua) luabind::call_function<string>(m_lua, "onHttpRequest", (uint64_t)conn, (string)conn->uri);
+		m_currConn = conn;
+		if (m_lua) luabind::call_function<void>(m_lua, "onHttpRequest", (string)conn->uri);
 	}
 	catch (luabind::error& e)
 	{
@@ -578,6 +579,10 @@ void Controller::onEthernetDataReceived(const string& ip, ByteBuffer& buffer)
 // IInputProviderListener
 void Controller::onInputChanged(IInputProvider* provider, int num, int state)
 {
+	if (state)
+		m_logger->logInfo(str(Format("Input {} changed 0->1") << getInputName(provider->getDevice()->getID() + num)));
+	else
+		m_logger->logInfo(str(Format("Input {} changed 1->0") << getInputName(provider->getDevice()->getID() + num)));
 	protectLua();
 	try
 	{

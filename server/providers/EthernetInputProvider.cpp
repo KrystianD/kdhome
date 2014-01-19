@@ -1,5 +1,6 @@
 #include "EthernetInputProvider.h"
 
+#include "common.h"
 #include "kutils.h"
 #include <unistd.h>
 
@@ -23,19 +24,19 @@ void EthernetInputProvider::init()
 void EthernetInputProvider::processData(ByteBuffer& buffer)
 {
 	uint8_t cmd;
-	buffer.fetch(cmd);
+	if (!buffer.fetch(cmd)) return;
 
 	switch(cmd)
 	{
 	case 0x00:
 		{
 			uint8_t cnt;
-			buffer.fetch(cnt);
+			if (!buffer.fetch(cnt)) return;
 			for (int i = 0; i < cnt; i++)
 			{
 				uint8_t low, high;
-				buffer.fetch(low);
-				buffer.fetch(high);
+				if (!buffer.fetch(low)) return;
+				if (!buffer.fetch(high)) return;
 
 				TInput &inp = m_inputs[i];
 
@@ -45,12 +46,18 @@ void EthernetInputProvider::processData(ByteBuffer& buffer)
 					if (inp.low != low)
 					{
 						inp.low++;
-						if (m_hasFirstData && m_listener) m_listener->onInputChanged(this, i, 0);
+						if (m_hasFirstData)
+						{
+							if (m_listener) m_listener->onInputChanged(this, i, 0);
+						}
 					}
 					if (inp.high != high)
 					{
 						inp.high++;
-						if (m_hasFirstData && m_listener) m_listener->onInputChanged(this, i, 1);
+						if (m_hasFirstData)
+						{
+							if (m_listener) m_listener->onInputChanged(this, i, 1);
+						}
 					}
 				}
 				// printf("test: %d - %d %d\n", i, inp.low, inp.high);
@@ -62,43 +69,19 @@ void EthernetInputProvider::processData(ByteBuffer& buffer)
 }
 void EthernetInputProvider::process()
 {
-	// if (getTicks() - m_lastUpdateTime >= 2000)
-		// update();
 }
 
 void EthernetInputProvider::update()
 {
-	// ByteBuffer data;
-	// prepareCommand(data, 0x00);
-
-	// uint8_t cnt = getInputsAmount();
-	// data.append(cnt);
-	// uint8_t b = 0;
-	// int idx = 0;
-	// for (int i = 0; i < cnt; i++)
-	// {
-		// if (getInputState(i))
-			// b |= (1 << (7 - idx));
-
-		// idx++;
-		// if (idx == 8)
-		// {
-			// idx = 0;
-			// data.append(b);
-			// b = 0;
-		// }
-	// }
-	// if (idx)
-		// data.append(b);
-
-	// printf("out: 0x%02x\n", (unsigned int)b);
-
-	// sendData(data);
-	// m_lastUpdateTime = getTicks();
 }
 void EthernetInputProvider::prepareCommand(ByteBuffer& buffer, uint8_t command)
 {
 	m_device->prepareBuffer(buffer);
 	buffer.append(getType());
 	buffer.append(command);
+}
+
+void EthernetInputProvider::logInfo(const string& msg)
+{
+	logger->logInfo(Format("[input] {}") << msg);
 }

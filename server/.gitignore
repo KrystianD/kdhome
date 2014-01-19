@@ -5,3 +5,4 @@ scripts/
 *_gen.*
 pch.h.gch
 kdhome
+*.swp

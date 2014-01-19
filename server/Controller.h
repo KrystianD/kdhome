@@ -137,9 +137,10 @@ public:
 	void execLuaFunc(int num);
 
 	lua_State* getLua() { return m_lua; }
-	mg_server* getHttpServer() { return m_httpserver; }
 
 	// mongoose
+	mg_server* getHttpServer() { return m_httpserver; }
+	mg_connection* getHttpConnection() { return m_currConn; }
 	int processHttpRequest(mg_connection* conn);
 
 	// IEthernetDataListener
@@ -158,6 +159,7 @@ private:
 
 	UdpServer m_server;
 	mg_server *m_httpserver;
+	mg_connection *m_currConn;
 	// TActivityTimer m_userActivity, m_movementActivity, m_totalActivity;
 	MyLogger *m_logger;
 

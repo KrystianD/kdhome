@@ -84,15 +84,17 @@ bool hasTimeout(const std::string& id) { return program->getController()->hasTim
 bool hasInterval(const std::string& id) { return program->getController()->hasInterval(id); }
 
 // Http
-void getHttpParam(unsigned long long conn, const std::string name, int* ret, std::string* value)
+void getHttpParam(const std::string name, int* ret, std::string* value)
 {
 	char buf[100];
-	*ret = mg_get_var((mg_connection*)conn, name.c_str(), buf, sizeof(buf));
+	mg_connection *conn = program->getController()->getHttpConnection();
+	*ret = mg_get_var(conn, name.c_str(), buf, sizeof(buf));
 	*value = buf;
 }
-void sendHttpReply(unsigned long long conn, const std::string reply)
+void sendHttpReply(const std::string reply)
 {
-	mg_send_data((mg_connection*)conn, reply.c_str(), reply.size());
+	mg_connection *conn = program->getController()->getHttpConnection();
+	mg_send_data(conn, reply.c_str(), reply.size());
 }
 
 void fetchPage(const std::string url, int* ret, std::string* content)
