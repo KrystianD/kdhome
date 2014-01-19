@@ -35,6 +35,7 @@ int ICURL::fetchPage(const string& url, string& content)
 		}
 		else
 		{
+			curl_easy_cleanup(curl);
 			return 1;
 		}
   }

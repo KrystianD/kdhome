@@ -48,7 +48,7 @@ void EthernetDevice::processData(ByteBuffer& buffer)
 
 	if (m_connected)
 	{
-		if (m_sessKey != sessKey)
+		if (m_sessKey == 0 || m_sessKey != sessKey)
 		{
 			markDisconnected();
 			registerDevice();

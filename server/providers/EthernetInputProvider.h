@@ -42,6 +42,8 @@ private:
 	void update();
 	void prepareCommand(ByteBuffer& buffer, uint8_t command);
 	void sendData(ByteBuffer& buffer) { m_device->sendData(buffer); }
+
+	void logInfo(const string& msg);
 };
 
 #endif
