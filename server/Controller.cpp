@@ -28,8 +28,7 @@ static int handle_hello(struct mg_connection *conn)
 
 // Controller
 Controller::Controller()
- : m_lua(0), m_stateNextCheckTime(0), m_stateCheckTimeout(0),
-   m_inputCheckingEnabled(false), m_luaThreads(0)
+ : m_lua(0), m_luaThreads(0)
 {
 	pthread_mutex_init(&m_luaMutex, 0);
 	pthread_cond_init(&m_luaCondWait, 0);
@@ -118,20 +117,6 @@ void Controller::execute()
 			}
 			unprotectLua();
 		}
-	}
-	if (m_stateCheckTimeout != 0 && m_stateNextCheckTime <= ticks)
-	{
-		protectLua();
-		try
-		{
-			if (m_lua) luabind::call_function<void>(m_lua, "onStateCheck");
-		}
-		catch (luabind::error& e)
-		{
-			m_logger->logWarning(Format("[script] {}") << getLuaErrorNOPROTECT());
-		}
-		unprotectLua();
-		m_stateNextCheckTime = ticks + m_stateCheckTimeout;
 	}
 
 	uint32_t diff = ticks - m_lastTicks;
@@ -265,11 +250,6 @@ void Controller::toggleOutput(int num)
 // }
 
 // Script commands
-void Controller::setStateCheckTimeout(float timeout)
-{
-	m_stateCheckTimeout = timeout * 1000;
-	m_stateNextCheckTime = getTicks() + m_stateCheckTimeout;
-}
 void Controller::setInterval(const std::string& id, float timeout, const std::string& code, bool repeating)
 {
 	for (size_t i = 0; i < m_delayedCode.size(); i++)
@@ -375,41 +355,6 @@ bool Controller::onExternalCommand(const std::vector<std::string>& parts, std::s
 	}
 
 	return false;
-}
-void Controller::onIRCode(uint32_t code)
-{
-	if (m_keys.find(code) == m_keys.end() || !m_keys[code])
-	{
-		m_keys[code] = true;
-		//printf("pre code: %x\n", code);
-		onIRButtonPressed(code);
-	}
-}
-void Controller::onIRButtonPressed(uint32_t code)
-{
-	protectLua();
-	try
-	{
-		if (m_lua) luabind::call_function<void>(m_lua, "onRemoteButtonPressed", code);
-	}
-	catch (luabind::error& e)
-	{
-		m_logger->logWarning(Format("[script] {}") << getLuaErrorNOPROTECT());
-	}
-	unprotectLua();
-}
-void Controller::onIRButtonReleased(uint32_t code)
-{
-	protectLua();
-	try
-	{
-		if (m_lua) luabind::call_function<void>(m_lua, "onRemoteButtonReleased", code);
-	}
-	catch (luabind::error& e)
-	{
-		m_logger->logWarning(Format("[script] {}") << getLuaErrorNOPROTECT());
-	}
-	unprotectLua();
 }
 
 void Controller::execLuaFunc(int num)

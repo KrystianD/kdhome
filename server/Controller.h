@@ -1,13 +1,7 @@
 #ifndef __CONTROLLER_H__
 #define __CONTROLLER_H__
 
-// #include <UsbEvent.h>
-// #include "LedUsbDevice.h"
-// #include "SensorUsbDevice.h"
-// #include "ExpanderUsbDevice.h"
-// #include "Color.h"
 #include "UdpServer.h"
-#include "IEvent.h"
 #include "3rd/mongoose.h"
 
 #include <stdint.h>
@@ -23,9 +17,6 @@ using namespace std;
 
 class MyLogger;
 class lua_State;
-
-// #include "stdafx.h"
-
 
 class TDelayedCode
 {
@@ -47,14 +38,6 @@ public:
 private:
 	uint32_t m_lastTime, m_resetValidTime;
 };
-// struct TBlinkEntry
-// {
-	// ColorF color1, color2;
-	// int duration;
-
-	// TBlinkEntry() { }
-	// TBlinkEntry(const ColorF& c1, const ColorF& c2, int duration) : color1(c1), color2(c2), duration(duration) { }
-// };
 template<typename T>
 struct TProviderEntry
 {
@@ -68,28 +51,14 @@ public:
 	Controller();
 	~Controller();
 
-	// LedUsbDevice *m_led;
-	// SensorUsbDevice *m_sensor;
-	// ExpanderUsbDevice *m_expander;
-
 	void setLogger(MyLogger* logger) { m_logger = logger; }
 	void init();
 	void execute();
 
 	void updateNames();
 
-	// Providers
-	void checkInputs();
-	void enableInputsChecking() { m_inputCheckingEnabled = true; }
-
-	// bool findOutputProvider(int num, EthernetDevice*& dev, IOutputProvider*& provider);
 	template<typename T>
 	bool findProvider(int num, EthernetDevice*& dev, T*& provider);
-
-	// Activity
-	// TActivityTimer& getUserActivity() { return m_userActivity; }
-	// TActivityTimer& getMovementActivity() { return m_movementActivity; }
-	// TActivityTimer& getTotalActivity() { return m_totalActivity; }
 
 	// Expander
 	// void freezeExpander() { m_expander->freeze(); }
@@ -109,16 +78,10 @@ public:
 	bool getOutput(int num);
 	void toggleOutput(int num);
 
-	// Sensor
-	// int getLightValue() { return m_sensor->getLightValue(); }
-	// uint8_t getFlags() { return m_sensor->getFlags(); }
-	// void setSensitivity(int sens) { m_sensor->setSensitivity(sens); }
-
 	// Temperature
 	// double getTemperature(int num);
 
 	// Script commands
-	void setStateCheckTimeout(float timeout);
 	void setTimeout(const std::string& id, float timeout, const std::string& code) { setInterval(id, timeout, code, false); }
 	void setInterval(const std::string& id, float timeout, const std::string& code) { setInterval(id, timeout, code, true); }
 	void setInterval(const std::string& id, float timeout, const std::string& code, bool repeating);
@@ -129,7 +92,6 @@ public:
 
 	// Handlers
 	bool onExternalCommand(const std::vector<std::string>& parts, std::string& res);
-	void onEvent(IEvent* event);
 	void onIRCode(uint32_t code);
 	void onIRButtonPressed(uint32_t code);
 	void onIRButtonReleased(uint32_t code);
@@ -163,14 +125,7 @@ private:
 	// TActivityTimer m_userActivity, m_movementActivity, m_totalActivity;
 	MyLogger *m_logger;
 
-	// Providers
-	bool m_inputCheckingEnabled;
-	uint32_t m_inputStates;
-
 	vector<EthernetDevice*> m_devices;
-
-	// Keyboard
-	std::map<int,bool> m_keys;
 
 	// Lua
 	lua_State *m_lua;
@@ -181,7 +136,6 @@ private:
 	string m_luaProtectionStr;
 
 	std::vector<TDelayedCode> m_delayedCode;
-	int m_stateNextCheckTime, m_stateCheckTimeout;
 
 	std::string getLuaError();
 	std::string getLuaErrorNOPROTECT();

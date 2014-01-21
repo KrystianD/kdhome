@@ -27,7 +27,6 @@ void setOutput(int num, int on);
 bool getOutput(int num);
 
 // Intervals
-void setStateCheckTimeout(float timeout);
 void setTimeout(const std::string& id, float timeout, const std::string& code);
 void setInterval(const std::string& id, float timeout, const std::string& code);
 void removeTimeout(const std::string& id);

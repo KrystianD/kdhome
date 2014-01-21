@@ -21,6 +21,8 @@ Program::~Program()
 }
 void Program::run()
 {
+	srand(time(0));
+
 	m_controller->setLogger(m_logger);
 	m_controller->init();
 

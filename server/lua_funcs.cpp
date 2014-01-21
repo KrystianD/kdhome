@@ -66,10 +66,6 @@ bool getOutput(int num)
 }
 
 // Intervals
-void setStateCheckTimeout(float timeout)
-{
-	program->getController()->setStateCheckTimeout(timeout);
-}
 void setInterval(const std::string& id, float timeout, const std::string& code)
 {
 	program->getController()->setInterval(id, timeout, code);
