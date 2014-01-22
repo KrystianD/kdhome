@@ -1,5 +1,6 @@
 // Reset
 #define COLOR_OFF "\033[0m"
+#define COLOR_DEFAULT "\033[0m"
 
 // Regular Colors
 #define COLOR_BLACK "\033[0;30m"

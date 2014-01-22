@@ -186,17 +186,17 @@ void ConsoleLoggerOutput::log(Logger::LogType type, int msgClass, const string& 
 	switch (type)
 	{
 	case Logger::Error:
-	printf("[error] ");
-	break;
+		printf("[error] ");
+		break;
 	case Logger::Warning:
-	printf("[warning] ");
-	break;
+		printf("[warning] ");
+		break;
 	case Logger::Info:
-	if (m_useColors)
-		printf(COLOR_GREEN "[info]" COLOR_DEFAULT " ");
-	else
-		printf("[info] ");
-	break;
+		if (m_useColors)
+			printf(COLOR_GREEN "[info]" COLOR_DEFAULT " ");
+		else
+			printf("[info] ");
+		break;
 	}
 
 	printf("%s", message.c_str());

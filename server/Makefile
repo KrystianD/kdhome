@@ -1,5 +1,5 @@
 CXX=g++
-KDLIB=kdlibs
+KDLIB=../kdlibs
 
 INC+=-I/usr/include/libusb-1.0
 INC+=-I/usr/include/lua5.1

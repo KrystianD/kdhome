@@ -12,13 +12,8 @@ EthernetDevice::EthernetDevice(UdpServer* server, uint32_t id, const string& ip)
 bool EthernetDevice::hasProvider(uint16_t type)
 {
 	for (size_t i = 0; i < m_providers.size(); i++)
-	{
-		IProvider *provider = m_providers[i];
-		if (provider->getType() == type)
-		{
+		if (providers[i]->getType() == type)
 			return true;
-		}
-	}
 	return false;
 }
 IProvider* EthernetDevice::getProvider(uint16_t type)
@@ -55,7 +50,7 @@ void EthernetDevice::processData(ByteBuffer& buffer)
 			return;
 		}
 
-		if (packetId <= m_lastRecvPacketId)
+		if (packetId <= m_lastRecvPacketId && packetId - m_lastRecvPacketId > 10) // prevent disconnecting on wrap
 		{
 			markDisconnected();
 			registerDevice();
