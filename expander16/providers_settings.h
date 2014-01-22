@@ -1,0 +1,2 @@
+#define INPUTS_COUNT 16
+#define OUTPUTS_COUNT 16
