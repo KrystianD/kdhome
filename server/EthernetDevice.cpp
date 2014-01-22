@@ -12,7 +12,7 @@ EthernetDevice::EthernetDevice(UdpServer* server, uint32_t id, const string& ip)
 bool EthernetDevice::hasProvider(uint16_t type)
 {
 	for (size_t i = 0; i < m_providers.size(); i++)
-		if (providers[i]->getType() == type)
+		if (m_providers[i]->getType() == type)
 			return true;
 	return false;
 }
