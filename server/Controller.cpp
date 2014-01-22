@@ -28,8 +28,7 @@ static int handle_hello(struct mg_connection *conn)
 
 // Controller
 Controller::Controller()
- : m_lua(0), m_stateNextCheckTime(0), m_stateCheckTimeout(0),
-   m_inputCheckingEnabled(false), m_luaThreads(0)
+ : m_lua(0), m_luaThreads(0)
 {
 	pthread_mutex_init(&m_luaMutex, 0);
 	pthread_cond_init(&m_luaCondWait, 0);
@@ -119,20 +118,6 @@ void Controller::execute()
 			unprotectLua();
 		}
 	}
-	if (m_stateCheckTimeout != 0 && m_stateNextCheckTime <= ticks)
-	{
-		protectLua();
-		try
-		{
-			if (m_lua) luabind::call_function<void>(m_lua, "onStateCheck");
-		}
-		catch (luabind::error& e)
-		{
-			m_logger->logWarning(Format("[script] {}") << getLuaErrorNOPROTECT());
-		}
-		unprotectLua();
-		m_stateNextCheckTime = ticks + m_stateCheckTimeout;
-	}
 
 	uint32_t diff = ticks - m_lastTicks;
 	m_lastTicks = ticks;
@@ -220,9 +205,9 @@ void Controller::setOutput(int num, bool on)
 		p->setOutputState(num - dev->getID(), on);
 
 		if (on)
-			m_logger->logInfo(Format("[expander] Output {} enabled") << getOutputName(num));
+			m_logger->logInfo(Format("[output] Output {} enabled") << getOutputName(num));
 		else
-			m_logger->logInfo(Format("[expander] Output {} disabled") << getOutputName(num));
+			m_logger->logInfo(Format("[output] Output {} disabled") << getOutputName(num));
 	}
 }
 bool Controller::getOutput(int num)
@@ -265,11 +250,6 @@ void Controller::toggleOutput(int num)
 // }
 
 // Script commands
-void Controller::setStateCheckTimeout(float timeout)
-{
-	m_stateCheckTimeout = timeout * 1000;
-	m_stateNextCheckTime = getTicks() + m_stateCheckTimeout;
-}
 void Controller::setInterval(const std::string& id, float timeout, const std::string& code, bool repeating)
 {
 	for (size_t i = 0; i < m_delayedCode.size(); i++)
@@ -375,41 +355,6 @@ bool Controller::onExternalCommand(const std::vector<std::string>& parts, std::s
 	}
 
 	return false;
-}
-void Controller::onIRCode(uint32_t code)
-{
-	if (m_keys.find(code) == m_keys.end() || !m_keys[code])
-	{
-		m_keys[code] = true;
-		//printf("pre code: %x\n", code);
-		onIRButtonPressed(code);
-	}
-}
-void Controller::onIRButtonPressed(uint32_t code)
-{
-	protectLua();
-	try
-	{
-		if (m_lua) luabind::call_function<void>(m_lua, "onRemoteButtonPressed", code);
-	}
-	catch (luabind::error& e)
-	{
-		m_logger->logWarning(Format("[script] {}") << getLuaErrorNOPROTECT());
-	}
-	unprotectLua();
-}
-void Controller::onIRButtonReleased(uint32_t code)
-{
-	protectLua();
-	try
-	{
-		if (m_lua) luabind::call_function<void>(m_lua, "onRemoteButtonReleased", code);
-	}
-	catch (luabind::error& e)
-	{
-		m_logger->logWarning(Format("[script] {}") << getLuaErrorNOPROTECT());
-	}
-	unprotectLua();
 }
 
 void Controller::execLuaFunc(int num)
@@ -551,7 +496,8 @@ int Controller::processHttpRequest(mg_connection* conn)
 	protectLua();
 	try
 	{
-		if (m_lua) luabind::call_function<string>(m_lua, "onHttpRequest", (uint64_t)conn, (string)conn->uri);
+		m_currConn = conn;
+		if (m_lua) luabind::call_function<void>(m_lua, "onHttpRequest", (string)conn->uri);
 	}
 	catch (luabind::error& e)
 	{
@@ -578,6 +524,10 @@ void Controller::onEthernetDataReceived(const string& ip, ByteBuffer& buffer)
 // IInputProviderListener
 void Controller::onInputChanged(IInputProvider* provider, int num, int state)
 {
+	if (state)
+		m_logger->logInfo(str(Format("Input {} changed 0->1") << getInputName(provider->getDevice()->getID() + num)));
+	else
+		m_logger->logInfo(str(Format("Input {} changed 1->0") << getInputName(provider->getDevice()->getID() + num)));
 	protectLua();
 	try
 	{

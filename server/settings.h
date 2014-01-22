@@ -6,6 +6,6 @@
 
 // Time (in milis), after which device is marked as disconnected
 // in case of no incoming packets.
-#define PACKETLOSS_DISCONNECT_DELAY 2000
+#define PACKETLOSS_DISCONNECT_DELAY 3000
 
 #endif

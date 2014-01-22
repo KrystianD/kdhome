@@ -15,8 +15,6 @@ void EthernetOutputProvider::processData(ByteBuffer& buffer)
 }
 void EthernetOutputProvider::process()
 {
-	// setOutputState(0, (getTicks() % 1000) < 500);
-
 	if (getTicks() - m_lastUpdateTime >= 2000)
 		update();
 }
