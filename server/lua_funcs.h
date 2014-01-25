@@ -12,6 +12,8 @@ int getFlags();
 void setSensitivity(int sens);
 */
 
+int getTime();
+
 // Devices
 int registerEthernetDevice(int id, const std::string& ip);
 void addOutputProvider(int dev, int outputsCount);

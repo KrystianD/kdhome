@@ -28,6 +28,11 @@ void logEvent(int category, const std::string& message)
 	program->logEvent(category, message);
 }
 
+int getTime()
+{
+	return program->getController()->getTime();
+}
+
 // Devices
 int registerEthernetDevice(int id, const std::string& ip)
 {

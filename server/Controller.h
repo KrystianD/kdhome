@@ -3,6 +3,7 @@
 
 #include "UdpServer.h"
 #include "3rd/mongoose.h"
+#include <kutils.h>
 
 #include <stdint.h>
 #include <string>
@@ -64,6 +65,8 @@ public:
 	// void freezeExpander() { m_expander->freeze(); }
 	// void unfreezeExpander() { m_expander->unfreeze(); }
 
+	int getTime() { return getTicks() - m_startTime; }
+
 	// Devices
 	int registerEthernetDevice(uint32_t id, const std::string& ip);
 	void addOutputProvider(int dev, int outputsCount);
@@ -118,6 +121,7 @@ public:
 
 private:
 	uint32_t m_lastTicks;
+	uint32_t m_startTime;
 
 	UdpServer m_server;
 	mg_server *m_httpserver;

@@ -39,6 +39,8 @@ Controller::Controller()
 	mg_set_option(m_httpserver, "enable_directory_listing", "no");
 	mg_set_option(m_httpserver, "listening_port", "8080");
 	mg_add_uri_handler(m_httpserver, "/", &handle_hello);
+
+	m_startTime = getTicks();
 }
 Controller::~Controller()
 {
