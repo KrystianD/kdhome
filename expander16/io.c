@@ -18,7 +18,7 @@ void ioInit()
 	IO_INPUT(INT);
 
 	ioOutputs = 0;
-	provOutput_update();
+	provOutputUpdate();
 
 	ioInputs = io_readPCF(PCF_IN0);
 	ioInputs |= io_readPCF(PCF_IN1) << 8;
@@ -43,15 +43,15 @@ void ioProcess()
 void onInputLow(uint8_t idx)
 {
 #ifdef ETHERNET
-	provInput_setInput(idx, 0);
-	provInput_sendState();
+	provInputSetState(idx, 0);
+	provInputSendState();
 #endif
 }
 void onInputHigh(uint8_t idx)
 {
 #ifdef ETHERNET
-	provInput_setInput(idx, 1);
-	provInput_sendState();
+	provInputSetState(idx, 1);
+	provInputSendState();
 #endif
 }
 
@@ -61,21 +61,21 @@ uint8_t ADVIM_getPinState(struct TInputAddr* addr)
 }
 
 // Output provider callbacks
-void provOutput_setOutputCallback(int num, int enable)
+void provOutputSetOutput(int num, int enable)
 {
 	if (enable)
 		ioOutputs |= io_getOutMask(num);
 	else
 		ioOutputs &= ~io_getOutMask(num);
 }
-void provOutput_update()
+void provOutputUpdate()
 {
 	i2cWriteDataNoReg(PCF_ADDR | PCF_OUT0, (uint8_t*)&ioOutputs, 1);
 	i2cWriteDataNoReg(PCF_ADDR | PCF_OUT1, (uint8_t*)&ioOutputs + 1, 1);
 }
 
 // Input provider callbacks
-void provInput_resetState()
+void provInputResetState()
 {
 	int i;
 
@@ -83,9 +83,9 @@ void provInput_resetState()
 	for (i = 0; i < INPUTS_COUNT; i++)
 	{
 		if (io_getInp(i))
-			provInput_setInput(i, 1);
+			provInputSetState(i, 1);
 		else
-			provInput_setInput(i, 0);
+			provInputSetState(i, 0);
 	}
 }
 

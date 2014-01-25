@@ -5,6 +5,7 @@
 #define PROVIDER_TYPE_OUTPUT  0x0001
 #define PROVIDER_TYPE_INPUT   0x0002
 #define PROVIDER_TYPE_IR      0x0003
+#define PROVIDER_TYPE_TEMP    0x0004
 
 // Control
 #define CONTROL_CMD_REGISTER    0x01
@@ -18,5 +19,8 @@
 
 // IR provider
 #define IR_NOTF_NEWCODE         0x00
+
+// Temperature provider
+#define TEMP_NOTF_TEMP          0x00
 
 #endif

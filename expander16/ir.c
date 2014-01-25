@@ -46,7 +46,7 @@ void irProcess()
 			{
 				myprintf("decode: %d %x %d\r\n", r, res.value, res.decode_type);
 #ifdef ETHERNET
-				provIRSendCode(res.value);
+				provIRNewCode(res.value);
 #endif
 			}
 			// int i; for(i=0;i<idx;i++) myprintf("%4d, ", data[i]); myprintf("\r\n");
