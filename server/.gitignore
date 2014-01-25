@@ -6,3 +6,4 @@ scripts/
 pch.h.gch
 kdhome
 *.swp
+*.swo
