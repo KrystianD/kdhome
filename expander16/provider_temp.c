@@ -24,6 +24,8 @@ uint16_t prov_tempErrors;
 
 void provTempReset()
 {
+	memset(&prov_tempData, 0, sizeof(prov_tempData));
+	prov_tempErrors = 0;
 }
 void provTempProcess(TByteBuffer* data)
 {
@@ -43,7 +45,7 @@ void provTempTmr()
 	{
 		lastSendTime = ticks;
 
-		myprintf("SEND\r\n");
+		provTemp_sendData();
 	}
 }
 
