@@ -5,6 +5,7 @@
 
 void provInputReset();
 void provInputProcess(TByteBuffer* data);
+void provInputTmr();
 void provInputSendState();
 
 // Notifies input provider about input change

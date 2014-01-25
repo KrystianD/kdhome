@@ -29,6 +29,9 @@ void provInputProcess(TByteBuffer* data)
 		break;
 	}
 }
+void provInputTmr()
+{
+}
 void provInputSetState(int num, int value)
 {
 	if (value)

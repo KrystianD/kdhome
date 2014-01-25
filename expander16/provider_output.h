@@ -5,6 +5,7 @@
 
 void provOutputReset();
 void provOutputProcess(TByteBuffer* data);
+void provOutputTmr();
 
 // [callback] Function called when output update is requested
 extern void provOutputSetOutput(int num, int enable);

@@ -39,6 +39,7 @@ void provProcess(TByteBuffer* data)
 				provOutputReset();
 				provInputReset();
 				provIRReset();
+				provTempReset();
 			}
 		}
 		break;
@@ -51,5 +52,15 @@ void provProcess(TByteBuffer* data)
 	case PROVIDER_TYPE_IR:
 		provIRProcess(data);
 		break;
+	case PROVIDER_TYPE_TEMP:
+		provTempProcess(data);
+		break;
 	}
+}
+void provTmr()
+{
+	provOutputTmr();
+	provInputTmr();
+	provIRTmr();
+	provTempTmr();
 }

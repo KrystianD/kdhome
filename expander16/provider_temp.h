@@ -3,16 +3,13 @@
 
 #include "buffer.h"
 
-void provInputReset();
-void provInputProcess(TByteBuffer* data);
-void provInputSendState();
+// uint8_t prov_inputLow[INPUTS_COUNT], prov_inputHigh[INPUTS_COUNT];
 
-// Notifies input provider about input change
-void provInputSetState(int num, int value);
-// Sends current state to server
-void provInputSendState();
+void provTempReset();
+void provTempProcess(TByteBuffer* data);
 
-// [callback] Reset state based on current state (pin values)
-void provInputResetState();
+void provTempSetValueIntFrac(int num, int16_t integral, uint16_t frac);
+void provTempSetValueFloat(int num, float value);
+void provTempSetError(int num);
 
 #endif

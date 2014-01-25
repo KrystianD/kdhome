@@ -52,18 +52,17 @@ void main()
 	IO_PUSH_PULL(LED);
 	IO_HIGH(LED);
 
+#ifndef ETHERNET_MODULE
 	OW_UART_init();
 	tempInit();
-
 	ioInit();
 	irInit();
+#endif
 #ifdef ETHERNET
 	ethInit();
 #endif
 
 	advimProcess(ticks);
-
-	IO_INPUT(IR);
 
 	uint8_t b;
 	uint32_t lastCheck = 0;
@@ -71,7 +70,7 @@ void main()
 	{
 		// if (IO_IS_LOW(IN1)) dodump = 1;
 		// else dodump = 0;
-		dodump=1;
+		// dodump=1;
 		
 		static int q=0;
 		if(ticks-q>=1000)
@@ -80,12 +79,14 @@ void main()
 			q=ticks;
 		}
 
-		// for(;;);
+#ifndef ETHERNET_MODULE
 		ioProcess();
 	
 		tempProcess();
 
 		irProcess();
+#endif
+		provTmr();
 #ifdef ETHERNET
 		ethProcess();
 #endif

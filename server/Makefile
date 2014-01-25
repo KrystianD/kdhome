@@ -4,7 +4,7 @@ KDLIB=../kdlibs
 INC+=-I/usr/include/libusb-1.0
 INC+=-I/usr/include/lua5.1
 INC+=-I/usr/include/mysql
-INC+=-I3rd -I.
+INC+=-I3rd -I. -I..
 INC+=-I$(KDLIB)
 
 OBJS=main.o Program.o

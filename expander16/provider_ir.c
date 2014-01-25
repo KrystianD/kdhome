@@ -9,6 +9,9 @@ void provIRReset()
 void provIRProcess(TByteBuffer* data)
 {
 }
+void provIRTmr()
+{
+}
 void provIRNewCode(uint32_t code)
 {
 	TByteBuffer b;

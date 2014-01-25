@@ -76,8 +76,8 @@ void ethInit()
 	// IO_LOW(RESET);
 	// _delay_ms(100);
 	// IO_HIGH(RESET);
-	IO_INPUT_PP(IRQ);
-	IO_HIGH(IRQ);
+	IO_INPUT_PP(INT_ETH);
+	IO_HIGH(INT_ETH);
 
 	// configure module
 	_delay_ms(100);
@@ -287,7 +287,7 @@ void ethProcess()
 		dhcp_fine_tmr();
 	}
 
-	if (IO_IS_LOW(IRQ))
+	if (IO_IS_LOW(INT_ETH))
 	{
 		uint8_t eir = enc28j60ReadControl(EIR);
 		myprintf("eir 0x%02x\r\n", eir);

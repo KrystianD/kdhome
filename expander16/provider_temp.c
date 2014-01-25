@@ -1,24 +1,111 @@
-#include "provider_temp.h"
+#include "providers.h"
 #include "providers_settings.h"
 
 #include <kdhome.h>
 #include <string.h>
 
+#if TEMP_SENSORS_COUNT > 16
+#error Maximum number of temperature sensors is 16
+#endif
+
+struct
+{
+	union
+	{
+		struct
+		{
+			int16_t integral;
+			uint16_t frac;
+		} spl;
+		float value;
+	} value;
+} prov_tempData[10];
+uint16_t prov_tempErrors;
+
 void provTempReset()
 {
-	memset(&prov_inputLow, 0, sizeof(prov_inputLow));
-	memset(&prov_inputHigh, 0, sizeof(prov_inputHigh));
-	provInputResetState();
 }
 void provTempProcess(TByteBuffer* data)
 {
 	uint8_t cmd;
 	if (BYTEBUFFER_FETCH(data, cmd)) return;
-	// myprintf("cmd: 0x%02x\r\n", cmd);
 
 	switch (cmd)
 	{
 	default:
 		break;
 	}
+}
+void provTempTmr()
+{
+	static uint32_t lastSendTime = 0;
+	if (ticks - lastSendTime >= 1000)
+	{
+		lastSendTime = ticks;
+
+		myprintf("SEND\r\n");
+	}
+}
+
+void provTemp_sendData()
+{
+	TByteBuffer b;
+	if (!ethPrepareBuffer(&b, 2 + 1 + 1 + 2 + 2 + TEMP_SENSORS_COUNT * 2))
+		return;
+	uint16_t type = PROVIDER_TYPE_TEMP;
+	BYTEBUFFER_APPEND(&b, type);
+
+	uint8_t cmd = TEMP_NOTF_TEMP;
+	BYTEBUFFER_APPEND(&b, cmd);
+
+	uint8_t cnt = TEMP_SENSORS_COUNT;
+	BYTEBUFFER_APPEND(&b, cnt);
+
+	uint16_t flags = 
+		(TEMP_SENSOR0_MODE << 0) |
+		(TEMP_SENSOR1_MODE << 1) |
+		(TEMP_SENSOR2_MODE << 2) |
+		(TEMP_SENSOR3_MODE << 3) |
+		(TEMP_SENSOR4_MODE << 4) |
+		(TEMP_SENSOR5_MODE << 5) |
+		(TEMP_SENSOR6_MODE << 6) |
+		(TEMP_SENSOR7_MODE << 7) |
+		(TEMP_SENSOR8_MODE << 8) |
+		(TEMP_SENSOR9_MODE << 9) |
+		(TEMP_SENSOR10_MODE << 10) |
+		(TEMP_SENSOR11_MODE << 11) |
+		(TEMP_SENSOR12_MODE << 12) |
+		(TEMP_SENSOR13_MODE << 13) |
+		(TEMP_SENSOR14_MODE << 14) |
+		(TEMP_SENSOR15_MODE << 15);
+	BYTEBUFFER_APPEND(&b, flags);
+
+	uint16_t errors = prov_tempErrors;
+	BYTEBUFFER_APPEND(&b, errors);
+
+	int i;
+	for (i = 0; i < TEMP_SENSORS_COUNT; i++)
+	{
+		BYTEBUFFER_APPEND(&b, prov_tempData[i].value);
+	}
+
+	ethSendPacket(&b);
+
+	ethFreeBuffer(&b);
+}
+
+void provTempSetValueIntFrac(int num, int16_t integral, uint16_t frac)
+{
+	prov_tempData[num].value.spl.integral = integral;
+	prov_tempData[num].value.spl.frac = frac;
+	prov_tempErrors &= ~(1 << num);
+}
+void provTempSetValueFloat(int num, float value)
+{
+	prov_tempData[num].value.value = value;
+	prov_tempErrors &= ~(1 << num);
+}
+void provTempSetError(int num)
+{
+	prov_tempErrors |= 1 << num;
 }

@@ -42,3 +42,6 @@ void provOutputProcess(TByteBuffer* data)
 		break;
 	}
 }
+void provOutputTmr()
+{
+}
