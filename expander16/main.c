@@ -10,6 +10,8 @@
 #include "utils.h"
 #include "ethernet.h"
 #include "ir.h"
+#include "io.h"
+#include "temp.h"
 #include "providers.h"
 
 volatile uint32_t ticks = 0;

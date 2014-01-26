@@ -8,16 +8,16 @@
 #define SDA GPIOB,11
 #define INT GPIOB,1
 
-// #define LED GPIOA,15
+#define LED GPIOA,15
 #define OW GPIOA,2
 
 #define IR GPIOA,7
 
-// #define SCK GPIOB,13
-// #define MISO GPIOB,14
-// #define MOSI GPIOB,15
-// #define CS GPIOA,8
-// #define INT_ETH GPIOB,12
+#define SCK GPIOB,13
+#define MISO GPIOB,14
+#define MOSI GPIOB,15
+#define CS GPIOA,8
+#define INT_ETH GPIOB,12
 
 #define PCF_ADDR 0b01110000
 #define PCF_OUT0 (0b010 << 1)

@@ -1,0 +1,3 @@
+[submodule "expander16/stm32-public"]
+	path = expander16/stm32-public
+	url = git@github.com:KrystianD/stm32-public.git
