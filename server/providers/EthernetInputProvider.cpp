@@ -4,6 +4,8 @@
 #include "kutils.h"
 #include <unistd.h>
 
+#include <kdhome.h>
+
 EthernetInputProvider::EthernetInputProvider(EthernetDevice* device, int amount)
 	: m_device(device), m_listener(0), m_lastUpdateTime(0)
 {
@@ -28,7 +30,7 @@ void EthernetInputProvider::processData(ByteBuffer& buffer)
 
 	switch(cmd)
 	{
-	case 0x00:
+	case INPUT_NOTF_NEWSTATE:
 		{
 			uint8_t cnt;
 			if (!buffer.fetch(cnt)) return;

@@ -10,6 +10,7 @@
 #include "utils.h"
 #include "ethernet.h"
 #include "ir.h"
+#include "providers.h"
 
 volatile uint32_t ticks = 0;
 int dodump = 0;
@@ -62,7 +63,6 @@ void main()
 	ethInit();
 #endif
 
-	advimProcess(ticks);
 
 	uint8_t b;
 	uint32_t lastCheck = 0;
@@ -79,6 +79,9 @@ void main()
 			q=ticks;
 		}
 
+		provTempSetValueIntFrac(0,5, 0x8000);
+		provTempSetValueFloat(1, 5.124f);
+		provTempSetValueIntFrac(2, ((int16_t)(0xff5 << 4)) >> 4, 0xe << 12);
 #ifndef ETHERNET_MODULE
 		ioProcess();
 	

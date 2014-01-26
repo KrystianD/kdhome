@@ -22,7 +22,7 @@
 // #define IP_ADDR 192,168,1,50
 // #define IP_MASK 255,255,255,0
 // #define IP_GW   192,168,1,1
-#define IP_SRV  192,168,100,1
+// #define IP_SRV  192,168,100,1
 #define IP_SRV  192,168,1,2
 
 #define LOCAL_PORT 9999

@@ -1,12 +1,11 @@
-#ifndef __PROVIDER_INPUT_H__
-#define __PROVIDER_INPUT_H__
+#ifndef __PROVIDER_TEMP_H__
+#define __PROVIDER_TEMP_H__
 
 #include "buffer.h"
 
-// uint8_t prov_inputLow[INPUTS_COUNT], prov_inputHigh[INPUTS_COUNT];
-
 void provTempReset();
 void provTempProcess(TByteBuffer* data);
+void provTempTmr();
 
 void provTempSetValueIntFrac(int num, int16_t integral, uint16_t frac);
 void provTempSetValueFloat(int num, float value);

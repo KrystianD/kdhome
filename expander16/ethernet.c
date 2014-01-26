@@ -3,8 +3,10 @@
 #include <hardware.h>
 #include <settings.h>
 #include <delay.h>
+#include <myprintf.h>
 
 #include "lwip/sockets.h"
+#include "lwip/init.h"
 #include "ipv4/lwip/ip_addr.h"
 #include "ipv4/lwip/ip.h"
 #include "lwip/dhcp.h"

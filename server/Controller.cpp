@@ -77,7 +77,7 @@ void Controller::init()
 		protectLua();
 		try
 		{
-			if (m_lua) luabind::call_function<void>(m_lua, "onInit");
+			luabind::call_function<void>(m_lua, "onInit");
 		}
 		catch (luabind::error& e)
 		{
@@ -150,7 +150,7 @@ void Controller::addOutputProvider(int dev, int outputsCount)
 	EthernetDevice *device = m_devices[dev];
 	EthernetOutputProvider *out = new EthernetOutputProvider(device, outputsCount);
 	device->addProvider(out);
-	m_logger->logInfo(Format("Added output provider for device #{}") << dev);
+	m_logger->logInfo(Format("Added output provider to device #{}") << dev);
 }
 void Controller::addInputProvider(int dev, int inputsCount)
 {
@@ -164,7 +164,7 @@ void Controller::addInputProvider(int dev, int inputsCount)
 	EthernetInputProvider *inp = new EthernetInputProvider(device, inputsCount);
 	inp->setListener(this);
 	device->addProvider(inp);
-	m_logger->logInfo(Format("Added input provider for device #{}") << dev);
+	m_logger->logInfo(Format("Added input provider to device #{}") << dev);
 }
 void Controller::addIRProvider(int dev)
 {
@@ -178,7 +178,21 @@ void Controller::addIRProvider(int dev)
 	EthernetIRProvider *ir = new EthernetIRProvider(device);
 	ir->setListener(this);
 	device->addProvider(ir);
-	m_logger->logInfo(Format("Added IR provider for device #{}") << dev);
+	m_logger->logInfo(Format("Added IR provider to device #{}") << dev);
+}
+void Controller::addTempProvider(int dev, int sensorsCount)
+{
+	if (dev >= m_devices.size())
+	{
+		throwLuaErrorNOPROTECT(str(Format("Bad device index: {}") << dev));
+		lua_error(m_lua);
+		return;
+	}
+	EthernetDevice *device = m_devices[dev];
+	EthernetTempProvider *temp = new EthernetTempProvider(device, sensorsCount);
+	// inp->setListener(this);
+	device->addProvider(temp);
+	m_logger->logInfo(Format("Added temperature provider to device #{}") << dev);
 }
 
 bool Controller::getInput(int num)
@@ -238,6 +252,29 @@ void Controller::toggleOutput(int num)
 		m_logger->logInfo(Format("[expander] Output {} enabled(toggled)") << getOutputName(num));
 	else
 		m_logger->logInfo(Format("[expander] Output {} disabled(toggled)") << getOutputName(num));
+}
+
+bool Controller::isTempValid(int num)
+{
+	ITempProvider *p;
+	EthernetDevice *dev;
+	if (!findProvider(num, dev, p))
+	{
+		throwLuaErrorNOPROTECT(str(Format("Unable to find temperature provider for {}") << num));
+		return false;
+	}
+	return p->isTempValid(num - dev->getID());
+}
+float Controller::getTemp(int num)
+{
+	ITempProvider *p;
+	EthernetDevice *dev;
+	if (!findProvider(num, dev, p))
+	{
+		throwLuaErrorNOPROTECT(str(Format("Unable to find temperature provider for {}") << num));
+		return 0;
+	}
+	return p->getTemp(num - dev->getID());
 }
 
 // Temperature

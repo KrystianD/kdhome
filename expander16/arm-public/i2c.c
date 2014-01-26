@@ -1,6 +1,7 @@
 #include "i2c.h"
 
 #include <hardware.h>
+#include <delay.h>
 
 // typedef struct
 // {
@@ -115,7 +116,7 @@ uint8_t i2cStart (uint8_t addr)
 		I2CD("s1");
 		if (ticks - t > 10)
 		{
-			myprintf("%02x %02x %02x\r\n", I2C_OBJ->CR1, I2C_OBJ->SR1, I2C_OBJ->SR2);
+			// myprintf("%02x %02x %02x\r\n", I2C_OBJ->CR1, I2C_OBJ->SR1, I2C_OBJ->SR2);
 			return I2C_ERROR_START;
 		}
 	}

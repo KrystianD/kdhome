@@ -1,6 +1,8 @@
 #include "providers.h"
 #include "providers_settings.h"
+#include <myprintf.h>
 
+#include "ethernet.h"
 #include <kdhome.h>
 #include <string.h>
 
@@ -8,6 +10,7 @@
 #error Maximum number of temperature sensors is 16
 #endif
 
+#pragma pack(1)
 struct
 {
 	union
@@ -19,8 +22,12 @@ struct
 		} spl;
 		float value;
 	} value;
-} prov_tempData[10];
+} prov_tempData[TEMP_SENSORS_COUNT];
+#pragma pack()
+
 uint16_t prov_tempErrors;
+
+void provTemp_sendData();
 
 void provTempReset()
 {
@@ -52,7 +59,7 @@ void provTempTmr()
 void provTemp_sendData()
 {
 	TByteBuffer b;
-	if (!ethPrepareBuffer(&b, 2 + 1 + 1 + 2 + 2 + TEMP_SENSORS_COUNT * 2))
+	if (!ethPrepareBuffer(&b, 2 + 1 + 1 + 2 + 2 + TEMP_SENSORS_COUNT * 4))
 		return;
 	uint16_t type = PROVIDER_TYPE_TEMP;
 	BYTEBUFFER_APPEND(&b, type);
@@ -88,7 +95,7 @@ void provTemp_sendData()
 	int i;
 	for (i = 0; i < TEMP_SENSORS_COUNT; i++)
 	{
-		BYTEBUFFER_APPEND(&b, prov_tempData[i].value);
+		BYTEBUFFER_APPEND(&b, prov_tempData[i].value.value);
 	}
 
 	ethSendPacket(&b);

@@ -19,6 +19,7 @@ int registerEthernetDevice(int id, const std::string& ip);
 void addOutputProvider(int dev, int outputsCount);
 void addInputProvider(int dev, int inputsCount);
 void addIRProvider(int dev);
+void addTempProvider(int dev, int sensorsCount);
 
 // Inputs
 bool getInput(int num);
@@ -27,6 +28,10 @@ bool getInput(int num);
 void toggleOutput(int num);
 void setOutput(int num, int on);
 bool getOutput(int num);
+
+// Temp
+bool isTempValid(int num);
+float getTemp(int num);
 
 // Intervals
 void setTimeout(const std::string& id, float timeout, const std::string& code);

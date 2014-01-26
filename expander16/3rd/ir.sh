@@ -13,6 +13,7 @@ cat 3rd/Arduino-IRremote/IRremote.h | \
 	awk '/struct IRsend/{a=1} {if(a==1){print "//" $0}else{print $0}} /^}/{a=0} ' | \
 	sed \
 		-e 's/\/\/  int getRC/  int getRC/' \
+		-e 's/\/\/  int decode/  int decode/' \
 		-e 's/\/\/  long decode/  long decode/' \
 	>> 3rd/IRremote.h
 cat 3rd/Arduino-IRremote/IRremoteInt.h | \
