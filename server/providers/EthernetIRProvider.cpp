@@ -36,16 +36,18 @@ void EthernetIRProvider::processData(ByteBuffer& buffer)
 }
 void EthernetIRProvider::process()
 {
-	for (auto it = m_codes.begin(); it != m_codes.end(); )
+	for (map<uint32_t,uint32_t>::iterator it = m_codes.begin(); it != m_codes.end(); )
 	{
 		if (getTicks () - it->second >= 500)
 		{
-			it = m_codes.erase(it);
+			// it = m_codes.erase(it);
+			m_codes.erase(it);
 			if (m_listener) m_listener->onIRButtonReleased(this, it->first);
+			it = m_codes.begin();
 		}
 		else
 		{
-			it++;
+			// it++;
 		}
 	}
 }

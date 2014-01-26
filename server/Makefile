@@ -13,6 +13,7 @@ OBJS+=Controller.o
 OBJS+=EthernetDevice.o
 OBJS+=providers/EthernetOutputProvider.o
 OBJS+=providers/EthernetInputProvider.o
+OBJS+=providers/EthernetTempProvider.o
 OBJS+=providers/EthernetIRProvider.o
 OBJS+=$(KDLIB)/Logger.o $(KDLIB)/kutils.o
 OBJS+=3rd/format.o
@@ -21,7 +22,7 @@ OBJS+=3rd/mongoose.o
 OBJS+=ICURL.o
 
 LFLAGS=-L/usr/lib -llua5.1 -lluabind -lpthread -lcurl
-CFLAGS=-ggdb -g -O0 $(DEFINES) -std=c++11
+CFLAGS=-ggdb -g -O0 $(DEFINES) #-std=c++11
 
 kdhome: lua_gen $(OBJS)
 	$(CXX) $(OBJS) $(INC) $(LFLAGS) $(CFLAGS) -o $@

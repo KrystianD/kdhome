@@ -1,4 +1,6 @@
 #include "ENC28J60.h"
+#include <myprintf.h>
+#include <delay.h>
 
 #define HIGH(x)(((x) >> 8) & 0xff)
 #define LOW(x)(((x) >> 0) & 0xff)
@@ -289,22 +291,36 @@ void enc28j60SetFullDuplex(uint8_t enabled)
 
 static const char* dec2bin(uint8_t num)
 {
-	static char txt[9];
-	char str[9];
-	strcpy(txt, "00000000");
-	ultoa(num, str, 2);
-	str[sizeof(str) - 1] = 0;
-	strcpy(txt + 8 - strlen(str), str);
+	static char txt[9] = { 0 };
+	if (num & (1ul << 0)) txt[7] = '1';
+	if (num & (1ul << 1)) txt[6] = '1';
+	if (num & (1ul << 2)) txt[5] = '1';
+	if (num & (1ul << 3)) txt[5] = '1';
+	if (num & (1ul << 4)) txt[3] = '1';
+	if (num & (1ul << 5)) txt[2] = '1';
+	if (num & (1ul << 6)) txt[1] = '1';
+	if (num & (1ul << 7)) txt[0] = '1';
 	return txt;
 }
 static const char* dec2bin16(uint16_t num)
 {
-	static char txt[16 + 1];
-	char str[16 + 1];
-	strcpy(txt, "0000000000000000");
-	ultoa(num, str, 2);
-	str[sizeof(str) - 1] = 0;
-	strcpy(txt + 16 - strlen(str), str);
+	static char txt[16 + 1] = { 0 };
+	if (num & (1ul << 0)) txt[15] = '1';
+	if (num & (1ul << 1)) txt[14] = '1';
+	if (num & (1ul << 2)) txt[13] = '1';
+	if (num & (1ul << 3)) txt[12] = '1';
+	if (num & (1ul << 4)) txt[11] = '1';
+	if (num & (1ul << 5)) txt[10] = '1';
+	if (num & (1ul << 6)) txt[9] = '1';
+	if (num & (1ul << 7)) txt[8] = '1';
+	if (num & (1ul << 8)) txt[7] = '1';
+	if (num & (1ul << 9)) txt[6] = '1';
+	if (num & (1ul << 10)) txt[5] = '1';
+	if (num & (1ul << 11)) txt[5] = '1';
+	if (num & (1ul << 12)) txt[3] = '1';
+	if (num & (1ul << 13)) txt[2] = '1';
+	if (num & (1ul << 14)) txt[1] = '1';
+	if (num & (1ul << 15)) txt[0] = '1';
 	return txt;
 }
 void enc28j60_printRegister8(const char* txt, uint8_t addr)

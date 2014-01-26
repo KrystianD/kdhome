@@ -1,6 +1,8 @@
 #include "provider_ir.h"
 #include "providers_settings.h"
+#include <myprintf.h>
 
+#include "ethernet.h"
 #include <kdhome.h>
 
 void provIRReset()

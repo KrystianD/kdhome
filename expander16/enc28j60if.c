@@ -48,9 +48,10 @@
 #include "netif/ppp_oe.h"
 
 #include <public.h>
+#include <delay.h>
 #include <ENC28J60.h>
 #include "ethernet.h"
-#include "color_codes.h"
+#include <color_codes.h>
 
 /* Define those to better describe your network interface. */
 #define IFNAME0 'e'

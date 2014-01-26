@@ -150,6 +150,7 @@ def doCompile ():
 		CFLAGS.append ("-mmcu=" + device_)
 	
 	CFLAGS.append ("-ggdb")
+	CFLAGS.append ("-Werror=implicit")
 	# CFLAGS.append ("-Wmissing-declarations")
 	CFLAGS.append (optimize_)
 	

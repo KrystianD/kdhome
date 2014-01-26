@@ -15,6 +15,7 @@ using namespace std;
 #include "providers/EthernetOutputProvider.h"
 #include "providers/EthernetInputProvider.h"
 #include "providers/EthernetIRProvider.h"
+#include "providers/EthernetTempProvider.h"
 
 class MyLogger;
 class lua_State;
@@ -72,6 +73,7 @@ public:
 	void addOutputProvider(int dev, int outputsCount);
 	void addInputProvider(int dev, int inputsCount);
 	void addIRProvider(int dev);
+	void addTempProvider(int dev, int sensorsCount);
 
 	// Inputs
 	bool getInput(int num);
@@ -82,7 +84,8 @@ public:
 	void toggleOutput(int num);
 
 	// Temperature
-	// double getTemperature(int num);
+	bool isTempValid(int num);
+	float getTemp(int num);
 
 	// Script commands
 	void setTimeout(const std::string& id, float timeout, const std::string& code) { setInterval(id, timeout, code, false); }

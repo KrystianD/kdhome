@@ -57,7 +57,7 @@ struct decode_results {
 //
 //  IRrecv(int recvpin);
 //  void blink13(int blinkflag);
-//  int decode(struct decode_results *results);
+  int decode(struct decode_results *results);
 //  void enableIRIn();
 //  void resume();
 //private:

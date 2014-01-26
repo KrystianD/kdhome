@@ -1,6 +1,7 @@
 #include "providers.h"
 #include <public.h>
-#include "settings.h"
+#include <myprintf.h>
+#include <settings.h>
 
 #include "ethernet.h"
 

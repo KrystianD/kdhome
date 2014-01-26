@@ -50,6 +50,10 @@ void addIRProvider(int dev)
 {
 	program->getController()->addIRProvider(dev);
 }
+void addTempProvider(int dev, int sensorsCount)
+{
+	program->getController()->addTempProvider(dev, sensorsCount);
+}
 
 // Inputs
 bool getInput(int num)
@@ -68,6 +72,16 @@ void setOutput(int num, int on)
 bool getOutput(int num)
 {
 	return program->getController()->getOutput(num);
+}
+
+// Temp
+bool isTempValid(int num)
+{
+	return program->getController()->isTempValid(num);
+}
+float getTemp(int num)
+{
+	return program->getController()->getTemp(num);
 }
 
 // Intervals

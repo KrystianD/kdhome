@@ -1,6 +1,7 @@
 #include "ir.h"
 #include <public.h>
 #include <hardware.h>
+#include <myprintf.h>
 
 #include "3rd/IRremote.h"
 #include "providers.h"

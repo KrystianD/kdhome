@@ -24,6 +24,7 @@ void ioInit()
 	ioInputs |= io_readPCF(PCF_IN1) << 8;
 
 	advimInit();
+	advimProcess(ticks);
 	provInit();
 }
 void ioProcess()
