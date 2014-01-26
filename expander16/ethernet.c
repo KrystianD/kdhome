@@ -39,7 +39,6 @@ uint16_t ethPacketId = 1;
 struct udp_pcb *eth_udppcb;
 struct netif eth_netif;
 uint16_t eth_recvPacketId = 0;
-// uint32_t eth_lastTCPTime;
 
 void eth_initRegisters();
 void eth_onUDPDataReceived(void* arg, struct udp_pcb* upcb, struct pbuf* p, struct ip_addr* addr, u16_t port);
@@ -74,10 +73,6 @@ void ethInit()
 	SPI2->CR1 = //SPI_CR1_BR_0 | //SPI_CR1_BR_1 | SPI_CR1_BR_0 | 
 							SPI_CR1_MSTR | SPI_CR1_SPE | SPI_CR1_SSM | SPI_CR1_SSI;
 
-	// IO_PUSH_PULL(RESET);
-	// IO_LOW(RESET);
-	// _delay_ms(100);
-	// IO_HIGH(RESET);
 	IO_INPUT_PP(INT_ETH);
 	IO_HIGH(INT_ETH);
 
@@ -120,37 +115,6 @@ void ethInit()
 	IP4_ADDR(&addr, _IP_SRV[0], _IP_SRV[1], _IP_SRV[2], _IP_SRV[3]);
 	udp_connect(eth_udppcb, &addr, SRV_PORT);
 	udp_recv(eth_udppcb, &eth_onUDPDataReceived, 0);
-
-	// struct tcp_pcb *tc = tcp_new();
-	// IP4_ADDR(&addr, 192,168,1,50);
-	// tcp_bind(tc, &addr, 80);
-	// struct tcp_pcb *cli = tcp_listen(tc);
-	// tcp_accept(cli, acc);
-
-
-
-	// struct pbuf* p1 = pbuf_alloc(PBUF_RAW, 10, PBUF_POOL);
-	// struct pbuf* p2 = pbuf_alloc(PBUF_RAW, 10, PBUF_POOL);
-	// struct pbuf* p3 = pbuf_alloc(PBUF_RAW, 10, PBUF_POOL);
-	// pbuf_cat(p2,p3);
-	// pbuf_cat(p1,p2);
-
-	// char d[30];
-	// memcpy(d, "1234567890abcdefghijABCDEFGHIJ", 30);
-	// pbuf_take(p1,d,30);
-
-	// char d2[20];
-	// memcpy(d2, "XXXXXYYYYY0987654321", 20);
-	// pbuf_take_offset(p1, 5, d2, 20);
-
-	// char t[30];
-	// pbuf_copy_partial(p1, t, 30, 0);
-
-	// int i;
-	// for(i=0;i<30;i++)
-	// {
-		// myprintf("%d - %c\r\n", i, t[i]);
-	// }
 }
 void eth_initRegisters()
 {
@@ -234,13 +198,7 @@ void eth_initRegisters()
 	myprintf("duplex: %d\r\n", !!(b & 0x04));
 
 	// Enable interrupts
-	
 	enc28j60SetBits(EIE, EIE_INTIE | EIE_PKTIE | EIE_LINKIE);
-
-	// _delay_ms(1000);
-	// myprintf("irq: %d\r\n", IO_IS_HIGH(IRQ));
-	// myprintf("en\r\n");
-	// Enable receiver
 
 	b = 0;
 	b |= MACON1_MARXEN;
@@ -358,7 +316,7 @@ void eth_onUDPDataReceived(void* arg, struct udp_pcb* upcb, struct pbuf* p, stru
 	myprintf("src addr: %s\r\n", srcAddr);
 
 	uint16_t packetId;
-	BYTEBUFFER_FETCH(&buffer, packetId);
+	if (BYTEBUFFER_FETCH(&buffer, packetId)) return;
 
 	provProcess(&buffer);
 
