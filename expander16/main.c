@@ -27,7 +27,7 @@ void main()
 {
 	SCB->VTOR = 0x08000000;
 	
-	// set clock source as HSI / 2 *(PLL) 4
+	// set clock source as HSI / 2 * (PLL) 4
 	RCC->CFGR |= RCC_CFGR_PLLMULL8 | RCC_CFGR_PLLXTPRE_HSE_Div2 /*| RCC_CFGR_PLLSRC*/;
 	RCC->CR |= RCC_CR_PLLON;
 	while (!(RCC->CR & RCC_CR_PLLRDY));
@@ -74,16 +74,6 @@ void main()
 		// else dodump = 0;
 		// dodump=1;
 		
-		static int q=0;
-		if(ticks-q>=1000)
-		{
-			myprintf("ASD\r\n");
-			q=ticks;
-		}
-
-		provTempSetValueIntFrac(0,5, 0x8000);
-		provTempSetValueFloat(1, 5.124f);
-		provTempSetValueIntFrac(2, ((int16_t)(0xff5 << 4)) >> 4, 0xe << 12);
 #ifndef ETHERNET_MODULE
 		ioProcess();
 	
