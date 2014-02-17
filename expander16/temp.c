@@ -3,6 +3,7 @@
 #include <ow.h>
 
 #include "temp.h"
+#include "provider_temp.h"
 
 enum ETempStatus tempStatus;
 int8_t tempCurrent;
@@ -73,6 +74,7 @@ void tempReadTemperature ()
 		tempCurrentFraq = r[0] & 0x0f;
 		tempLastRead = ticks;
 		myprintf ("[temp] read %d fraq: %d\r\n", tempCurrent, tempCurrentFraq);
+		provTempSetValueIntFrac(0, tempCurrent, (uint16_t)tempCurrentFraq << 12);
 	}
 	else
 	{

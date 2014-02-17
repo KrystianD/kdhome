@@ -2,6 +2,7 @@
 #include "providers_settings.h"
 
 #include <kdhome.h>
+#include <myprintf.h>
 
 void provOutputReset()
 {
@@ -28,14 +29,14 @@ void provOutputProcess(TByteBuffer* data)
 			{
 				int en = b & (1 << (7 - idx));
 
+				provOutputSetOutput(i, en);
+
 				idx++;
-				if (idx == 8)
+				if (idx == 8 && i < cnt - 1)
 				{
 					idx = 0;
 					if (BYTEBUFFER_FETCH(data, b)) return;
 				}
-
-				provOutputSetOutput(i, en);
 			}
 			provOutputUpdate();
 		}
