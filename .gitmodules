@@ -1,0 +1,3 @@
+[submodule "server/3rd/json4lua"]
+	path = server/3rd/json4lua
+	url = git@github.com:craigmj/json4lua.git
