@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "Controller.h"
 #include "Program.h"
-// #include "events.h"
 #include "MyLogger.h"
+#include "StorageEngine.h"
 #include "kutils.h"
 
 #include "lua_funcs.h"
@@ -41,9 +41,12 @@ Controller::Controller()
 	mg_add_uri_handler(m_httpserver, "/", &handle_hello);
 
 	m_startTime = getTicks();
+
+	m_storage = new StorageEngine();
 }
 Controller::~Controller()
 {
+	delete m_storage;
 	mg_destroy_server(&m_httpserver);
 	pthread_mutex_destroy(&m_luaMutex);
 }
@@ -86,8 +89,18 @@ void Controller::init()
 		unprotectLua();
 	}
 
+	m_storage->setPath("data");
+	m_storage->load();
+
 	m_server.setListener(this);
 	m_server.init();
+
+	map<int,int>::iterator it;
+	for (it = m_persistentOutputs.begin(); it != m_persistentOutputs.end(); it++)
+	{
+		int outputId = it->first;
+		m_logger->logInfo(Format("out {}") << outputId);
+	}
 }
 
 void Controller::execute()
@@ -130,7 +143,19 @@ void Controller::execute()
 		dev->process();
 	}
 }
+void Controller::savePersistentState()
+{
+	map<int,int>::iterator it;
+	for (it = m_persistentOutputs.begin(); it != m_persistentOutputs.end(); it++)
+	{
+		int outputId = it->first;
+		bool state = getOutput(outputId);
+		m_storage->setInt("output", outputId, state);
+	}
+	m_storage->save();
+}
 
+// Registering devices and proviers
 int Controller::registerEthernetDevice(uint32_t id, const std::string& ip)
 {
 	EthernetDevice *dev = new EthernetDevice(&m_server, id, ip);
@@ -149,6 +174,8 @@ void Controller::addOutputProvider(int dev, int outputsCount)
 	}
 	EthernetDevice *device = m_devices[dev];
 	EthernetOutputProvider *out = new EthernetOutputProvider(device, outputsCount);
+	// out->getStorage()->setPath(str(Format("data/output_{}") << dev));
+	// out->getStorage()->load();
 	device->addProvider(out);
 	m_logger->logInfo(Format("Added output provider to device #{}") << dev);
 }
@@ -162,6 +189,8 @@ void Controller::addInputProvider(int dev, int inputsCount)
 	}
 	EthernetDevice *device = m_devices[dev];
 	EthernetInputProvider *inp = new EthernetInputProvider(device, inputsCount);
+	// inp->getStorage()->setPath(str(Format("data/input_{}") << dev));
+	// inp->getStorage()->load();
 	inp->setListener(this);
 	device->addProvider(inp);
 	m_logger->logInfo(Format("Added input provider to device #{}") << dev);
@@ -176,6 +205,8 @@ void Controller::addIRProvider(int dev)
 	}
 	EthernetDevice *device = m_devices[dev];
 	EthernetIRProvider *ir = new EthernetIRProvider(device);
+	// ir->getStorage()->setPath(str(Format("data/ir_{}") << dev));
+	// ir->getStorage()->load();
 	ir->setListener(this);
 	device->addProvider(ir);
 	m_logger->logInfo(Format("Added IR provider to device #{}") << dev);
@@ -190,11 +221,13 @@ void Controller::addTempProvider(int dev, int sensorsCount)
 	}
 	EthernetDevice *device = m_devices[dev];
 	EthernetTempProvider *temp = new EthernetTempProvider(device, sensorsCount);
-	// inp->setListener(this);
+	// temp->getStorage()->setPath(str(Format("data/temp_{}") << dev));
+	// temp->getStorage()->load();
 	device->addProvider(temp);
 	m_logger->logInfo(Format("Added temperature provider to device #{}") << dev);
 }
 
+// Inputs
 bool Controller::getInput(int num)
 {
 	IInputProvider *p;
@@ -207,6 +240,7 @@ bool Controller::getInput(int num)
 	return p->getInputState(num - dev->getID());
 }
 
+// Outputs
 void Controller::setOutput(int num, bool on)
 {
 	IOutputProvider *p;
@@ -225,6 +259,8 @@ void Controller::setOutput(int num, bool on)
 		else
 			m_logger->logInfo(Format("[output] Output {} disabled") << getOutputName(num));
 	}
+
+	savePersistentState();
 }
 bool Controller::getOutput(int num)
 {
@@ -252,8 +288,15 @@ void Controller::toggleOutput(int num)
 		m_logger->logInfo(Format("[expander] Output {} enabled(toggled)") << getOutputName(num));
 	else
 		m_logger->logInfo(Format("[expander] Output {} disabled(toggled)") << getOutputName(num));
+
+	savePersistentState();
+}
+void Controller::setOutputAsPersistent(int num)
+{
+	m_persistentOutputs[num] = 1;
 }
 
+// Temperatures
 bool Controller::isTempValid(int num)
 {
 	ITempProvider *p;
@@ -276,17 +319,6 @@ float Controller::getTemp(int num)
 	}
 	return p->getTemp(num - dev->getID());
 }
-
-// Temperature
-// double Controller::getTemperature(int num)
-// {
-	// const TProviderEntry<ITemperatureProvider> *p = findTemperatureProvider(num);
-	// if (p)
-	// {
-		// return p->provider->getTemperature(num - p->startNumber);
-	// }
-	// return 0;
-// }
 
 // Script commands
 void Controller::setInterval(const std::string& id, float timeout, const std::string& code, bool repeating)

@@ -73,6 +73,10 @@ bool getOutput(int num)
 {
 	return program->getController()->getOutput(num);
 }
+void setOutputAsPersistent(int num)
+{
+	return program->getController()->setOutputAsPersistent(num);
+}
 
 // Temp
 bool isTempValid(int num)

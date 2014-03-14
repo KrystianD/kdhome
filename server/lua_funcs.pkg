@@ -29,6 +29,7 @@ void toggleOutput(int num);
 void setOutput(int num, int on);
 void setOutput(int num, bool on);
 bool getOutput(int num);
+void setOutputAsPersistent(int num);
 
 // Temp
 bool isTempValid(int num);

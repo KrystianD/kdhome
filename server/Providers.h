@@ -2,9 +2,11 @@
 #define __PROVIDERS_H__
 
 #include <stdint.h>
+#include "common.h"
 #include "ByteBuffer.h"
 
 class EthernetDevice;
+class StorageEngine;
 
 class IInputChangeListener
 {
@@ -23,12 +25,20 @@ public:
 class IProvider
 {
 public:
+	IProvider();
+	~IProvider();
+
 	virtual uint16_t getType() = 0;
 	virtual void init() = 0;
 	virtual void deinit() = 0;
 	virtual void processData(ByteBuffer& buffer) = 0;
 	virtual void process() = 0;
 	virtual EthernetDevice* getDevice() = 0;
+
+	StorageEngine* getStorage() { return m_storage; }
+
+protected:
+	StorageEngine *m_storage;
 };
 
 // class IInputProvider

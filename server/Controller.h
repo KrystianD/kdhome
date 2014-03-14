@@ -19,6 +19,7 @@ using namespace std;
 
 class MyLogger;
 class lua_State;
+class StorageEngine;
 
 class TDelayedCode
 {
@@ -56,6 +57,7 @@ public:
 	void setLogger(MyLogger* logger) { m_logger = logger; }
 	void init();
 	void execute();
+	void savePersistentState();
 
 	void updateNames();
 
@@ -82,6 +84,7 @@ public:
 	void setOutput(int num, bool on);
 	bool getOutput(int num);
 	void toggleOutput(int num);
+	void setOutputAsPersistent(int num);
 
 	// Temperature
 	bool isTempValid(int num);
@@ -105,6 +108,7 @@ public:
 	void execLuaFunc(int num);
 
 	lua_State* getLua() { return m_lua; }
+	StorageEngine* getStorage() { return m_storage; }
 
 	// mongoose
 	mg_server* getHttpServer() { return m_httpserver; }
@@ -131,8 +135,11 @@ private:
 	mg_connection *m_currConn;
 	// TActivityTimer m_userActivity, m_movementActivity, m_totalActivity;
 	MyLogger *m_logger;
+	StorageEngine *m_storage;
 
 	vector<EthernetDevice*> m_devices;
+
+	map<int,int> m_persistentOutputs;
 
 	// Lua
 	lua_State *m_lua;
