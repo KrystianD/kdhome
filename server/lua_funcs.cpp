@@ -38,6 +38,10 @@ int registerEthernetDevice(int id, const std::string& ip)
 {
 	return program->getController()->registerEthernetDevice(id, ip);
 }
+int registerUsbDevice(int id, int vendor, int product)
+{
+	return program->getController()->registerUsbDevice(id, vendor, product);
+}
 void addOutputProvider(int dev, int outputsCount)
 {
 	program->getController()->addOutputProvider(dev, outputsCount);

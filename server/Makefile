@@ -12,7 +12,7 @@ INC+=-I$(KDLIB)
 OBJS=main.o Program.o
 OBJS+=UdpServer.o
 OBJS+=Controller.o
-OBJS+=EthernetDevice.o
+OBJS+=Device.o EthernetDevice.o UsbDevice.o
 OBJS+=StorageEngine.o
 OBJS+=Providers.o
 OBJS+=providers/EthernetOutputProvider.o
@@ -23,18 +23,18 @@ OBJS+=$(KDLIB)/Logger.o $(KDLIB)/kutils.o
 OBJS+=3rd/format.o
 OBJS+=lua_funcs_gen.o lua_funcs.o /usr/lib/libtolua++5.1.a
 OBJS+=3rd/mongoose.o
-OBJS+=3rd/libconfig-1.4.9/lib/grammar.o
-OBJS+=3rd/libconfig-1.4.9/lib/libconfig.o
-OBJS+=3rd/libconfig-1.4.9/lib/scanctx.o
-OBJS+=3rd/libconfig-1.4.9/lib/scanner.o
-OBJS+=3rd/libconfig-1.4.9/lib/strbuf.o
-OBJS+=3rd/libconfig-1.4.9/lib/libconfigcpp.cc
+OBJS+=3rd/libconfig-1.4.9/grammar.o
+OBJS+=3rd/libconfig-1.4.9/libconfig.o
+OBJS+=3rd/libconfig-1.4.9/scanctx.o
+OBJS+=3rd/libconfig-1.4.9/scanner.o
+OBJS+=3rd/libconfig-1.4.9/strbuf.o
+OBJS+=3rd/libconfig-1.4.9/libconfigcpp.cc
 OBJS+=ICURL.o
 
 DEFINES+=-DLIBCONFIG_STATIC
 DEFINES+=-DLIBCONFIGXX_STATIC
 
-LFLAGS=-L/usr/lib -llua5.1 -lluabind -lpthread -lcurl
+LFLAGS=-L/usr/lib -llua5.1 -lluabind -lpthread -lcurl -lusb-1.0
 CFLAGS=-ggdb -g -O0 $(DEFINES) #-std=c++11
 
 kdhome: lua_gen $(OBJS)

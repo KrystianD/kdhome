@@ -6,7 +6,7 @@
 
 #include <kdhome.h>
 
-EthernetInputProvider::EthernetInputProvider(EthernetDevice* device, int amount)
+EthernetInputProvider::EthernetInputProvider(Device* device, int amount)
 	: m_device(device), m_listener(0), m_lastUpdateTime(0)
 {
 	for (int i = 0; i < amount; i++)

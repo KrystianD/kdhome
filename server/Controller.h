@@ -10,7 +10,9 @@
 using namespace std;
 
 #include "Providers.h"
+#include "Device.h"
 #include "EthernetDevice.h"
+#include "UsbDevice.h"
 #include "providers/IOutputProvider.h"
 #include "providers/EthernetOutputProvider.h"
 #include "providers/EthernetInputProvider.h"
@@ -62,7 +64,7 @@ public:
 	void updateNames();
 
 	template<typename T>
-	bool findProvider(int num, EthernetDevice*& dev, T*& provider);
+	bool findProvider(int num, Device*& dev, T*& provider);
 
 	// Expander
 	// void freezeExpander() { m_expander->freeze(); }
@@ -72,6 +74,7 @@ public:
 
 	// Devices
 	int registerEthernetDevice(uint32_t id, const std::string& ip);
+	int registerUsbDevice(int id, uint16_t vendor, uint16_t product);
 	void addOutputProvider(int dev, int outputsCount);
 	void addInputProvider(int dev, int inputsCount);
 	void addIRProvider(int dev);
@@ -137,7 +140,7 @@ private:
 	MyLogger *m_logger;
 	StorageEngine *m_storage;
 
-	vector<EthernetDevice*> m_devices;
+	vector<Device*> m_devices;
 
 	map<int,int> m_persistentOutputs;
 

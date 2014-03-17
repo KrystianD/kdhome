@@ -5,7 +5,7 @@
 #include "common.h"
 #include "ByteBuffer.h"
 
-class EthernetDevice;
+class Device;
 class StorageEngine;
 
 class IInputChangeListener
@@ -33,7 +33,7 @@ public:
 	virtual void deinit() = 0;
 	virtual void processData(ByteBuffer& buffer) = 0;
 	virtual void process() = 0;
-	virtual EthernetDevice* getDevice() = 0;
+	virtual Device* getDevice() = 0;
 
 	StorageEngine* getStorage() { return m_storage; }
 

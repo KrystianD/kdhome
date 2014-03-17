@@ -1,13 +1,13 @@
 #ifndef __ETHERNET_TEMP_PROVIDER_H__
 #define __ETHERNET_TEMP_PROVIDER_H__
 
-#include "../EthernetDevice.h"
+#include "../Device.h"
 #include "ITempProvider.h"
 
 class EthernetTempProvider : public ITempProvider
 {
 public:
-	EthernetTempProvider(EthernetDevice* device, int amount);
+	EthernetTempProvider(Device* device, int amount);
 	virtual ~EthernetTempProvider() { }
 
 	// IProvider
@@ -16,7 +16,7 @@ public:
 	void deinit() { }
 	void processData(ByteBuffer& buffer);
 	void process();
-	EthernetDevice* getDevice() { return m_device; }
+	Device* getDevice() { return m_device; }
 
 	// ITempProvider
 	int getAmount() { return m_sensors.size(); }
@@ -32,7 +32,7 @@ private:
 		TSensor() : value(0), error(false) { }
 	};
 
-	EthernetDevice *m_device;
+	Device *m_device;
 
 	vector<TSensor> m_sensors;
 

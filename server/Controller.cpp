@@ -139,7 +139,7 @@ void Controller::execute()
 	
 	for (size_t i = 0; i < m_devices.size(); i++)
 	{
-		EthernetDevice *dev = m_devices[i];
+		Device *dev = m_devices[i];
 		dev->process();
 	}
 }
@@ -158,10 +158,18 @@ void Controller::savePersistentState()
 // Registering devices and proviers
 int Controller::registerEthernetDevice(uint32_t id, const std::string& ip)
 {
-	EthernetDevice *dev = new EthernetDevice(&m_server, id, ip);
+	EthernetDevice *dev = new EthernetDevice(id, &m_server, ip);
 	int idx = m_devices.size();
 	m_devices.push_back(dev);
 	m_logger->logInfo(Format("Registered ethernet device #{} with IP {}") << idx << ip);
+	return idx;
+}
+int Controller::registerUsbDevice(int id, uint16_t vendor, uint16_t product)
+{
+	UsbDevice *dev = new UsbDevice(id, vendor, product);
+	int idx = m_devices.size();
+	m_devices.push_back(dev);
+	m_logger->logInfo(Format("Registered USB device #{} with vid:pid {}:{}") << idx << vendor << product);
 	return idx;
 }
 void Controller::addOutputProvider(int dev, int outputsCount)
@@ -172,7 +180,7 @@ void Controller::addOutputProvider(int dev, int outputsCount)
 		lua_error(m_lua);
 		return;
 	}
-	EthernetDevice *device = m_devices[dev];
+	Device *device = m_devices[dev];
 	EthernetOutputProvider *out = new EthernetOutputProvider(device, outputsCount);
 	// out->getStorage()->setPath(str(Format("data/output_{}") << dev));
 	// out->getStorage()->load();
@@ -187,7 +195,7 @@ void Controller::addInputProvider(int dev, int inputsCount)
 		lua_error(m_lua);
 		return;
 	}
-	EthernetDevice *device = m_devices[dev];
+	Device *device = m_devices[dev];
 	EthernetInputProvider *inp = new EthernetInputProvider(device, inputsCount);
 	// inp->getStorage()->setPath(str(Format("data/input_{}") << dev));
 	// inp->getStorage()->load();
@@ -203,7 +211,7 @@ void Controller::addIRProvider(int dev)
 		lua_error(m_lua);
 		return;
 	}
-	EthernetDevice *device = m_devices[dev];
+	Device *device = m_devices[dev];
 	EthernetIRProvider *ir = new EthernetIRProvider(device);
 	// ir->getStorage()->setPath(str(Format("data/ir_{}") << dev));
 	// ir->getStorage()->load();
@@ -219,7 +227,7 @@ void Controller::addTempProvider(int dev, int sensorsCount)
 		lua_error(m_lua);
 		return;
 	}
-	EthernetDevice *device = m_devices[dev];
+	Device *device = m_devices[dev];
 	EthernetTempProvider *temp = new EthernetTempProvider(device, sensorsCount);
 	// temp->getStorage()->setPath(str(Format("data/temp_{}") << dev));
 	// temp->getStorage()->load();
@@ -231,7 +239,7 @@ void Controller::addTempProvider(int dev, int sensorsCount)
 bool Controller::getInput(int num)
 {
 	IInputProvider *p;
-	EthernetDevice *dev;
+	Device *dev;
 	if (!findProvider(num, dev, p))
 	{
 		throwLuaErrorNOPROTECT(str(Format("Unable to find input provider for {}") << num));
@@ -244,7 +252,7 @@ bool Controller::getInput(int num)
 void Controller::setOutput(int num, bool on)
 {
 	IOutputProvider *p;
-	EthernetDevice *dev;
+	Device *dev;
 	if (!findProvider(num, dev, p))
 	{
 		throwLuaErrorNOPROTECT(str(Format("Unable to find output provider for {}") << num));
@@ -265,7 +273,7 @@ void Controller::setOutput(int num, bool on)
 bool Controller::getOutput(int num)
 {
 	IOutputProvider *p;
-	EthernetDevice *dev;
+	Device *dev;
 	if (!findProvider(num, dev, p))
 	{
 		throwLuaErrorNOPROTECT(str(Format("Unable to find output provider for {}") << num));
@@ -276,7 +284,7 @@ bool Controller::getOutput(int num)
 void Controller::toggleOutput(int num)
 {
 	IOutputProvider *p;
-	EthernetDevice *dev;
+	Device *dev;
 	if (!findProvider(num, dev, p))
 	{
 		throwLuaErrorNOPROTECT(str(Format("Unable to find output provider for {}") << num));
@@ -300,7 +308,7 @@ void Controller::setOutputAsPersistent(int num)
 bool Controller::isTempValid(int num)
 {
 	ITempProvider *p;
-	EthernetDevice *dev;
+	Device *dev;
 	if (!findProvider(num, dev, p))
 	{
 		throwLuaErrorNOPROTECT(str(Format("Unable to find temperature provider for {}") << num));
@@ -311,7 +319,7 @@ bool Controller::isTempValid(int num)
 float Controller::getTemp(int num)
 {
 	ITempProvider *p;
-	EthernetDevice *dev;
+	Device *dev;
 	if (!findProvider(num, dev, p))
 	{
 		throwLuaErrorNOPROTECT(str(Format("Unable to find temperature provider for {}") << num));
@@ -546,7 +554,7 @@ void Controller::throwLuaErrorNOPROTECT(const string& msg)
 }
 
 template<typename T>
-bool Controller::findProvider(int num, EthernetDevice*& dev, T*& provider)
+bool Controller::findProvider(int num, Device*& dev, T*& provider)
 {
 	for (int i = 0; i < m_devices.size(); i++)
 	{
@@ -583,8 +591,8 @@ void Controller::onEthernetDataReceived(const string& ip, ByteBuffer& buffer)
 {
 	for (size_t i = 0; i < m_devices.size(); i++)
 	{
-		EthernetDevice *dev = m_devices[i];
-		if (dev->getIP() == ip)
+		EthernetDevice *dev = dynamic_cast<EthernetDevice*>(m_devices[i]);
+		if (dev && dev->getIP() == ip)
 		{
 			dev->processData(buffer);
 			return;

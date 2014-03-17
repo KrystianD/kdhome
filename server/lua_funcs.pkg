@@ -1,4 +1,5 @@
 $#include "lua_funcs.h"
+$renaming uint16_t @ short int
 $renaming uint32_t @ int
 $renaming uint64_t @ long long
 /*
@@ -16,6 +17,7 @@ int getTime();
 
 // Devices
 int registerEthernetDevice(int id, const std::string& ip);
+int registerUsbDevice(int id, int vendor, int product);
 void addOutputProvider(int dev, int outputsCount);
 void addInputProvider(int dev, int inputsCount);
 void addIRProvider(int dev);

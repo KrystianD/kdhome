@@ -4,7 +4,7 @@
 
 #include "../common.h"
 
-EthernetIRProvider::EthernetIRProvider(EthernetDevice* device)
+EthernetIRProvider::EthernetIRProvider(Device* device)
 	: m_device(device), m_listener(0)
 {
 }

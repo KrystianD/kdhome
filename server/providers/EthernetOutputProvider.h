@@ -1,13 +1,13 @@
 #ifndef __ETHERNET_OUTPUT_PROVIDER_H__
 #define __ETHERNET_OUTPUT_PROVIDER_H__
 
-#include "../EthernetDevice.h"
+#include "../Device.h"
 #include "IOutputProvider.h"
 
 class EthernetOutputProvider : public IOutputProvider
 {
 public:
-	EthernetOutputProvider(EthernetDevice* device, int amount);
+	EthernetOutputProvider(Device* device, int amount);
 	virtual ~EthernetOutputProvider() { }
 
 	// IProvider
@@ -15,7 +15,7 @@ public:
 	void deinit() { }
 	void processData(ByteBuffer& buffer);
 	void process();
-	EthernetDevice* getDevice() { return m_device; }
+	Device* getDevice() { return m_device; }
 
 	// IOutputProvider
 	int getAmount() { return m_outputs.size(); }
@@ -24,7 +24,7 @@ public:
 	void toggleOutputState(int num);
 
 private:
-	EthernetDevice *m_device;
+	Device *m_device;
 
 	vector<char> m_outputs;
 

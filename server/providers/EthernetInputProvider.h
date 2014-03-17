@@ -1,13 +1,13 @@
 #ifndef __ETHERNET_INPUT_PROVIDER_H__
 #define __ETHERNET_INPUT_PROVIDER_H__
 
-#include "../EthernetDevice.h"
+#include "../Device.h"
 #include "IInputProvider.h"
 
 class EthernetInputProvider : public IInputProvider
 {
 public:
-	EthernetInputProvider(EthernetDevice* device, int amount);
+	EthernetInputProvider(Device* device, int amount);
 	virtual ~EthernetInputProvider() { }
 
 	// IProvider
@@ -16,7 +16,7 @@ public:
 	void deinit() { }
 	void processData(ByteBuffer& buffer);
 	void process();
-	EthernetDevice* getDevice() { return m_device; }
+	Device* getDevice() { return m_device; }
 
 	// IInputProvider
 	int getAmount() { return m_inputs.size(); }
@@ -31,7 +31,7 @@ private:
 		TInput() : low(0), high(0) { }
 	};
 
-	EthernetDevice *m_device;
+	Device *m_device;
 	IInputProviderListener *m_listener;
 
 	bool m_hasFirstData;

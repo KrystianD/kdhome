@@ -16,6 +16,7 @@ int getTime();
 
 // Devices
 int registerEthernetDevice(int id, const std::string& ip);
+int registerUsbDevice(int id, int vendor, int product);
 void addOutputProvider(int dev, int outputsCount);
 void addInputProvider(int dev, int inputsCount);
 void addIRProvider(int dev);

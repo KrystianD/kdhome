@@ -2,7 +2,7 @@
 
 #include "kutils.h"
 
-EthernetOutputProvider::EthernetOutputProvider(EthernetDevice* device, int amount)
+EthernetOutputProvider::EthernetOutputProvider(Device* device, int amount)
 	: m_device(device)
 {
 	for (int i = 0; i < amount; i++)

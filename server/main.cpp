@@ -1,5 +1,7 @@
 #include "Program.h"
 
+#include <libusb.h>
+
 #include <kutils.h>
 
 #include "common.h"
@@ -9,11 +11,11 @@ using namespace std;
 
 MyLogger *logger;
 Program *program;
-// libusb_context *ctx;
+libusb_context *ctx;
 
 int main(int argc, char** argv)
 {
-	// libusb_init (&ctx);
+	libusb_init(&ctx);
 
 	MyLogger logger;
 	ConsoleLoggerOutput out1;
@@ -29,5 +31,5 @@ int main(int argc, char** argv)
 	p.setLogger(&logger);
 	p.run();
 
-	// libusb_exit (ctx);
+	libusb_exit(ctx);
 }

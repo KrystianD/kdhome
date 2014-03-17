@@ -8,7 +8,10 @@
 #include "settings.h"
 using namespace fmt;
 
+struct libusb_context;
+
 extern Program *program;
 extern MyLogger *logger;
+extern libusb_context *ctx;
 
 #endif

@@ -4,7 +4,7 @@
 #include "kutils.h"
 #include <unistd.h>
 
-EthernetTempProvider::EthernetTempProvider(EthernetDevice* device, int amount)
+EthernetTempProvider::EthernetTempProvider(Device* device, int amount)
 	: m_device(device)//, m_listener(0)//, m_lastUpdateTime(0)
 {
 	for (int i = 0; i < amount; i++)
