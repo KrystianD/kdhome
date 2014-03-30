@@ -56,10 +56,14 @@ void Controller::init()
 	protectLua();
 	if (m_lua)
 		lua_close(m_lua);
+	m_logger->logInfo("Creating Lua instance");
 	m_lua = lua_open();
+	m_logger->logInfo("Opening Lua libs");
 	luaL_openlibs(m_lua);
+	m_logger->logInfo("Creating Luabind interface");
 	luabind::open(m_lua);
 
+	m_logger->logInfo("Binding Lua functions");
 	tolua_lua_funcs_open(m_lua);
 
 	int res = luaL_dofile(m_lua, "scripts/script1.lua");
