@@ -55,4 +55,4 @@ clean:
 	rm -f *.o $(KDLIB)/*.o providers/*.o kdhome 
 
 cleanall:
-	rm -f *.o $(KDLIB)/*.o 3rd/*.o providers/*.o pch.h.gch kdhome 
+	rm -f *.o $(KDLIB)/*.o 3rd/*.o 3rd/libconfig-1.4.9/*.o providers/*.o pch.h.gch kdhome 
