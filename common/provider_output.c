@@ -1,8 +1,8 @@
+#include "providers.h"
 #include "provider_output.h"
 #include "providers_settings.h"
 
 #include <kdhome.h>
-#include <myprintf.h>
 
 void provOutputReset()
 {

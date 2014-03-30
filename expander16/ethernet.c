@@ -210,7 +210,8 @@ void ethProcess()
 {
 	static uint32_t lastCheck = 0;
 
-	if (ticks - lastCheck >= 1000) {
+	if (ticks - lastCheck >= 1000)
+	{
 		lastCheck = ticks;
 
 		TByteBuffer b;

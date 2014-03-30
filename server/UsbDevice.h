@@ -24,16 +24,22 @@ public:
 
 private:
 	uint16_t m_vendor, m_product;
+	int m_errors;
 
-	uint8_t m_buf[1500];
-	libusb_transfer* m_transfer;
-	libusb_device_handle* m_dev;
+	uint8_t m_buf[1500 + 8];
+	libusb_transfer *m_transfer, *m_readTransfer;
+	libusb_device_handle *m_dev;
+	bool m_hasData;
 	// string m_ip;
 	// UdpServer *m_server;
 
 	void logInfo(const string& msg);
-	static void callback_s(libusb_transfer* transfer);
-	void callback(libusb_transfer* transfer);
+	static void callback_intr_s(libusb_transfer* transfer) { ((UsbDevice*)transfer->user_data)->callback_intr(transfer); }
+	static void callback_control_s(libusb_transfer* transfer) { ((UsbDevice*)transfer->user_data)->callback_control(transfer); }
+	void callback_intr(libusb_transfer* transfer);
+	void callback_control(libusb_transfer* transfer);
+
+	bool sendCommand (uint8_t cmd, uint16_t value, uint16_t index, bool out, uint8_t* buffer, int* len);
 };
 
 #endif

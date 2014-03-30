@@ -1,0 +1,5 @@
+#define INTR_PRINTF			0
+#define INTR_NEWCLAP		1
+#define INTR_NEWIRCODE	2
+#define REQ_GETBUFFER		(100 + 0)
+#define REQ_FREEBUFFER	(100 + 1)

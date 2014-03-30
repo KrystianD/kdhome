@@ -1,8 +1,9 @@
+#include "providers.h"
 #include "provider_input.h"
 #include "providers_settings.h"
-#include <myprintf.h>
+// #include <myprintf.h>
 
-#include "ethernet.h"
+// #include "ethernet.h"
 #include <kdhome.h>
 #include <string.h>
 
@@ -47,7 +48,7 @@ void provInputSetState(int num, int value)
 void provInputSendState()
 {
 	TByteBuffer b;
-	if (!ethPrepareBuffer(&b, 2 + 1 + 1 + INPUTS_COUNT * (1 + 1)))
+	if (!provPrepareBuffer(&b, 2 + 1 + 1 + INPUTS_COUNT * (1 + 1)))
 		return;
 	uint16_t type = PROVIDER_TYPE_INPUT;
 	BYTEBUFFER_APPEND(&b, type);
@@ -67,7 +68,7 @@ void provInputSendState()
 		BYTEBUFFER_APPEND(&b, high);
 	}
 
-	ethSendPacket(&b);
+	provSendPacket(&b);
 
-	ethFreeBuffer(&b);
+	provFreeBuffer(&b);
 }

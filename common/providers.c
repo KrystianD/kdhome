@@ -1,14 +1,16 @@
 #include "providers.h"
 #include <public.h>
-#include <myprintf.h>
+// #include <myprintf.h>
 #include <settings.h>
 
-#include "ethernet.h"
+// #include "ethernet.h"
 
 #include <kdhome.h>
 #include "providers_settings.h"
 
 // PRIVATE
+uint16_t prov_sessKey = 0;
+uint16_t prov_packetId = 1;
 
 // ------------------------- IMPLEMENTATION ------------------------------
 
@@ -22,25 +24,26 @@ void provInit()
 void provProcess(TByteBuffer* data)
 {
 	uint16_t type;
-	if (BYTEBUFFER_FETCH(data,type)) return;
+	if (BYTEBUFFER_FETCH(data, type)) return;
 	// myprintf("type: 0x%04x\r\n", type);
 
-	switch (type) {
+	switch (type)
+	{
 	case PROVIDER_TYPE_CONTROL:
 		{
 			uint8_t cmd;
-			if (BYTEBUFFER_FETCH(data,cmd)) return;
+			if (BYTEBUFFER_FETCH(data, cmd)) return;
 			if (cmd == CONTROL_CMD_REGISTER)
 			{
-				if (BYTEBUFFER_FETCH(data,ethSessKey)) return;
-				myprintf("New sesskey: 0x%04x\r\n", ethSessKey);
+				if (BYTEBUFFER_FETCH(data, prov_sessKey)) return;
+				myprintf("New sesskey: 0x%04x\r\n", prov_sessKey);
 
-				ethPacketId = 1;
+				prov_packetId = 1;
 				// reset providers
 				provOutputReset();
 				provInputReset();
-				provIRReset();
-				provTempReset();
+				// provIRReset();
+				// provTempReset();
 			}
 		}
 		break;
@@ -50,18 +53,18 @@ void provProcess(TByteBuffer* data)
 	case PROVIDER_TYPE_INPUT:
 		provInputProcess(data);
 		break;
-	case PROVIDER_TYPE_IR:
-		provIRProcess(data);
-		break;
-	case PROVIDER_TYPE_TEMP:
-		provTempProcess(data);
-		break;
+	// case PROVIDER_TYPE_IR:
+		// provIRProcess(data);
+		// break;
+	// case PROVIDER_TYPE_TEMP:
+		// provTempProcess(data);
+		// break;
 	}
 }
 void provTmr()
 {
 	provOutputTmr();
 	provInputTmr();
-	provIRTmr();
-	provTempTmr();
+	// provIRTmr();
+	// provTempTmr();
 }
