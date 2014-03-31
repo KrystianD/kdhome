@@ -35,12 +35,13 @@ bool StorageEngine::save()
 {
 	m_config->writeFile(m_path.c_str());
 }
-
+#include <iostream>
 int StorageEngine::getInt(const string& name, int def)
 {
 	int val;
 	if (!m_config->lookupValue(name, val))
 		val = def;
+	return val;
 }
 int StorageEngine::getInt(const string& name, int num, int def)
 {

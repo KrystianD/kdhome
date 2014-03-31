@@ -66,6 +66,11 @@ void Controller::init()
 	m_logger->logInfo("Binding Lua functions");
 	tolua_lua_funcs_open(m_lua);
 
+	m_logger->logInfo("Loading persistent storage");
+	m_storage->setPath("data");
+	m_storage->load();
+
+	m_logger->logInfo("Performing script initialization");
 	int res = luaL_dofile(m_lua, "scripts/script1.lua");
 	unprotectLua();
 	if (res)
@@ -93,9 +98,6 @@ void Controller::init()
 		unprotectLua();
 	}
 
-	m_storage->setPath("data");
-	m_storage->load();
-
 	m_server.setListener(this);
 	m_server.init();
 
@@ -103,7 +105,9 @@ void Controller::init()
 	for (it = m_persistentOutputs.begin(); it != m_persistentOutputs.end(); it++)
 	{
 		int outputId = it->first;
-		m_logger->logInfo(Format("out {}") << outputId);
+		int state = m_storage->getInt("output", outputId, 1);
+		m_logger->logInfo(Format("out {} {}") << outputId << state);
+		setOutput(outputId, state);
 	}
 }
 
@@ -147,12 +151,12 @@ void Controller::execute()
 		dev->process();
 	}
 }
-void Controller::savePersistentState()
+void Controller::savePersistentState(int outputId)
 {
 	map<int,int>::iterator it;
-	for (it = m_persistentOutputs.begin(); it != m_persistentOutputs.end(); it++)
+	// for (it = m_persistentOutputs.begin(); it != m_persistentOutputs.end(); it++)
 	{
-		int outputId = it->first;
+		// int outputId = it->first;
 		bool state = getOutput(outputId);
 		m_storage->setInt("output", outputId, state);
 	}
@@ -264,7 +268,7 @@ void Controller::setOutput(int num, bool on)
 			m_logger->logInfo(Format("[output] Output {} disabled") << getOutputName(num));
 	}
 
-	savePersistentState();
+	savePersistentState(num);
 }
 bool Controller::getOutput(int num)
 {
@@ -293,7 +297,7 @@ void Controller::toggleOutput(int num)
 	else
 		m_logger->logInfo(Format("[expander] Output {} disabled(toggled)") << getOutputName(num));
 
-	savePersistentState();
+	savePersistentState(num);
 }
 void Controller::setOutputAsPersistent(int num)
 {

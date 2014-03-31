@@ -57,7 +57,7 @@ public:
 	void setLogger(MyLogger* logger) { m_logger = logger; }
 	void init();
 	void execute();
-	void savePersistentState();
+	void savePersistentState(int outputId);
 
 	void updateNames();
 
