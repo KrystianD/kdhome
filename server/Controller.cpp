@@ -37,7 +37,7 @@ Controller::Controller()
 	mg_set_option(m_httpserver, "document_root", "");
 	mg_set_option(m_httpserver, "hide_files_patterns", "*");
 	mg_set_option(m_httpserver, "enable_directory_listing", "no");
-	mg_set_option(m_httpserver, "listening_port", "8080");
+	mg_set_option(m_httpserver, "listening_port", "127.0.0.1:8080");
 	mg_add_uri_handler(m_httpserver, "/", &handle_hello);
 
 	m_startTime = getTicks();
