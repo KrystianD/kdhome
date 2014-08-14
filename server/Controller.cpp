@@ -575,8 +575,11 @@ int Controller::processHttpRequest(mg_connection* conn)
 	protectLua();
 	try
 	{
+		const char* ip = mg_get_header(conn, "X-Forwarded-For");
+		if (!ip)
+			ip = conn->remote_ip;
 		m_currConn = conn;
-		if (m_lua) luabind::call_function<void>(m_lua, "onHttpRequest", (string)conn->uri);
+		if (m_lua) luabind::call_function<void>(m_lua, "onHttpRequest", (string)conn->uri, (string)ip);
 	}
 	catch (luabind::error& e)
 	{
