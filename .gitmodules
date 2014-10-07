@@ -10,3 +10,6 @@
 [submodule "3rd/Arduino-IRremote"]
 	path = 3rd/Arduino-IRremote
 	url = https://github.com/shirriff/Arduino-IRremote.git
+[submodule "kdutils"]
+	path = kdutils
+	url = https://github.com/KrystianD/kdutils
