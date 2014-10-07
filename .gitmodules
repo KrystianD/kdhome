@@ -4,9 +4,6 @@
 [submodule "expander16/stm32-public"]
 	path = expander16/stm32-public
 	url = git@github.com:KrystianD/stm32-public.git
-[submodule "expander16/3rd/Arduino-IRremote"]
-	path = expander16/3rd/Arduino-IRremote
-	url = git@github.com:shirriff/Arduino-IRremote.git
 [submodule "expander8/WIZ_Ethernet_Library"]
 	path = expander8/WIZ_Ethernet_Library
 	url = https://github.com/Wiznet/WIZ_Ethernet_Library
