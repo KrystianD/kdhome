@@ -16,7 +16,7 @@ void EthernetIRProvider::processData(ByteBuffer& buffer)
 
 	switch (cmd)
 	{
-	case 0x00:
+	case IR_NOTF_NEWCODE:
 		{
 			uint32_t code;
 			if (!buffer.fetch(code)) return;
@@ -47,7 +47,7 @@ void EthernetIRProvider::process()
 		}
 		else
 		{
-			// it++;
+			it++;
 		}
 	}
 }

@@ -2,6 +2,7 @@
 #include "providers_settings.h"
 #include <myprintf.h>
 
+#include "providers.h"
 #include "ethernet.h"
 #include <kdhome.h>
 
@@ -16,18 +17,12 @@ void provIRTmr()
 }
 void provIRNewCode(uint32_t code)
 {
-	TByteBuffer b;
-	if (!ethPrepareBuffer(&b, 2 + 1 + sizeof(code)))
-		return;
-	uint16_t type = PROVIDER_TYPE_IR;
-	BYTEBUFFER_APPEND(&b, type);
-
-	uint8_t cmd = IR_NOTF_NEWCODE;
-	BYTEBUFFER_APPEND(&b, cmd);
-
-	BYTEBUFFER_APPEND(&b, code);
-
-	ethSendPacket(&b);
-
-	ethFreeBuffer(&b);
+	TProvIRCodePacket p;
+	provPrepareHeader((TProvHeader*)&p);
+	
+	p.header.type = PROVIDER_TYPE_IR;
+	p.header.cmd = IR_NOTF_NEWCODE;
+	p.code = code;
+	
+	provSendPacket(&p, sizeof(p));
 }

@@ -2,23 +2,13 @@
 #include <settings.h>
 #include <hardware.h>
 #include <advinputmanager.h>
+#include <myprintf.h>
 
 #include "providers.h"
 
-uint16_t ioInputs = 0, ioOutputs = 0;
-
-uint8_t io_readPCF(uint8_t addr);
-int io_getInp(int idx);
-uint16_t io_getOutMask(int idx);
-
 void ioInit()
 {
-
-	ioOutputs = 0;
 	provOutputUpdate();
-
-	// ioInputs = io_readPCF(PCF_IN0);
-	// ioInputs |= io_readPCF(PCF_IN1) << 8;
 
 	advimInit();
 	advimProcess(ticks);
@@ -26,20 +16,12 @@ void ioInit()
 }
 void ioProcess()
 {
-	// if (IO_IS_LOW(INT))
-	// {
-		// ioInputs = io_readPCF(PCF_IN0);
-		// ioInputs |= io_readPCF(PCF_IN1) << 8;
-
-		// // int i; for (i = 0; i < 16; i++)
-			// // myprintf("%d ", !!io_getInp(i));
-		// // myprintf("\n%s\r\n", dec2bin16(ioInputs));
-	// }
 	advimProcess(ticks);
 }
 
 void onInputLow(uint8_t idx)
 {
+	myprintf("low %d\r\n", idx);
 #ifdef ETHERNET
 	provInputSetState(idx, 0);
 	provInputSendState();
@@ -47,29 +29,30 @@ void onInputLow(uint8_t idx)
 }
 void onInputHigh(uint8_t idx)
 {
+	myprintf("high %d\r\n", idx);
 #ifdef ETHERNET
 	provInputSetState(idx, 1);
 	provInputSendState();
 #endif
 }
 
-uint8_t ADVIM_getPinState(struct TInputAddr* addr)
-{
-	return !!io_getInp(addr->num);
-}
-
 // Output provider callbacks
 void provOutputSetOutput(int num, int enable)
 {
-	if (enable)
-		ioOutputs |= io_getOutMask(num);
-	else
-		ioOutputs &= ~io_getOutMask(num);
+	switch(num)
+	{
+	case 0: if(enable) IO_HIGH(OUT1); else IO_LOW(OUT1); break;
+	case 1: if(enable) IO_HIGH(OUT2); else IO_LOW(OUT2); break;
+	case 2: if(enable) IO_HIGH(OUT3); else IO_LOW(OUT3); break;
+	case 3: if(enable) IO_HIGH(OUT4); else IO_LOW(OUT4); break;
+	case 4: if(enable) IO_HIGH(OUT5); else IO_LOW(OUT5); break;
+	case 5: if(enable) IO_HIGH(OUT6); else IO_LOW(OUT6); break;
+	case 6: if(enable) IO_HIGH(OUT7); else IO_LOW(OUT7); break;
+	case 7: if(enable) IO_HIGH(OUT8); else IO_LOW(OUT8); break;
+	}
 }
 void provOutputUpdate()
 {
-	// i2cWriteDataNoReg(PCF_ADDR | PCF_OUT0, (uint8_t*)&ioOutputs, 1);
-	// i2cWriteDataNoReg(PCF_ADDR | PCF_OUT1, (uint8_t*)&ioOutputs + 1, 1);
 }
 
 // Input provider callbacks
@@ -78,64 +61,12 @@ void provInputResetState()
 	int i;
 
 	// settings initial state
-	for (i = 0; i < INPUTS_COUNT; i++)
-	{
-		if (io_getInp(i))
-			provInputSetState(i, 1);
-		else
-			provInputSetState(i, 0);
-	}
+	provInputSetState(0, IO_IS_HIGH(IN1) ? 1 : 0);
+	provInputSetState(1, IO_IS_HIGH(IN2) ? 1 : 0);
+	provInputSetState(2, IO_IS_HIGH(IN3) ? 1 : 0);
+	provInputSetState(3, IO_IS_HIGH(IN4) ? 1 : 0);
+	provInputSetState(4, IO_IS_HIGH(IN5) ? 1 : 0);
+	provInputSetState(5, IO_IS_HIGH(IN6) ? 1 : 0);
+	provInputSetState(6, IO_IS_HIGH(IN7) ? 1 : 0);
+	provInputSetState(7, IO_IS_HIGH(IN8) ? 1 : 0);
 }
-
-uint8_t io_readPCF(uint8_t addr)
-{
-	char d[1];
-	// i2cReadDataNoReg(PCF_ADDR | addr, d, 1);
-	return d[0];
-}
-
-int io_getInp(int idx)
-{
-	switch (idx)
-	{
-	case 0:  return ioInputs & (1ul << 3);
-	case 1:  return ioInputs & (1ul << 2);
-	case 2:  return ioInputs & (1ul << 1);
-	case 3:  return ioInputs & (1ul << 0);
-	case 4:  return ioInputs & (1ul << 4);
-	case 5:  return ioInputs & (1ul << 5);
-	case 6:  return ioInputs & (1ul << 6);
-	case 7:  return ioInputs & (1ul << 7);
-	case 8:  return ioInputs & (1ul << 11);
-	case 9:  return ioInputs & (1ul << 10);
-	case 10: return ioInputs & (1ul << 9);
-	case 11: return ioInputs & (1ul << 8);
-	case 12: return ioInputs & (1ul << 12);
-	case 13: return ioInputs & (1ul << 13);
-	case 14: return ioInputs & (1ul << 14);
-	case 15: return ioInputs & (1ul << 15);
-	}
-}
-uint16_t io_getOutMask(int idx)
-{
-	switch (idx)
-	{
-	case 0:  return 1ul << 3;
-	case 1:  return 1ul << 2;
-	case 2:  return 1ul << 1;
-	case 3:  return 1ul << 0;
-	case 4:  return 1ul << 4;
-	case 5:  return 1ul << 5;
-	case 6:  return 1ul << 6;
-	case 7:  return 1ul << 7;
-	case 8:  return 1ul << 11;
-	case 9:  return 1ul << 10;
-	case 10: return 1ul << 9;
-	case 11: return 1ul << 8;
-	case 12: return 1ul << 12;
-	case 13: return 1ul << 13;
-	case 14: return 1ul << 14;
-	case 15: return 1ul << 15;
-	}
-}
-

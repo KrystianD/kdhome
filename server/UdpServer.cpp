@@ -79,13 +79,17 @@ bool UdpServer::process()
 
 void UdpServer::sendData(const string& ip, ByteBuffer& buffer)
 {
+	sendData(ip, buffer.ptr(), buffer.size());
+}
+void UdpServer::sendData(const string& ip, const void* data, int len)
+{
 	struct sockaddr_in remaddr;
 	remaddr.sin_family = AF_INET;
 	remaddr.sin_port = htons(9999);
 	inet_pton(AF_INET, ip.c_str(), &(remaddr.sin_addr));
 
 	// buffer.print();
-	if (sendto(m_sockfd, buffer.ptr(), buffer.size(), 0, (struct sockaddr*)&remaddr, sizeof(remaddr)) < 0)
+	if (sendto(m_sockfd, data, len, 0, (struct sockaddr*)&remaddr, sizeof(remaddr)) < 0)
 	{
 		printf("send fail\n");
 	}

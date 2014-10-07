@@ -5,8 +5,6 @@
 #include <myprintf.h>
 #include <ow.h>
 
-#include <ENC28J60.h>
-
 #include "utils.h"
 #include "ethernet.h"
 #include "ir.h"
@@ -80,12 +78,10 @@ void main()
 	IO_PUSH_PULL(OUT7);
 	IO_PUSH_PULL(OUT8);
 	
-#ifndef ETHERNET_MODULE
 	OW_UART_init();
 	tempInit();
 	ioInit();
-	// irInit();
-#endif
+	irInit();
 #ifdef ETHERNET
 	ethInit();
 #endif
@@ -95,13 +91,11 @@ void main()
 	uint32_t lastCheck = 0;
 	for (;;)
 	{
-#ifndef ETHERNET_MODULE
 		ioProcess();
 		
 		tempProcess();
 		
-		// irProcess();
-#endif
+		irProcess();
 		provTmr();
 #ifdef ETHERNET
 		ethProcess();

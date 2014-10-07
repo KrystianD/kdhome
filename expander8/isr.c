@@ -123,7 +123,7 @@ pfnISR VectorTable[] =
 	/* 25 */ 0, // TIM1_UP_Handler,
 	/* 26 */ 0, // TIM1_TRG_COM_Handler,
 	/* 27 */ 0, // TIM1_CC_Handler,
-	/* 28 */ 0, // TIM2_Handler,
+	/* 28 */ TIM2_Handler,
 	/* 29 */ 0, // TIM3_Handler,
 	/* 30 */ 0, // TIM4_Handler,
 	/* 31 */ 0, // I2C1_EV_Handler,

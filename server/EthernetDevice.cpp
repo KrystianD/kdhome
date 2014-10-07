@@ -114,9 +114,20 @@ void EthernetDevice::prepareBuffer(ByteBuffer& buffer)
 
 	m_sendPacketId++;
 }
+void EthernetDevice::preparePacket(TSrvHeader* packet)
+{
+	packet->packetId = m_sendPacketId;
+
+	m_sendPacketId++;
+}
 void EthernetDevice::sendData(ByteBuffer& buffer)
 {
 	m_server->sendData(getIP(), buffer);
+	logInfo(str(Format("Packet sent")));
+}
+void EthernetDevice::sendData(const void* data, int len)
+{
+	m_server->sendData(getIP(), data, len);
 	logInfo(str(Format("Packet sent")));
 }
 

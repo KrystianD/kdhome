@@ -7,6 +7,7 @@ using namespace std;
 
 #include "Providers.h"
 #include "UdpServer.h"
+#include "kdhome.h"
 
 class EthernetDevice
 {
@@ -26,7 +27,9 @@ public:
 	void checkConnection();
 
 	void prepareBuffer(ByteBuffer& buffer);
+	void preparePacket(TSrvHeader* packet);
 	void sendData(ByteBuffer& data);
+	void sendData(const void* data, int len);
 
 private:
 	string m_ip;

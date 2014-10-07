@@ -5,6 +5,7 @@
 
 #define LED GPIOA,11
 #define OW GPIOB,10
+#define IR GPIOB,11 // TIM2_CH4
 
 #define SCK GPIOB,13
 #define MISO GPIOB,14

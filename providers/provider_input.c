@@ -3,6 +3,7 @@
 #include <myprintf.h>
 
 #include "ethernet.h"
+#include "providers.h"
 #include <kdhome.h>
 #include <string.h>
 
@@ -14,13 +15,11 @@ void provInputReset()
 	memset(&prov_inputHigh, 0, sizeof(prov_inputHigh));
 	provInputResetState();
 }
-void provInputProcess(TByteBuffer* data)
+void provInputProcess(const void* data, int len)
 {
-	uint8_t cmd;
-	if (BYTEBUFFER_FETCH(data, cmd)) return;
-	// myprintf("cmd: 0x%02x\r\n", cmd);
+	TSrvHeader *header = (TSrvHeader*)data;
 
-	switch (cmd)
+	switch (header->cmd)
 	{
 	default:
 	case INPUT_NOTF_NEWSTATE:
@@ -40,34 +39,25 @@ void provInputSetState(int num, int value)
 		prov_inputHigh[num]++;
 	else
 		prov_inputLow[num]++;
-
+		
 	// int i; for (i=0;i<16;i++)
-		// myprintf("inp %d - %d:%d\r\n", i, prov_inputLow[i], prov_inputHigh[i]);
+	// myprintf("inp %d - %d:%d\r\n", i, prov_inputLow[i], prov_inputHigh[i]);
 }
 void provInputSendState()
 {
-	TByteBuffer b;
-	if (!ethPrepareBuffer(&b, 2 + 1 + 1 + INPUTS_COUNT * (1 + 1)))
-		return;
-	uint16_t type = PROVIDER_TYPE_INPUT;
-	BYTEBUFFER_APPEND(&b, type);
-
-	uint8_t cmd = INPUT_NOTF_NEWSTATE;
-	BYTEBUFFER_APPEND(&b, cmd);
-
-	uint8_t cnt = INPUTS_COUNT;
-	BYTEBUFFER_APPEND(&b, cnt);
-
+	TProvInputStatePacket p;
+	provPrepareHeader((TProvHeader*)&p);
+	
+	p.header.type = PROVIDER_TYPE_INPUT;
+	p.header.cmd = INPUT_NOTF_NEWSTATE;
+	p.cnt = INPUTS_COUNT;
+	
 	int i;
 	for (i = 0; i < INPUTS_COUNT; i++)
 	{
-		uint8_t low = prov_inputLow[i];
-		uint8_t high = prov_inputHigh[i];
-		BYTEBUFFER_APPEND(&b, low);
-		BYTEBUFFER_APPEND(&b, high);
+		p.inputs[i].low = prov_inputLow[i];
+		p.inputs[i].high = prov_inputHigh[i];
 	}
-
-	ethSendPacket(&b);
-
-	ethFreeBuffer(&b);
+	
+	provSendPacket(&p, sizeof(p));
 }

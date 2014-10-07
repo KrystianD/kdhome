@@ -7,7 +7,7 @@ F_CPU=8000000
 RAMSIZE=20480
 
 DEFINES=-DVERSION=2 -DETHERNET -DSTM32F10X_MD -DPRINTF -DF_CPU=$(F_CPU) -DRAMSIZE=$(RAMSIZE)
-INCLUDEPATH=-I. -I.. -I../providers -Ikdusb -Istm32-public -Ikdulibs -I../kdlibs
+INCLUDEPATH=-I. -I.. -I../providers -Ikdusb -Istm32-public -I../kdutils/uclibs -I../kdutils
 
 CFLAGS=-mcpu=cortex-m3 -march=armv7-m -mfix-cortex-m3-ldrd -msoft-float -mthumb -nostartfiles -ggdb -Werror=implicit -Os -fdata-sections -ffunction-sections
 CFLAGS+=$(DEFINES)
@@ -36,6 +36,9 @@ build/temp.o: temp.c
 build/io.o: io.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+build/ir.o: ir.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
 build/stm32-public_delay.o: stm32-public/delay.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -45,7 +48,7 @@ build/stm32-public_myprintf.o: stm32-public/myprintf.c
 build/stm32-public_ow.o: stm32-public/ow.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-build/kdulibs_advinputmanager.o: kdulibs/advinputmanager.c
+build/__kdutils_uclibs_advinputmanager.o: ../kdutils/uclibs/advinputmanager.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 build/Ethernet_socket.o: Ethernet/socket.c
@@ -66,6 +69,9 @@ build/ethernet.o: ethernet.c
 build/buffer.o: buffer.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+build/__3rd_IRremote.o: ../3rd/IRremote.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
 build/__providers_providers.o: ../providers/providers.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -78,6 +84,9 @@ build/__providers_provider_input.o: ../providers/provider_input.c
 build/__providers_provider_temp.o: ../providers/provider_temp.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-build/main.elf: build/main.o build/isr.o build/utils.o build/temp.o build/io.o build/stm32-public_delay.o build/stm32-public_myprintf.o build/stm32-public_ow.o build/kdulibs_advinputmanager.o build/Ethernet_socket.o build/Ethernet_W5500_w5500.o build/Ethernet_wizchip_conf.o build/Internet_DHCP_dhcp.o build/ethernet.o build/buffer.o build/__providers_providers.o build/__providers_provider_output.o build/__providers_provider_input.o build/__providers_provider_temp.o
+build/__providers_provider_ir.o: ../providers/provider_ir.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+build/main.elf: build/main.o build/isr.o build/utils.o build/temp.o build/io.o build/ir.o build/stm32-public_delay.o build/stm32-public_myprintf.o build/stm32-public_ow.o build/__kdutils_uclibs_advinputmanager.o build/Ethernet_socket.o build/Ethernet_W5500_w5500.o build/Ethernet_wizchip_conf.o build/Internet_DHCP_dhcp.o build/ethernet.o build/buffer.o build/__3rd_IRremote.o build/__providers_providers.o build/__providers_provider_output.o build/__providers_provider_input.o build/__providers_provider_temp.o build/__providers_provider_ir.o
 	$(CC) $(CFLAGS) $(LFLAGS) $^ -lm -lc -o $@
 

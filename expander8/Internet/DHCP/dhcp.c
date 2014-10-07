@@ -57,7 +57,7 @@
 // #ifdef _DHCP_DEBUG_
    // #include <stdio.h>
 // #endif   
-#define _DHCP_DEBUG_
+// #define _DHCP_DEBUG_
 #include <myprintf.h>
 #define printf myprintf
 

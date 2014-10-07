@@ -23,6 +23,7 @@ public:
 	void setListener(IEthernetDataListener* listener) { m_listener = listener; }
 
 	void sendData(const string& ip, ByteBuffer& buffer);
+	void sendData(const string& ip, const void* data, int len);
 
 private:
 	int m_sockfd;

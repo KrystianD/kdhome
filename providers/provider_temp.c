@@ -58,49 +58,49 @@ void provTempTmr()
 
 void provTemp_sendData()
 {
-	TByteBuffer b;
-	if (!ethPrepareBuffer(&b, 2 + 1 + 1 + 2 + 2 + TEMP_SENSORS_COUNT * 4))
-		return;
-	uint16_t type = PROVIDER_TYPE_TEMP;
-	BYTEBUFFER_APPEND(&b, type);
+	// TByteBuffer b;
+	// if (!ethPrepareBuffer(&b, 2 + 1 + 1 + 2 + 2 + TEMP_SENSORS_COUNT * 4))
+		// return;
+	// uint16_t type = PROVIDER_TYPE_TEMP;
+	// BYTEBUFFER_APPEND(&b, type);
 
-	uint8_t cmd = TEMP_NOTF_TEMP;
-	BYTEBUFFER_APPEND(&b, cmd);
+	// uint8_t cmd = TEMP_NOTF_TEMP;
+	// BYTEBUFFER_APPEND(&b, cmd);
 
-	uint8_t cnt = TEMP_SENSORS_COUNT;
-	BYTEBUFFER_APPEND(&b, cnt);
+	// uint8_t cnt = TEMP_SENSORS_COUNT;
+	// BYTEBUFFER_APPEND(&b, cnt);
 
-	uint16_t flags = 
-		(TEMP_SENSOR0_MODE << 0) |
-		(TEMP_SENSOR1_MODE << 1) |
-		(TEMP_SENSOR2_MODE << 2) |
-		(TEMP_SENSOR3_MODE << 3) |
-		(TEMP_SENSOR4_MODE << 4) |
-		(TEMP_SENSOR5_MODE << 5) |
-		(TEMP_SENSOR6_MODE << 6) |
-		(TEMP_SENSOR7_MODE << 7) |
-		(TEMP_SENSOR8_MODE << 8) |
-		(TEMP_SENSOR9_MODE << 9) |
-		(TEMP_SENSOR10_MODE << 10) |
-		(TEMP_SENSOR11_MODE << 11) |
-		(TEMP_SENSOR12_MODE << 12) |
-		(TEMP_SENSOR13_MODE << 13) |
-		(TEMP_SENSOR14_MODE << 14) |
-		(TEMP_SENSOR15_MODE << 15);
-	BYTEBUFFER_APPEND(&b, flags);
+	// uint16_t flags = 
+		// (TEMP_SENSOR0_MODE << 0) |
+		// (TEMP_SENSOR1_MODE << 1) |
+		// (TEMP_SENSOR2_MODE << 2) |
+		// (TEMP_SENSOR3_MODE << 3) |
+		// (TEMP_SENSOR4_MODE << 4) |
+		// (TEMP_SENSOR5_MODE << 5) |
+		// (TEMP_SENSOR6_MODE << 6) |
+		// (TEMP_SENSOR7_MODE << 7) |
+		// (TEMP_SENSOR8_MODE << 8) |
+		// (TEMP_SENSOR9_MODE << 9) |
+		// (TEMP_SENSOR10_MODE << 10) |
+		// (TEMP_SENSOR11_MODE << 11) |
+		// (TEMP_SENSOR12_MODE << 12) |
+		// (TEMP_SENSOR13_MODE << 13) |
+		// (TEMP_SENSOR14_MODE << 14) |
+		// (TEMP_SENSOR15_MODE << 15);
+	// BYTEBUFFER_APPEND(&b, flags);
 
-	uint16_t errors = prov_tempErrors;
-	BYTEBUFFER_APPEND(&b, errors);
+	// uint16_t errors = prov_tempErrors;
+	// BYTEBUFFER_APPEND(&b, errors);
 
-	int i;
-	for (i = 0; i < TEMP_SENSORS_COUNT; i++)
-	{
-		BYTEBUFFER_APPEND(&b, prov_tempData[i].value.value);
-	}
+	// int i;
+	// for (i = 0; i < TEMP_SENSORS_COUNT; i++)
+	// {
+		// BYTEBUFFER_APPEND(&b, prov_tempData[i].value.value);
+	// }
 
-	ethSendPacket(&b);
+	// ethSendPacket(&b);
 
-	ethFreeBuffer(&b);
+	// ethFreeBuffer(&b);
 }
 
 void provTempSetValueIntFrac(int num, int16_t integral, uint16_t frac)

@@ -7,40 +7,24 @@
 void provOutputReset()
 {
 }
-void provOutputProcess(TByteBuffer* data)
+void provOutputProcess(const void* data, int len)
 {
-	uint8_t cmd;
-	if (BYTEBUFFER_FETCH(data, cmd)) return;
-	// myprintf("cmd: 0x%02x\r\n", cmd);
-
-	switch (cmd)
+	TSrvHeader *header = (TSrvHeader*)data;
+	
+	switch (header->cmd)
 	{
 	case OUTPUT_CMD_SET_OUTPUTS:
+	{
+		TSrvOutputSetOutputsPacket *p = (TSrvOutputSetOutputsPacket*)data;
+		int i;
+		for (i = 0; i < p->cnt; i++)
 		{
-			uint8_t cnt;
-			if (BYTEBUFFER_FETCH(data, cnt)) return;
-			// myprintf("cnt: %d\r\n", cnt);
-
-			int i;
-			uint8_t b;
-			if (BYTEBUFFER_FETCH(data, b)) return;
-			int idx = 0;
-			for (i = 0; i < cnt; i++)
-			{
-				int en = b & (1 << (7 - idx));
-
-				provOutputSetOutput(i, en);
-
-				idx++;
-				if (idx == 8 && i < cnt - 1)
-				{
-					idx = 0;
-					if (BYTEBUFFER_FETCH(data, b)) return;
-				}
-			}
-			provOutputUpdate();
+			int en = p->outputs & (1 << i);
+			provOutputSetOutput(i, en);
 		}
-		break;
+		provOutputUpdate();
+	}
+	break;
 	}
 }
 void provOutputTmr()

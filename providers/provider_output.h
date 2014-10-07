@@ -1,10 +1,12 @@
 #ifndef __PROVIDER_OUTPUT_H__
 #define __PROVIDER_OUTPUT_H__
 
-#include "buffer.h"
+#include <stdint.h>
+#include "kdhome.h"
+
 
 void provOutputReset();
-void provOutputProcess(TByteBuffer* data);
+void provOutputProcess(const void* data, int len);
 void provOutputTmr();
 
 // [callback] Function called when output update is requested

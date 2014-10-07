@@ -21,9 +21,6 @@ const static uint8_t _HW_ADDR[] = { HW_ADDR };
 const static uint8_t _IP_SRV[] = { IP_SRV };
 
 // public
-uint16_t ethNextPacketPtr;
-uint16_t ethSessKey = 0;
-uint16_t ethPacketId = 1;
 
 // private
 wiz_NetInfo info;
@@ -123,8 +120,8 @@ void ethInit()
 	// reg_dhcp_cbfunc(dhcpAssign, dhcpUpdate, dhcpConflict);
 	// DHCP_init(0, dhcpData);
 	
-	// int q = socket(1, Sn_MR_UDP, 9999, 0);
-	// myprintf("socket: %d\r\n", q);
+	int q = socket(1, Sn_MR_UDP, 9999, SF_IO_NONBLOCK);
+	myprintf("socket: %d\r\n", q);
 	
 	// configure module
 	// _delay_ms(100);
@@ -174,30 +171,30 @@ void ethProcess()
 	{
 		lastCheck = ticks;
 		
+		TProvHeader header;
 		TByteBuffer b;
-		if (ethPrepareBuffer(&b, 2))
-		{
-			uint16_t type = 0x0000;
-			BYTEBUFFER_APPEND(&b, type);
-			ethSendPacket(&b);
-			ethFreeBuffer(&b);
-		}
+		provPrepareHeader(&header);
+		
+		header.type = 0x0000;
+		provSendPacket(&header, sizeof(header));
+			// ethFreeBuffer(&b);
+		
 		
 		DHCP_time_handler();
 		// if (dodump)
 		// enc28j60Dump();
-		uint8_t c = getPHYCFGR();
-		if (c & PHYCFGR_LNK_ON)
-			myprintf("link on, ");
-		if (c & PHYCFGR_SPD_100)
-			myprintf("100, ");
-		else
-			myprintf("10, ");
-		if (c & PHYCFGR_DPX_FULL)
-			myprintf("full, ");
-		else
-			myprintf("half, ");
-		myprintf("\r\n");
+		// uint8_t c = getPHYCFGR();
+		// if (c & PHYCFGR_LNK_ON)
+			// myprintf("link on, ");
+		// if (c & PHYCFGR_SPD_100)
+			// myprintf("100, ");
+		// else
+			// myprintf("10, ");
+		// if (c & PHYCFGR_DPX_FULL)
+			// myprintf("full, ");
+		// else
+			// myprintf("half, ");
+		// myprintf("\r\n");
 	}
 	
 	uint8_t c = getPHYCFGR();
@@ -220,6 +217,19 @@ void ethProcess()
 			dhcpEnabled = 0;
 			myprintf("dhcp stop\r\n");
 		}
+	}
+
+
+	uint8_t data[1024];
+	uint8_t addr[4];
+	uint16_t port;
+	int r = recvfrom(1, (char*)data, 1024, (char*)&addr, &port);
+
+	// myprintf("r %d\r\n", r);
+	if(r)
+	{
+
+		provProcess(data, r);
 	}
 	
 	// if (IO_IS_LOW(INT_ETH))
@@ -250,29 +260,15 @@ void ethProcess()
 	// enc28j60_if_input(&eth_netif);
 	// }
 }
-int ethPrepareBuffer(TByteBuffer* buffer, uint16_t len)
-{
-	return 0;
-	// buffer->p = pbuf_alloc(PBUF_RAW, len + 2 + 2, PBUF_POOL);
-	// // buffer->p = pbuf_alloc(PBUF_TRANSPORT, len + 2 + 2, PBUF_POOL);
-	// if (!buffer->p)
-	// return 0;
-	// buffer->pos = 0;
-	
-	// BYTEBUFFER_APPEND(buffer, ethPacketId);
-	// BYTEBUFFER_APPEND(buffer, ethSessKey);
-	
-	// ethPacketId++;
-	
-	// return 1;
-}
 void ethFreeBuffer(TByteBuffer* buffer)
 {
 	// pbuf_free(buffer->p);
 	// buffer->p = 0;
 }
-void ethSendPacket(TByteBuffer* buffer)
+void provSendPacket(const void* buffer, int len)
 {
+	int s = sendto(1, (char*)buffer, len, (char*)_IP_SRV, SRV_PORT);
+	// myprintf("s %d\r\n", s);
 	// bufferPrint(buffer);
 	// udp_send(eth_udppcb, buffer->p);
 }

@@ -13,8 +13,8 @@ uint16_t ethPacketId;
 void ethInit();
 void ethProcess();
 
-int ethPrepareBuffer(TByteBuffer* buffer, uint16_t len);
-void ethFreeBuffer(TByteBuffer* buffer);
-void ethSendPacket(TByteBuffer* buffer);
+#include "kdhome.h"
+
+void provSendPacket(const void* buffer, int len);
 
 #endif

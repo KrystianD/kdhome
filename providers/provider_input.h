@@ -1,10 +1,11 @@
 #ifndef __PROVIDER_INPUT_H__
 #define __PROVIDER_INPUT_H__
 
-#include "buffer.h"
+#include <stdint.h>
+#include "kdhome.h"
 
 void provInputReset();
-void provInputProcess(TByteBuffer* data);
+void provInputProcess(const void* data, int len);
 void provInputTmr();
 void provInputSendState();
 
