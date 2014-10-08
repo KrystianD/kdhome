@@ -127,10 +127,6 @@ public:
 	
 	void execLuaFunc(int num);
 	
-	lua_State* getLua()
-	{
-		return m_lua;
-	}
 	StorageEngine* getStorage()
 	{
 		return m_storage;
@@ -170,16 +166,18 @@ private:
 	StorageEngine *m_storage;
 	
 	vector<EthernetDevice*> m_devices;
+
+	map<int,string> m_inputsNames, m_outputsNames;
 	
 	map<int, int> m_persistentOutputs;
 	
 	// Lua
-	lua_State *m_lua;
-	pthread_mutex_t m_luaMutex;
-	pthread_cond_t m_luaCondWait;
-	pthread_t m_luaThreadId;
-	int m_luaThreads;
-	string m_luaProtectionStr;
+	// lua_State *m_lua;
+	// pthread_mutex_t m_luaMutex;
+	// pthread_cond_t m_luaCondWait;
+	// pthread_t m_luaThreadId;
+	// int m_luaThreads;
+	// string m_luaProtectionStr;
 	
 	std::vector<TDelayedCode> m_delayedCode;
 	
@@ -191,14 +189,14 @@ private:
 	void publish(string msg);
 	string processREQ(string msg);
 	
-	std::string getLuaError();
-	std::string getLuaErrorNOPROTECT();
-	void _protectLua(const char* file, int line);
-	void _unprotectLua(const char* file, int line);
-	void throwLuaErrorNOPROTECT(const string& msg);
+	// std::string getLuaError();
+	// std::string getLuaErrorNOPROTECT();
+	// void _protectLua(const char* file, int line);
+	// void _unprotectLua(const char* file, int line);
+	// void throwLuaErrorNOPROTECT(const string& msg);
 	
-	std::string getInputName(int num);
-	std::string getOutputName(int num);
+	string getInputName(int num);
+	string getOutputName(int num);
 };
 
 // class InputStatusChangedEvent : public UsbEvent

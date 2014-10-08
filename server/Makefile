@@ -35,7 +35,7 @@ DEFINES+=-DLIBCONFIGXX_STATIC
 
 LFLAGS=-L/usr/lib -lcurl -lpthread
 LFLAGS+=-lzmq
-CFLAGS=-ggdb -g -O1 $(DEFINES) #-std=c++11
+CFLAGS=-ggdb -g -O1 $(DEFINES) -std=c++11
 
 kdhome: $(OBJS)
 	$(CXX) $(OBJS) $(INC) $(LFLAGS) $(CFLAGS) -o $@

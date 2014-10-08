@@ -8,17 +8,9 @@
 #include <zmq.h>
 #include <unistd.h>
 
-// #include "lua_funcs.h"
-// #include "lua_funcs_gen.h"
-
 #include "3rd/mongoose.h"
 
 #include "ICURL.h"
-
-//#define protectLua()  printf("want protect %s:%d\n", __FILE__, __LINE__); _protectLua(); printf("protect %s:%d\n", __FILE__, __LINE__);
-//#define unprotectLua()  _unprotectLua(); printf("unprotect %s:%d\n", __FILE__, __LINE__);
-// #define protectLua()  _protectLua(__FILE__, __LINE__);
-// #define unprotectLua()  _unprotectLua(__FILE__, __LINE__);
 
 using namespace std;
 using namespace fmt;
@@ -32,11 +24,24 @@ static int handle_hello(struct mg_connection *conn)
 // Controller
 Controller::Controller()
 	: zcontext(0), zsocket(0), zsocketREP(0)
-// : m_lua(0), m_luaThreads(0)
 {
-
-	// pthread_mutex_init(&m_luaMutex, 0);
-	// pthread_cond_init(&m_luaCondWait, 0);
+	zcontext = zmq_ctx_new();
+	
+	zsocket = zmq_socket(zcontext, ZMQ_PUB);
+	int rc = zmq_bind(zsocket, "tcp://*:9999");
+	if (rc != 0)
+	{
+		m_logger->logError(str(Format("Error during creating PUB socket {}") << zmq_strerror(errno)));
+		exit(1);
+	}
+	
+	zsocketREP = zmq_socket(zcontext, ZMQ_REP);
+	rc = zmq_bind(zsocketREP, "tcp://*:10000");
+	if (rc != 0)
+	{
+		m_logger->logError(str(Format("Error during creating REP socket {}") << zmq_strerror(errno)));
+		exit(1);
+	}
 	
 	m_httpserver = mg_create_server(this);
 	mg_set_option(m_httpserver, "document_root", "");
@@ -60,71 +65,17 @@ Controller::~Controller()
 		
 	delete m_storage;
 	mg_destroy_server(&m_httpserver);
-	// pthread_mutex_destroy(&m_luaMutex);
 }
 
 void Controller::init()
 {
-	if (zsocket)
-		zmq_close(zsocket);
-	if (zsocketREP)
-		zmq_close(zsocketREP);
-	if (zcontext)
-		zmq_ctx_destroy(zsocketREP);
-		
-	zcontext = zmq_ctx_new();
-	zsocket = zmq_socket(zcontext, ZMQ_PUB);
-	int rc = zmq_bind(zsocket, "tcp://*:9999");
-	
-	zsocketREP = zmq_socket(zcontext, ZMQ_REP);
-	rc = zmq_bind(zsocketREP, "tcp://*:10000");
-	
 	m_sessKey = rand() % (99999 - 10000) + 10000;
-	
-	// protectLua();
-	// if (m_lua)
-	// lua_close(m_lua);
-	// m_logger->logInfo("Creating Lua instance");
-	// m_lua = lua_open();
-	// m_logger->logInfo("Opening Lua libs");
-	// luaL_openlibs(m_lua);
-	// m_logger->logInfo("Creating Luabind interface");
-	// luabind::open(m_lua);
-	
-	// m_logger->logInfo("Binding Lua functions");
-	// tolua_lua_funcs_open(m_lua);
 	
 	m_logger->logInfo("Loading persistent storage");
 	m_storage->setPath("data");
 	m_storage->load();
 	
 	m_logger->logInfo("Performing script initialization");
-	// int res = luaL_dofile(m_lua, "scripts/script1.lua");
-	// // unprotectLua();
-	// if (res)
-	// {
-	// // m_logger->logWarning(Format("Script error: {}") << getLuaError());
-	// // protectLua();
-	// // lua_close(m_lua);
-	// // m_lua = 0;
-	// // unprotectLua();
-	// }
-	
-	m_delayedCode.clear();
-	
-	// if (m_lua)
-	// {
-	// protectLua();
-	// try
-	// {
-	// luabind::call_function<void>(m_lua, "onInit");
-	// }
-	// catch (luabind::error& e)
-	// {
-	// m_logger->logWarning(Format("[script] [onInit] {}") << getLuaErrorNOPROTECT());
-	// }
-	// unprotectLua();
-	// }
 	
 	m_server.setListener(this);
 	m_server.init();
@@ -139,6 +90,9 @@ void Controller::init()
 	}
 	
 	m_initialized = false;
+	
+	m_inputsNames.clear();
+	m_outputsNames.clear();
 }
 
 void Controller::publish(string msg)
@@ -169,6 +123,10 @@ string Controller::processREQ(string msg)
 		if (cmd == "INIT-OK")
 		{
 			m_initialized = true;
+		}
+		else if (cmd == "RESET")
+		{
+			init();
 		}
 		else if (cmd == "REGISTER-ETHERNET-DEVICE")
 		{
@@ -256,6 +214,18 @@ string Controller::processREQ(string msg)
 			int val = getOutput(num);
 			return str(Format("{}") << val);
 		}
+		else if (cmd == "SET-NAME")
+		{
+			if (p.size() < 4)
+				return "";
+				
+			int num = atoi(p[2].c_str());
+			string name = p[3];
+
+			m_outputsNames[num] = name;
+			
+			return "";
+		}
 	}
 	else if (type == "INPUT")
 	{
@@ -269,6 +239,18 @@ string Controller::processREQ(string msg)
 			
 			int val = getInput(num);
 			return str(Format("{}") << val);
+		}
+		else if (cmd == "SET-NAME")
+		{
+			if (p.size() < 4)
+				return "";
+				
+			int num = atoi(p[2].c_str());
+			string name = p[3];
+
+			m_inputsNames[num] = name;
+			
+			return "";
 		}
 	}
 	else if (type == "TEMP")
@@ -318,14 +300,6 @@ void Controller::execute()
 				m_delayedCode.erase(m_delayedCode.begin() + i);
 			else
 				dcode.executionTime = getTicks() + dcode.timeout;
-			// protectLua();
-			// if (m_lua)
-			// {
-			// res = luaL_dostring(m_lua, code.c_str());
-			// if (res)
-			// m_logger->logWarning(Format("[script] {}") << getLuaErrorNOPROTECT());
-			// }
-			// unprotectLua();
 		}
 	}
 	
@@ -384,12 +358,11 @@ int Controller::registerEthernetDevice(uint32_t id, const std::string& ip)
 }
 void Controller::addOutputProvider(int dev, int outputsCount)
 {
-	// if (dev >= m_devices.size())
-	// {
-	// throwLuaErrorNOPROTECT(str(Format("Bad device index: {}") << dev));
-	// lua_error(m_lua);
-	// return;
-	// }
+	if (dev >= m_devices.size())
+	{
+		m_logger->logWarning(str(Format("Bad device index: {}") << dev));
+		return;
+	}
 	EthernetDevice *device = m_devices[dev];
 	EthernetOutputProvider *out = new EthernetOutputProvider(device, outputsCount);
 	// out->getStorage()->setPath(str(Format("data/output_{}") << dev));
@@ -399,12 +372,11 @@ void Controller::addOutputProvider(int dev, int outputsCount)
 }
 void Controller::addInputProvider(int dev, int inputsCount)
 {
-	// if (dev >= m_devices.size())
-	// {
-	// throwLuaErrorNOPROTECT(str(Format("Bad device index: {}") << dev));
-	// lua_error(m_lua);
-	// return;
-	// }
+	if (dev >= m_devices.size())
+	{
+		m_logger->logWarning(str(Format("Bad device index: {}") << dev));
+		return;
+	}
 	EthernetDevice *device = m_devices[dev];
 	EthernetInputProvider *inp = new EthernetInputProvider(device, inputsCount);
 	// inp->getStorage()->setPath(str(Format("data/input_{}") << dev));
@@ -415,12 +387,11 @@ void Controller::addInputProvider(int dev, int inputsCount)
 }
 void Controller::addIRProvider(int dev)
 {
-	// if (dev >= m_devices.size())
-	// {
-	// throwLuaErrorNOPROTECT(str(Format("Bad device index: {}") << dev));
-	// lua_error(m_lua);
-	// return;
-	// }
+	if (dev >= m_devices.size())
+	{
+		m_logger->logWarning(str(Format("Bad device index: {}") << dev));
+		return;
+	}
 	EthernetDevice *device = m_devices[dev];
 	EthernetIRProvider *ir = new EthernetIRProvider(device);
 	// ir->getStorage()->setPath(str(Format("data/ir_{}") << dev));
@@ -431,12 +402,11 @@ void Controller::addIRProvider(int dev)
 }
 void Controller::addTempProvider(int dev, int sensorsCount)
 {
-	// if (dev >= m_devices.size())
-	// {
-	// throwLuaErrorNOPROTECT(str(Format("Bad device index: {}") << dev));
-	// lua_error(m_lua);
-	// return;
-	// }
+	if (dev >= m_devices.size())
+	{
+		m_logger->logWarning(str(Format("Bad device index: {}") << dev));
+		return;
+	}
 	EthernetDevice *device = m_devices[dev];
 	EthernetTempProvider *temp = new EthernetTempProvider(device, sensorsCount);
 	// temp->getStorage()->setPath(str(Format("data/temp_{}") << dev));
@@ -452,7 +422,7 @@ bool Controller::getInput(int num)
 	EthernetDevice *dev;
 	if (!findProvider(num, dev, p))
 	{
-		// throwLuaErrorNOPROTECT(str(Format("Unable to find input provider for {}") << num));
+		m_logger->logWarning(str(Format("Unable to find input provider for {}") << num));
 		return false;
 	}
 	return p->getInputState(num - dev->getID());
@@ -465,7 +435,7 @@ void Controller::setOutput(int num, bool on)
 	EthernetDevice *dev;
 	if (!findProvider(num, dev, p))
 	{
-		// throwLuaErrorNOPROTECT(str(Format("Unable to find output provider for {}") << num));
+		m_logger->logWarning(str(Format("Unable to find output provider for {}") << num));
 		return;
 	}
 	if (p->getOutputState(num - dev->getID()) != on)
@@ -486,7 +456,7 @@ bool Controller::getOutput(int num)
 	EthernetDevice *dev;
 	if (!findProvider(num, dev, p))
 	{
-		// throwLuaErrorNOPROTECT(str(Format("Unable to find output provider for {}") << num));
+		m_logger->logWarning(str(Format("Unable to find output provider for {}") << num));
 		return false;
 	}
 	return p->getOutputState(num - dev->getID());
@@ -497,7 +467,7 @@ void Controller::toggleOutput(int num)
 	EthernetDevice *dev;
 	if (!findProvider(num, dev, p))
 	{
-		// throwLuaErrorNOPROTECT(str(Format("Unable to find output provider for {}") << num));
+		m_logger->logWarning(str(Format("Unable to find output provider for {}") << num));
 		return;
 	}
 	p->toggleOutputState(num - dev->getID());
@@ -521,7 +491,7 @@ bool Controller::isTempValid(int num)
 	EthernetDevice *dev;
 	if (!findProvider(num, dev, p))
 	{
-		// throwLuaErrorNOPROTECT(str(Format("Unable to find temperature provider for {}") << num));
+		m_logger->logWarning(str(Format("Unable to find temperature provider for {}") << num));
 		return false;
 	}
 	return p->isTempValid(num - dev->getID());
@@ -532,237 +502,10 @@ float Controller::getTemp(int num)
 	EthernetDevice *dev;
 	if (!findProvider(num, dev, p))
 	{
-		// throwLuaErrorNOPROTECT(str(Format("Unable to find temperature provider for {}") << num));
+		m_logger->logWarning(str(Format("Unable to find temperature provider for {}") << num));
 		return 0;
 	}
 	return p->getTemp(num - dev->getID());
-}
-
-// Script commands
-void Controller::setInterval(const std::string& id, float timeout, const std::string& code, bool repeating)
-{
-	for (size_t i = 0; i < m_delayedCode.size(); i++)
-	{
-		if (m_delayedCode[i].id == id)
-		{
-			m_delayedCode[i].executionTime = getTicks() + timeout;
-			m_delayedCode[i].repeating = repeating;
-			m_delayedCode[i].timeout = timeout;
-			m_delayedCode[i].code = code;
-			m_logger->logInfo(Format("[script] Replacing current delayed code for id '{}'") << id);
-			return;
-		}
-	}
-	TDelayedCode dcode;
-	dcode.id = id;
-	dcode.executionTime = getTicks() + timeout;
-	dcode.repeating = repeating;
-	dcode.timeout = timeout;
-	dcode.code = code;
-	m_delayedCode.push_back(dcode);
-	m_logger->logInfo(Format("[script] New delayed code for id '{}' exec at {}") << id << dcode.executionTime);
-}
-void Controller::removeInterval(const std::string& id)
-{
-	for (size_t i = 0; i < m_delayedCode.size(); i++)
-	{
-		if (m_delayedCode[i].id == id)
-		{
-			m_delayedCode.erase(m_delayedCode.begin() + i);
-			m_logger->logInfo(Format("[script] Removed delayed code for id '{}'") << id);
-			return;
-		}
-	}
-}
-bool Controller::hasInterval(const std::string& id)
-{
-	for (size_t i = 0; i < m_delayedCode.size(); i++)
-		if (m_delayedCode[i].id == id)
-			return true;
-	return false;
-}
-
-// Handlers
-bool Controller::onExternalCommand(const std::vector<std::string>& parts, std::string& res)
-{
-	if (parts.size() < 1)
-		return false;
-	string cmd = parts[0];
-	if (cmd == "reload")
-	{
-		// program->ungrabGlobals();
-		init();
-		m_logger->logInfo("[script] Reloaded");
-		return false;
-	}
-	
-	string argsStr = joinStrings(" ", parts, 1);
-	// cout << "argsStr " << argsStr << endl;
-	
-	vector<string> args = parseArgs(argsStr, -1);
-	
-	// if (m_lua)
-	// {
-	// protectLua();
-	// lua_getfield(m_lua, LUA_GLOBALSINDEX, "onExternalCommand");
-	// lua_pushstring(m_lua, cmd.c_str());
-	// lua_newtable(m_lua);
-	// for (int i = 0; i < args.size(); i++)
-	// {
-	// // cout << "arg " << i << endl;
-	// lua_pushnumber(m_lua, i + 1);
-	// lua_pushstring(m_lua, args[i].c_str());
-	// lua_settable(m_lua, -3);
-	// }
-	// int cres = lua_pcall(m_lua, 2, 1, 0);
-	// if (cres == 0)
-	// {
-	// // cout << lua_type(m_lua, -1);
-	// if (lua_type(m_lua, -1) == LUA_TSTRING)
-	// {
-	// string retStr = lua_tostring(m_lua, -1);
-	// if (retStr != "")
-	// {
-	// res = retStr;
-	// unprotectLua();
-	// return true;
-	// }
-	// }
-	// else if (lua_type(m_lua, -1) != LUA_TNIL)
-	// {
-	// m_logger->logWarning("[script] Invalid return type");
-	// }
-	// lua_pop(m_lua, 1);
-	// unprotectLua();
-	// }
-	// else
-	// {
-	// unprotectLua();
-	// m_logger->logWarning(Format("[script] {}") << getLuaError());
-	// return false;
-	// }
-	// }
-	
-	return false;
-}
-
-void Controller::execLuaFunc(int num)
-{
-	// protectLua();
-	// lua_rawgeti(m_lua, LUA_REGISTRYINDEX, num);
-	// int ret = lua_pcall(m_lua, 0, 0, 0);
-	// if (ret != 0)
-	// m_logger->logWarning(Format("[script] [execLuaFunc] (ret: {}) {}") << ret << getLuaErrorNOPROTECT());
-	// unprotectLua();
-}
-
-std::string Controller::getInputName(int num)
-{
-	// protectLua();
-	// try
-	// {
-	// if (m_lua)
-	// {
-	// string ret = luabind::call_function<string>(m_lua, "getInputName", num);
-	// unprotectLua();
-	// return ret;
-	// }
-	// }
-	// catch (luabind::error& e)
-	// {
-	// m_logger->logWarning(Format("[script] [getInputName] {}") << getLuaErrorNOPROTECT());
-	// }
-	// unprotectLua();
-	return str(Format("{}") << num);
-}
-std::string Controller::getOutputName(int num)
-{
-	// protectLua();
-	// try
-	// {
-	// if (m_lua)
-	// {
-	// string ret = luabind::call_function<string>(m_lua, "getOutputName", num);
-	// unprotectLua();
-	// return ret;
-	// }
-	// }
-	// catch (luabind::error& e)
-	// {
-	// m_logger->logWarning(Format("[script] [getOutputName] {}") << getLuaErrorNOPROTECT());
-	// }
-	// unprotectLua();
-	return str(Format("{}") << num);
-}
-
-string Controller::getLuaError()
-{
-	return "";
-	// protectLua();
-	// string luaErr = lua_tostring(m_lua, -1);
-	// unprotectLua();
-	// return luaErr;
-}
-string Controller::getLuaErrorNOPROTECT()
-{
-	return "";
-	// string luaErr = lua_tostring(m_lua, -1);
-	// return luaErr;
-}
-
-// #define LUALOCK_LOGS
-void Controller::_protectLua(const char* file, int line)
-{
-#ifdef LUALOCK_LOGS
-	printf("[%s:%d] protect lock\n", file, line);
-#endif
-	pthread_mutex_lock(&m_luaMutex);
-	while (m_luaThreads > 0 && m_luaThreadId != pthread_self())
-	{
-#ifdef LUALOCK_LOGS
-		printf("[%s:%d] protect cond wait\n", file, line);
-#endif
-		pthread_cond_wait(&m_luaCondWait, &m_luaMutex);
-#ifdef LUALOCK_LOGS
-		printf("[%s:%d] protect after cond wait\n", file, line);
-#endif
-	}
-#ifdef LUALOCK_LOGS
-	printf("[%s:%d] protect GO\n", file, line);
-#endif
-	m_luaThreads++;
-	m_luaThreadId = pthread_self();
-	pthread_mutex_unlock(&m_luaMutex);
-#ifdef LUALOCK_LOGS
-	printf("[%s:%d] protect HAVE lua %d\n", file, line, m_luaThreads);
-#endif
-}
-void Controller::_unprotectLua(const char* file, int line)
-{
-#ifdef LUALOCK_LOGS
-	printf("[%s:%d] unprotect lock\n", file, line);
-#endif
-	pthread_mutex_lock(&m_luaMutex);
-	m_luaThreads--;
-#ifdef LUALOCK_LOGS
-	printf("[%s:%d] unprotect signal\n", file, line);
-#endif
-	pthread_cond_signal(&m_luaCondWait);
-#ifdef LUALOCK_LOGS
-	printf("[%s:%d] unprotect unlock %d\n", file, line, m_luaThreads);
-#endif
-	pthread_mutex_unlock(&m_luaMutex);
-}
-void Controller::throwLuaErrorNOPROTECT(const string& msg)
-{
-	// lua_Debug d;
-	// lua_getstack(m_lua, 1, &d);
-	// lua_getinfo(m_lua, "Sln", &d);
-	// // std::string err = lua_tostring(m_lua, -1);
-	// lua_pop(m_lua, 1);
-	
-	// lua_pushfstring(m_lua, "%s:%d %s", d.short_src, d.currentline, msg.c_str());
-	// lua_error(m_lua);
 }
 
 template<typename T>
@@ -821,58 +564,34 @@ void Controller::onInputChanged(IInputProvider* provider, int num, int state)
 		m_logger->logInfo(str(Format("Input {} changed 1->0") << getInputName(provider->getDevice()->getID() + num)));
 		
 	publish(str(Format("INPUT:CHANGED:{}:{}") << num << state));
-	// protectLua();
-	// try
-	// {
-	// if (m_lua) luabind::call_function<void>(m_lua, "onInputStateChanged", provider->getDevice()->getID() + num, state);
-	// }
-	// catch (luabind::error& e)
-	// {
-	// m_logger->logWarning(Format("[script] [onInputChanged] {}") << getLuaErrorNOPROTECT());
-	// }
-	// unprotectLua();
 }
 
 // IIRProviderListener
 void Controller::onIRCodeReceived(IIRProvider* provider, uint32_t code)
 {
 	publish(str(Format("IR:NEW-CODE:{}") << code));
-	// protectLua();
-	// try
-	// {
-	// if (m_lua) luabind::call_function<void>(m_lua, "onIRCodeReceived", code);
-	// }
-	// catch (luabind::error& e)
-	// {
-	// m_logger->logWarning(Format("[script] [onIRCodeReceived] {}") << getLuaErrorNOPROTECT());
-	// }
-	// unprotectLua();
 }
 void Controller::onIRButtonPressed(IIRProvider* provider, uint32_t code)
 {
 	publish(str(Format("IR:PRESSED:{}") << code));
-	// protectLua();
-	// try
-	// {
-	// if (m_lua) luabind::call_function<void>(m_lua, "onIRButtonPressed", code);
-	// }
-	// catch (luabind::error& e)
-	// {
-	// m_logger->logWarning(Format("[script] [onIRButtonPressed] {}") << getLuaErrorNOPROTECT());
-	// }
-	// unprotectLua();
 }
 void Controller::onIRButtonReleased(IIRProvider* provider, uint32_t code)
 {
 	publish(str(Format("IR:RELEASED:{}") << code));
-	// protectLua();
-	// try
-	// {
-	// if (m_lua) luabind::call_function<void>(m_lua, "onIRButtonReleased", code);
-	// }
-	// catch (luabind::error& e)
-	// {
-	// m_logger->logWarning(Format("[script] [onIRButtonReleased] {}") << getLuaErrorNOPROTECT());
-	// }
-	// unprotectLua();
 }
+
+string Controller::getInputName(int num)
+{
+	auto v = m_inputsNames.find(num);
+	if (v != m_inputsNames.end())
+		return v->second;
+	return str(Format("{}") << num);
+}
+string Controller::getOutputName(int num)
+{
+	auto v = m_outputsNames.find(num);
+	if (v != m_outputsNames.end())
+		return v->second;
+	return str(Format("{}") << num);
+}
+

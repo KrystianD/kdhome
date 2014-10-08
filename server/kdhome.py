@@ -83,10 +83,14 @@ class KDHome:
 	def getOutput(self, num):
 		resp = self.request("OUTPUT:GET:{0}".format(num))
 		return int(resp)
+	def setOutputName(self, num, name):
+		self.request("OUTPUT:SET-NAME:{}:{}".format(num, name))
 
 	def getInput(self, num):
 		resp = self.request("INPUT:GET:{0}".format(num))
 		return int(resp)
+	def setInputName(self, num, name):
+		self.request("INPUT:SET-NAME:{}:{}".format(num, name))
 
 	def getTemp(self, num):
 		resp = self.request("TEMP:GET:{0}".format(num))
@@ -94,6 +98,10 @@ class KDHome:
 	def isTempValid(self, num):
 		resp = self.request("TEMP:IS-VALID:{0}".format(num))
 		return int(resp)
+
+
+	def reset(self):
+		self.request("CTRL:RESET")
 
 	def onReset(self):
 		pass
