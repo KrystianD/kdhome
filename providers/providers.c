@@ -64,7 +64,7 @@ void provProcess(const char* data, int len)
 		break;
 	case PROVIDER_TYPE_INPUT:
 		// myprintf("PROVIDER_TYPE_INPUT\r\n");
-		// provInputProcess(data);
+		provInputProcess(data, len);
 		break;
 	case PROVIDER_TYPE_IR:
 		// myprintf("PROVIDER_TYPE_IR\r\n");

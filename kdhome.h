@@ -62,6 +62,20 @@ typedef struct
 
 // Temperature provider
 #define TEMP_NOTF_TEMP          0x00
+typedef struct
+{
+	TProvHeader header;
+	uint8_t cnt, num, flags;
+	union
+	{
+		struct
+		{
+			int16_t integral;
+			uint16_t frac;
+		} spl;
+		float value;
+	} value;
+} TProvTempValuePacket;
 
 #pragma pack()
 

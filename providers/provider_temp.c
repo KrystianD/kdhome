@@ -48,7 +48,7 @@ void provTempProcess(TByteBuffer* data)
 void provTempTmr()
 {
 	static uint32_t lastSendTime = 0;
-	if (ticks - lastSendTime >= 1000)
+	if (ticks - lastSendTime >= 1000 / TEMP_SENSORS_COUNT)
 	{
 		lastSendTime = ticks;
 
@@ -58,6 +58,23 @@ void provTempTmr()
 
 void provTemp_sendData()
 {
+	static const uint8_t modes[] = TEMP_SENSORS_MODES;
+	static uint8_t num = 0;
+	TProvTempValuePacket p;
+	provPrepareHeader((TProvHeader*)&p);
+	
+	p.header.type = PROVIDER_TYPE_TEMP;
+	p.header.cmd = TEMP_NOTF_TEMP;
+	p.cnt = TEMP_SENSORS_COUNT;
+	p.num = num;
+	p.flags = modes[num];
+	p.value.value = prov_tempData[num].value.value;
+	
+	provSendPacket(&p, sizeof(p));
+
+	if (num >= TEMP_SENSORS_COUNT)
+		num = 0;
+
 	// TByteBuffer b;
 	// if (!ethPrepareBuffer(&b, 2 + 1 + 1 + 2 + 2 + TEMP_SENSORS_COUNT * 4))
 		// return;
