@@ -45,6 +45,7 @@ void irProcess()
 		{
 			struct decode_results res;
 			int r = decode(&res);
+			myprintf("try %d\r\n", irparams.rawlen);
 			if (r && res.decode_type != -1)
 			{
 				myprintf("decode: %d 0x%08x %d\r\n", r, res.value, res.decode_type);
@@ -52,7 +53,7 @@ void irProcess()
 				provIRNewCode(res.value);
 #endif
 			}
-			// int i; for(i=0;i<idx;i++) myprintf("%4d, ", data[i]); myprintf("\r\n");
+			int i; for(i=0;i<irparams.rawlen;i++) myprintf("%4d, ", irparams.rawbuf[i]); myprintf("\r\n");
 		}
 		ir_lastChangeTime = 0;
 		irparams.rawlen = 0;

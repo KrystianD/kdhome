@@ -93,7 +93,7 @@ void main()
 	{
 		ioProcess();
 		
-		tempProcess();
+		// tempProcess();
 		
 		irProcess();
 		provTmr();
