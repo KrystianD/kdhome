@@ -19,12 +19,17 @@ void EthernetInputProvider::init()
 	for (int i = 0; i < getAmount(); i++)
 		m_inputs[i] = TInput();
 
-	ByteBuffer data;
-	prepareCommand(data, 0x01);
-	sendData(data);
+	// ByteBuffer data;
+	// prepareCommand(data, 0x01);
+	// sendData(data);
+
+	TSrvHeader p;
+	preparePacket((TSrvHeader*)&p, INPUT_REQ_SENDSTATE);
+	sendData(&p, sizeof(p));
 }
 void EthernetInputProvider::processData(ByteBuffer& buffer)
 {
+	// TProvInputStatePacket
 	uint8_t cmd;
 	if (!buffer.fetch(cmd)) return;
 
@@ -37,12 +42,12 @@ void EthernetInputProvider::processData(ByteBuffer& buffer)
 			for (int i = 0; i < cnt; i++)
 			{
 				uint8_t low, high;
-				if (!buffer.fetch(low)) return;
 				if (!buffer.fetch(high)) return;
+				if (!buffer.fetch(low)) return;
 
 				TInput &inp = m_inputs[i];
 
-				// printf("%d - %d %d\n", i, low, high);
+				printf("%d - %d %d\n", i, low, high);
 				while (inp.low != low || inp.high != high)
 				{
 					if (inp.low != low)
@@ -81,6 +86,12 @@ void EthernetInputProvider::prepareCommand(ByteBuffer& buffer, uint8_t command)
 	m_device->prepareBuffer(buffer);
 	buffer.append(getType());
 	buffer.append(command);
+}
+void EthernetInputProvider::preparePacket(TSrvHeader* packet, uint8_t command)
+{
+	m_device->preparePacket(packet);
+	packet->type = getType();
+	packet->cmd = command;
 }
 
 void EthernetInputProvider::logInfo(const string& msg)

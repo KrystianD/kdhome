@@ -79,6 +79,8 @@ void Controller::init()
 	zsocketREP = zmq_socket(zcontext, ZMQ_REP);
 	rc = zmq_bind(zsocketREP, "tcp://*:10000");
 	
+	m_sessKey = rand() % (99999 - 10000) + 10000;
+	
 	// protectLua();
 	// if (m_lua)
 	// lua_close(m_lua);
@@ -139,10 +141,161 @@ void Controller::init()
 	m_initialized = false;
 }
 
-void Controller::publish(const string& msg)
+void Controller::publish(string msg)
 {
+	msg = str(Format("#{}:{}") << msg << m_sessKey);
 	int r = zmq_send(zsocket, msg.data(), msg.size(), 0);
 	m_logger->logInfo(Format("PUB[{}] {}") << r << msg);
+}
+string Controller::processREQ(string msg)
+{
+	vector<string> p = explode(msg, ":");
+	
+	if (p.size() < 3)
+		return "";
+		
+	int sessKey = atoi(p[p.size() - 1].c_str());
+	
+	if (sessKey != 0 && sessKey != m_sessKey)
+	{
+		m_logger->logInfo("Invalid sessKey");
+		return "";
+	}
+	
+	string type = p[0];
+	if (type == "CTRL")
+	{
+		string cmd = p[1];
+		if (cmd == "INIT-OK")
+		{
+			m_initialized = true;
+		}
+		else if (cmd == "REGISTER-ETHERNET-DEVICE")
+		{
+			if (p.size() < 6)
+				return "";
+				
+			int id = atoi(p[2].c_str());
+			string ip = p[3];
+			int port = atoi(p[4].c_str());
+			
+			int dev = registerEthernetDevice(id, ip);
+			return str(Format("{}") << dev);
+		}
+		else if (cmd == "ADD-INPUT-PROVIDER")
+		{
+			if (p.size() < 5)
+				return "";
+				
+			int id = atoi(p[2].c_str());
+			int cnt = atoi(p[3].c_str());
+			
+			addInputProvider(id, cnt);
+		}
+		else if (cmd == "ADD-OUTPUT-PROVIDER")
+		{
+			if (p.size() < 5)
+				return "";
+				
+			int id = atoi(p[2].c_str());
+			int cnt = atoi(p[3].c_str());
+			
+			addOutputProvider(id, cnt);
+		}
+		else if (cmd == "ADD-IR-PROVIDER")
+		{
+			if (p.size() < 4)
+				return "";
+				
+			int id = atoi(p[2].c_str());
+			
+			addIRProvider(id);
+		}
+		else if (cmd == "ADD-TEMP-PROVIDER")
+		{
+			if (p.size() < 5)
+				return "";
+				
+			int id = atoi(p[2].c_str());
+			int cnt = atoi(p[3].c_str());
+			
+			addTempProvider(id, cnt);
+		}
+	}
+	else if (type == "OUTPUT")
+	{
+		string cmd = p[1];
+		if (cmd == "SET")
+		{
+			if (p.size() < 5)
+				return "";
+				
+			int num = atoi(p[2].c_str());
+			int value = atoi(p[3].c_str());
+			
+			setOutput(num, value);
+			return "";
+		}
+		else if (cmd == "TOGGLE")
+		{
+			if (p.size() < 4)
+				return "";
+				
+			int num = atoi(p[2].c_str());
+			
+			toggleOutput(num);
+			return "";
+		}
+		else if (cmd == "GET")
+		{
+			if (p.size() < 4)
+				return "";
+				
+			int num = atoi(p[2].c_str());
+			
+			int val = getOutput(num);
+			return str(Format("{}") << val);
+		}
+	}
+	else if (type == "INPUT")
+	{
+		string cmd = p[1];
+		if (cmd == "GET")
+		{
+			if (p.size() < 4)
+				return "";
+				
+			int num = atoi(p[2].c_str());
+			
+			int val = getInput(num);
+			return str(Format("{}") << val);
+		}
+	}
+	else if (type == "TEMP")
+	{
+		string cmd = p[1];
+		if (cmd == "GET")
+		{
+			if (p.size() < 4)
+				return "";
+				
+			int num = atoi(p[2].c_str());
+			
+			float val = getTemp(num);
+			return str(Format("{}") << val);
+		}
+		else if (cmd == "IS-VALID")
+		{
+			if (p.size() < 4)
+				return "";
+				
+			int num = atoi(p[2].c_str());
+			
+			int val = isTempValid(num);
+			return str(Format("{}") << val);
+		}
+	}
+	return "";
 }
 
 void Controller::execute()
@@ -192,29 +345,10 @@ void Controller::execute()
 		string s(data, r);
 		
 		m_logger->logInfo(Format("ZMQ {}") << s);
+		string rep = processREQ(s);
 		
-		vector<string> p = explode(s, ":");
-		string type = p[0];
-		if (type == "CTRL")
-		{
-			string cmd = p[1];
-			if (cmd == "INIT-OK")
-			{
-				m_initialized = true;
-			}
-			if (cmd == "REGISTER-ETHERNET-DEVICE")
-			{
-				int id = atoi(p[2].c_str());
-				string ip = p[3];
-				int port = atoi(p[4].c_str());
-
-				registerEthernetDevice(id, ip);
-
-				m_initialized = true;
-			}
-		}
-		
-		zmq_send(zsocketREP, "OK", 2, 0);
+		m_logger->logInfo(Format("REP {}") << rep);
+		zmq_send(zsocketREP, rep.data(), rep.size(), 0);
 	}
 	
 	if (!m_initialized)
@@ -222,7 +356,7 @@ void Controller::execute()
 		static uint32_t lastInitTime = 0;
 		if (getTicks() - lastInitTime >= 100)
 		{
-			publish("#INIT");
+			publish("CTRL:INIT");
 			lastInitTime = getTicks();
 		}
 	}
@@ -316,11 +450,11 @@ bool Controller::getInput(int num)
 {
 	IInputProvider *p;
 	EthernetDevice *dev;
-	// if (!findProvider(num, dev, p))
-	// {
-	// throwLuaErrorNOPROTECT(str(Format("Unable to find input provider for {}") << num));
-	// return false;
-	// }
+	if (!findProvider(num, dev, p))
+	{
+		// throwLuaErrorNOPROTECT(str(Format("Unable to find input provider for {}") << num));
+		return false;
+	}
 	return p->getInputState(num - dev->getID());
 }
 
@@ -329,11 +463,11 @@ void Controller::setOutput(int num, bool on)
 {
 	IOutputProvider *p;
 	EthernetDevice *dev;
-	// if (!findProvider(num, dev, p))
-	// {
-	// throwLuaErrorNOPROTECT(str(Format("Unable to find output provider for {}") << num));
-	// return;
-	// }
+	if (!findProvider(num, dev, p))
+	{
+		// throwLuaErrorNOPROTECT(str(Format("Unable to find output provider for {}") << num));
+		return;
+	}
 	if (p->getOutputState(num - dev->getID()) != on)
 	{
 		p->setOutputState(num - dev->getID(), on);
@@ -685,6 +819,8 @@ void Controller::onInputChanged(IInputProvider* provider, int num, int state)
 		m_logger->logInfo(str(Format("Input {} changed 0->1") << getInputName(provider->getDevice()->getID() + num)));
 	else
 		m_logger->logInfo(str(Format("Input {} changed 1->0") << getInputName(provider->getDevice()->getID() + num)));
+		
+	publish(str(Format("INPUT:CHANGED:{}:{}") << num << state));
 	// protectLua();
 	// try
 	// {
@@ -700,6 +836,7 @@ void Controller::onInputChanged(IInputProvider* provider, int num, int state)
 // IIRProviderListener
 void Controller::onIRCodeReceived(IIRProvider* provider, uint32_t code)
 {
+	publish(str(Format("IR:NEW-CODE:{}") << code));
 	// protectLua();
 	// try
 	// {
@@ -713,6 +850,7 @@ void Controller::onIRCodeReceived(IIRProvider* provider, uint32_t code)
 }
 void Controller::onIRButtonPressed(IIRProvider* provider, uint32_t code)
 {
+	publish(str(Format("IR:PRESSED:{}") << code));
 	// protectLua();
 	// try
 	// {
@@ -726,6 +864,7 @@ void Controller::onIRButtonPressed(IIRProvider* provider, uint32_t code)
 }
 void Controller::onIRButtonReleased(IIRProvider* provider, uint32_t code)
 {
+	publish(str(Format("IR:RELEASED:{}") << code));
 	// protectLua();
 	// try
 	// {

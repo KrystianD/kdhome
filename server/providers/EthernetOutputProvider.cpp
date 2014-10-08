@@ -38,7 +38,6 @@ void EthernetOutputProvider::update()
 	// ByteBuffer data;
 	// prepareCommand(data, 0x00);
 	
-	
 	TSrvOutputSetOutputsPacket p;
 	preparePacket((TSrvHeader*)&p, OUTPUT_CMD_SET_OUTPUTS);
 	

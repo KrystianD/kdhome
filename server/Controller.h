@@ -184,10 +184,12 @@ private:
 	std::vector<TDelayedCode> m_delayedCode;
 	
 	// zmq
+	uint32_t m_sessKey;
 	void *zcontext, *zsocket, *zsocketREP;
 	bool m_initialized;
 	
-	void publish(const string& msg);
+	void publish(string msg);
+	string processREQ(string msg);
 	
 	std::string getLuaError();
 	std::string getLuaErrorNOPROTECT();
