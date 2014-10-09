@@ -8,7 +8,10 @@ class EthernetInputProvider : public IInputProvider
 {
 public:
 	EthernetInputProvider(EthernetDevice* device, int amount);
-	virtual ~EthernetInputProvider() { }
+	virtual ~EthernetInputProvider()
+	{
+		logger->logInfo("Deleting InputProvider");
+	}
 	
 	// IProvider
 	// uint16_t getType() { return 0x0002; }

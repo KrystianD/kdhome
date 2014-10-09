@@ -17,19 +17,28 @@ class UdpServer
 public:
 	UdpServer();
 	~UdpServer();
-
+	
 	bool init();
+	void deinit();
 	bool process();
-	void setListener(IEthernetDataListener* listener) { m_listener = listener; }
-
+	void setListener(IEthernetDataListener* listener)
+	{
+		m_listener = listener;
+	}
+	
 	void sendData(const string& ip, ByteBuffer& buffer);
 	void sendData(const string& ip, const void* data, int len);
-
+	
+	const string& getLastError() const
+	{
+		return m_lastErrorStr;
+	}
+	
 private:
 	int m_sockfd;
-
+	
 	IEthernetDataListener *m_listener;
-
+	
 	string m_lastErrorStr;
 };
 

@@ -26,7 +26,7 @@ class IProvider
 {
 public:
 	IProvider();
-	~IProvider();
+	virtual ~IProvider();
 
 	virtual uint16_t getType() = 0;
 	virtual void init() = 0;

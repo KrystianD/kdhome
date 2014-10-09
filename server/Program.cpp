@@ -24,7 +24,11 @@ void Program::run()
 	srand(time(0));
 
 	m_controller->setLogger(m_logger);
-	m_controller->init();
+	if(!m_controller->init())
+	{
+		m_logger->logError("Unable to init controller");
+		return;
+	}
 
 	for (;;)
 	{

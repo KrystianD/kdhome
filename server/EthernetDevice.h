@@ -13,7 +13,7 @@ class EthernetDevice
 {
 public:
 	EthernetDevice(UdpServer* server, uint32_t m_id, const string& ip);
-	~EthernetDevice() { }
+	~EthernetDevice();
 
 	void addProvider(IProvider* provider) { m_providers.push_back(provider); }
 	bool hasProvider(uint16_t type);
@@ -21,6 +21,7 @@ public:
 
 	const string& getIP () const { return m_ip; }
 	uint32_t getID () const { return m_id; }
+	string getName () const;
 
 	void processData(ByteBuffer& buffer);
 	void process();

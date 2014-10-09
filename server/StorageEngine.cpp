@@ -1,6 +1,7 @@
 #include "StorageEngine.h"
 
 #include <libconfig.h++>
+#include <iostream>
 
 using namespace libconfig;
 
@@ -13,10 +14,6 @@ StorageEngine::~StorageEngine()
 	delete m_config;
 }
 
-void StorageEngine::setPath(const string& path)
-{
-	m_path = path;
-}
 bool StorageEngine::load()
 {
 	try
@@ -33,9 +30,18 @@ bool StorageEngine::load()
 }
 bool StorageEngine::save()
 {
-	m_config->writeFile(m_path.c_str());
+	try
+	{
+		m_config->writeFile(m_path.c_str());
+		return true;
+	}
+	catch (FileIOException& e)
+	{
+		logger->logWarn(Format("Unable to save config to {}") << m_path);
+		return false;
+	}
 }
-#include <iostream>
+
 int StorageEngine::getInt(const string& name, int def)
 {
 	int val;

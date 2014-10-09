@@ -1,5 +1,6 @@
 #include "Providers.h"
 
+#include "common.h"
 #include "StorageEngine.h"
 
 IProvider::IProvider()
@@ -8,5 +9,6 @@ IProvider::IProvider()
 }
 IProvider::~IProvider()
 {
+	logger->logInfo("Deleting IProvider");
 	delete m_storage;
 }

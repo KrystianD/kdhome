@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "kutils.h"
 
@@ -36,6 +37,12 @@ bool UdpServer::init()
 		m_lastErrorStr = string("bind failed: ") + getErrnoString();
 		return false;
 	}
+
+	return true;
+}
+void UdpServer::deinit()
+{
+	close(m_sockfd);
 }
 bool UdpServer::process()
 {
@@ -75,6 +82,8 @@ bool UdpServer::process()
 				m_listener->onEthernetDataReceived(ip, buffer);
 		}
 	}
+
+	return true;
 }
 
 void UdpServer::sendData(const string& ip, ByteBuffer& buffer)

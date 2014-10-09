@@ -4,9 +4,11 @@ class KDHome:
 	sub = None
 	req = None
 	sessKey = 0
+	intervals = None
 
 	def __init__(self):
 		self.context = zmq.Context()
+		self.intervals = []
 
 	def connect(self, host, port):
 		self.sub = self.context.socket(zmq.SUB)
@@ -17,6 +19,16 @@ class KDHome:
 		self.req.connect("tcp://127.0.0.1:10000")
 
 	def process(self):
+
+		for v in self.intervals:
+			if v["execTime"] <= time.time() * 1000:
+				if v["repeating"]:
+					v["execTime"] = time.time() * 1000 + v["interval"]
+
+				code = v["code"]
+				# if is
+				eval(v["code"])
+
 		try:
 			message = self.sub.recv(zmq.NOBLOCK)
 			print("New ZMQ message: " + message.decode("latin2"))
@@ -107,6 +119,28 @@ class KDHome:
 		pass
 	def onInitEvent(self, ev):
 		return False
+
+
+	def setTimeout(self, id, interval, code):
+		self.setInterval(self, id, interval, code, False)
+
+	def setInterval(self, id, interval, code, repeating = True):
+		nextTime = time.time() * 1000 + interval
+		for v in self.intervals:
+			if v["id"] == id:
+				v["execTime"] = nextTime;
+				v["repeating"] = repeating
+				v["interval"] = interval
+				v["code"] = code
+				print("new interval")
+				return
+		v = { "id": id,
+					"execTime": nextTime,
+					"repeating": repeating,
+					"interval": interval,
+					"code": code }
+		self.intervals.append(v)
+	
 
 class InitEvent:
 	pass

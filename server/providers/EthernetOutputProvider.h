@@ -8,7 +8,10 @@ class EthernetOutputProvider : public IOutputProvider
 {
 public:
 	EthernetOutputProvider(EthernetDevice* device, int amount);
-	virtual ~EthernetOutputProvider() { }
+	virtual ~EthernetOutputProvider()
+	{
+		logger->logInfo("Deleting OutputProvider");
+	}
 	
 	// IProvider
 	void init() { }

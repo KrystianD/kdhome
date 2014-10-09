@@ -60,7 +60,8 @@ public:
 	{
 		m_logger = logger;
 	}
-	void init();
+	bool init();
+	void reload();
 	void execute();
 	void savePersistentState(int outputId);
 	

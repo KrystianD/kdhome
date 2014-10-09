@@ -16,7 +16,7 @@ public:
 	StorageEngine();
 	~StorageEngine();
 
-	void setPath(const string& path);
+	void setPath(const string& path) { m_path = path; }
 	bool load();
 	bool save();
 

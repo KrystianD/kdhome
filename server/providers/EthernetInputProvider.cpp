@@ -47,7 +47,7 @@ void EthernetInputProvider::processData(ByteBuffer& buffer)
 
 				TInput &inp = m_inputs[i];
 
-				printf("%d - %d %d\n", i, low, high);
+				// printf("%d - %d %d\n", i, low, high);
 				while (inp.low != low || inp.high != high)
 				{
 					if (inp.low != low)

@@ -27,32 +27,10 @@ Controller::Controller()
 {
 	zcontext = zmq_ctx_new();
 	
-	zsocket = zmq_socket(zcontext, ZMQ_PUB);
-	int rc = zmq_bind(zsocket, "tcp://*:9999");
-	if (rc != 0)
-	{
-		m_logger->logError(str(Format("Error during creating PUB socket {}") << zmq_strerror(errno)));
-		exit(1);
-	}
-	
-	zsocketREP = zmq_socket(zcontext, ZMQ_REP);
-	rc = zmq_bind(zsocketREP, "tcp://*:10000");
-	if (rc != 0)
-	{
-		m_logger->logError(str(Format("Error during creating REP socket {}") << zmq_strerror(errno)));
-		exit(1);
-	}
-	
-	m_httpserver = mg_create_server(this);
-	mg_set_option(m_httpserver, "document_root", "");
-	mg_set_option(m_httpserver, "hide_files_patterns", "*");
-	mg_set_option(m_httpserver, "enable_directory_listing", "no");
-	mg_set_option(m_httpserver, "listening_port", "8080");
-	mg_add_uri_handler(m_httpserver, "/", &handle_hello);
-	
 	m_startTime = getTicks();
 	
 	m_storage = new StorageEngine();
+	
 }
 Controller::~Controller()
 {
@@ -67,7 +45,44 @@ Controller::~Controller()
 	mg_destroy_server(&m_httpserver);
 }
 
-void Controller::init()
+bool Controller::init()
+{
+	zsocket = zmq_socket(zcontext, ZMQ_PUB);
+	int rc = zmq_bind(zsocket, "tcp://*:9999");
+	if (rc != 0)
+	{
+		m_logger->logError(str(Format("Error during creating PUB socket {}") << zmq_strerror(errno)));
+		return false;
+	}
+	
+	zsocketREP = zmq_socket(zcontext, ZMQ_REP);
+	rc = zmq_bind(zsocketREP, "tcp://*:10000");
+	if (rc != 0)
+	{
+		m_logger->logError(str(Format("Error during creating REP socket {}") << zmq_strerror(errno)));
+		return false;
+	}
+	
+	m_httpserver = mg_create_server(this);
+	mg_set_option(m_httpserver, "document_root", "");
+	mg_set_option(m_httpserver, "hide_files_patterns", "*");
+	mg_set_option(m_httpserver, "enable_directory_listing", "no");
+	mg_set_option(m_httpserver, "listening_port", "8080");
+	mg_add_uri_handler(m_httpserver, "/", &handle_hello);
+	
+	m_logger->logInfo("Creating UDP server");
+	m_server.setListener(this);
+	if (!m_server.init())
+	{
+		m_logger->logError(str(Format("Unable to configure UDP server: {}") << m_server.getLastError()));
+		return false;
+	}
+
+	reload();
+
+	return true;
+}
+void Controller::reload()
 {
 	m_sessKey = rand() % (99999 - 10000) + 10000;
 	
@@ -75,17 +90,11 @@ void Controller::init()
 	m_storage->setPath("data");
 	m_storage->load();
 	
-	m_logger->logInfo("Performing script initialization");
-	
-	m_server.setListener(this);
-	m_server.init();
-	
-	map<int, int>::iterator it;
-	for (it = m_persistentOutputs.begin(); it != m_persistentOutputs.end(); it++)
+	for (auto& it : m_persistentOutputs)
 	{
-		int outputId = it->first;
+		int outputId = it.first;
 		int state = m_storage->getInt("output", outputId, 1);
-		m_logger->logInfo(Format("out {} {}") << outputId << state);
+		// m_logger->logInfo(Format("out {} {}") << outputId << state);
 		setOutput(outputId, state);
 	}
 	
@@ -93,6 +102,13 @@ void Controller::init()
 	
 	m_inputsNames.clear();
 	m_outputsNames.clear();
+	
+	for (auto& dev : m_devices)
+	{
+		m_logger->logInfo(str(Format("Deleting device [{}]") << dev->getName()));
+		delete dev;
+	}
+	m_devices.clear();
 }
 
 void Controller::publish(string msg)
@@ -126,7 +142,7 @@ string Controller::processREQ(string msg)
 		}
 		else if (cmd == "RESET")
 		{
-			init();
+			reload();
 		}
 		else if (cmd == "REGISTER-ETHERNET-DEVICE")
 		{
@@ -221,7 +237,7 @@ string Controller::processREQ(string msg)
 				
 			int num = atoi(p[2].c_str());
 			string name = p[3];
-
+			
 			m_outputsNames[num] = name;
 			
 			return "";
@@ -247,7 +263,7 @@ string Controller::processREQ(string msg)
 				
 			int num = atoi(p[2].c_str());
 			string name = p[3];
-
+			
 			m_inputsNames[num] = name;
 			
 			return "";
@@ -285,23 +301,23 @@ void Controller::execute()
 	int res;
 	
 	m_server.process();
-	mg_poll_server(m_httpserver, 0);
+	// mg_poll_server(m_httpserver, 0);
 	
-	uint32_t ticks = getTicks();
-	for (int i = m_delayedCode.size() - 1; i >= 0; i--)
-	{
-		TDelayedCode &dcode = m_delayedCode[i];
-		if (dcode.executionTime <= ticks)
-		{
-			if (dcode.id.find("nolog") == string::npos)
-				m_logger->logInfo(Format("[script] Executing delayed code for id '{}'") << dcode.id);
-			string code = dcode.code;
-			if (!dcode.repeating)
-				m_delayedCode.erase(m_delayedCode.begin() + i);
-			else
-				dcode.executionTime = getTicks() + dcode.timeout;
-		}
-	}
+	// uint32_t ticks = getTicks();
+	// for (int i = m_delayedCode.size() - 1; i >= 0; i--)
+	// {
+		// TDelayedCode &dcode = m_delayedCode[i];
+		// if (dcode.executionTime <= ticks)
+		// {
+			// if (dcode.id.find("nolog") == string::npos)
+				// m_logger->logInfo(Format("[script] Executing delayed code for id '{}'") << dcode.id);
+			// string code = dcode.code;
+			// if (!dcode.repeating)
+				// m_delayedCode.erase(m_delayedCode.begin() + i);
+			// else
+				// dcode.executionTime = getTicks() + dcode.timeout;
+		// }
+	// }
 	
 	uint32_t diff = ticks - m_lastTicks;
 	m_lastTicks = ticks;
@@ -328,7 +344,7 @@ void Controller::execute()
 	if (!m_initialized)
 	{
 		static uint32_t lastInitTime = 0;
-		if (getTicks() - lastInitTime >= 100)
+		if (getTicks() - lastInitTime >= 500)
 		{
 			publish("CTRL:INIT");
 			lastInitTime = getTicks();

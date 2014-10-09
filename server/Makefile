@@ -2,9 +2,9 @@ CXX=g++
 CC=gcc
 KDLIB=../kdlibs
 
-INC+=-I/usr/include/libusb-1.0
-INC+=-I/usr/include/lua5.1
-INC+=-I/usr/include/mysql
+# INC+=-I/usr/include/libusb-1.0
+# INC+=-I/usr/include/lua5.1
+# INC+=-I/usr/include/mysql
 INC+=-I3rd -I. -I..
 INC+=-I3rd/libconfig-1.4.9
 INC+=-I$(KDLIB)

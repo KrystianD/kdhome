@@ -8,36 +8,51 @@ class EthernetTempProvider : public ITempProvider
 {
 public:
 	EthernetTempProvider(EthernetDevice* device, int amount);
-	virtual ~EthernetTempProvider() { }
-
+	virtual ~EthernetTempProvider()
+	{
+		logger->logInfo("Deleting TempProvider");
+	}
+	
 	// IProvider
 	// uint16_t getType() { return 0x0002; }
 	void init();
 	void deinit() { }
 	void processData(ByteBuffer& buffer);
 	void process();
-	EthernetDevice* getDevice() { return m_device; }
-
+	EthernetDevice* getDevice()
+	{
+		return m_device;
+	}
+	
 	// ITempProvider
-	int getAmount() { return m_sensors.size(); }
-	bool isTempValid(int num) { return m_sensors[num].error ? false : true; }
-	float getTemp(int num) { return m_sensors[num].value; }
-
+	int getAmount()
+	{
+		return m_sensors.size();
+	}
+	bool isTempValid(int num)
+	{
+		return m_sensors[num].error ? false : true;
+	}
+	float getTemp(int num)
+	{
+		return m_sensors[num].value;
+	}
+	
 private:
 	struct TSensor
 	{
 		float value;
 		bool error;
-
+		
 		TSensor() : value(0), error(false) { }
 	};
-
+	
 	EthernetDevice *m_device;
-
+	
 	vector<TSensor> m_sensors;
-
+	
 	uint32_t m_lastDataTime;
-
+	
 	void logInfo(const string& msg);
 };
 

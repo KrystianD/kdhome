@@ -8,6 +8,11 @@ EthernetDevice::EthernetDevice(UdpServer* server, uint32_t id, const string& ip)
 	  m_sessKey(0), m_registrationDataSendTime(0)
 {
 }
+EthernetDevice::~EthernetDevice()
+{
+	for (auto& prov : m_providers)
+		delete prov;
+}
 
 bool EthernetDevice::hasProvider(uint16_t type)
 {
@@ -29,18 +34,23 @@ IProvider* EthernetDevice::getProvider(uint16_t type)
 	return 0;
 }
 
+string EthernetDevice::getName() const
+{
+	return str(Format("EthDev {}") << getIP());
+}
+
 void EthernetDevice::processData(ByteBuffer& buffer)
 {
 	m_lastPacketTime = getTicks();
 	checkConnection();
-
+	
 	uint16_t packetId, sessKey, type;
 	buffer.fetch(packetId);
 	buffer.fetch(sessKey);
 	buffer.fetch(type);
-
+	
 	logInfo(str(Format("Packet #{} received - type: {} sessKey: {}") << packetId << type << sessKey));
-
+	
 	if (m_connected)
 	{
 		if (m_sessKey == 0 || m_sessKey != sessKey)
@@ -49,16 +59,16 @@ void EthernetDevice::processData(ByteBuffer& buffer)
 			registerDevice();
 			return;
 		}
-
+		
 		if (packetId <= m_lastRecvPacketId && packetId - m_lastRecvPacketId > 10) // prevent disconnecting on wrap
 		{
 			markDisconnected();
 			registerDevice();
 			return;
 		}
-
+		
 		m_lastRecvPacketId = packetId;
-
+		
 		for (size_t i = 0; i < m_providers.size(); i++)
 		{
 			IProvider *provider = m_providers[i];
@@ -111,13 +121,13 @@ void EthernetDevice::checkConnection()
 void EthernetDevice::prepareBuffer(ByteBuffer& buffer)
 {
 	buffer.append(m_sendPacketId);
-
+	
 	m_sendPacketId++;
 }
 void EthernetDevice::preparePacket(TSrvHeader* packet)
 {
 	packet->packetId = m_sendPacketId;
-
+	
 	m_sendPacketId++;
 }
 void EthernetDevice::sendData(ByteBuffer& buffer)
@@ -136,7 +146,7 @@ void EthernetDevice::markDisconnected()
 	m_connected = false;
 	m_sessKey = 0;
 	logInfo("Disconnected");
-
+	
 	for (size_t i = 0; i < m_providers.size(); i++)
 	{
 		IProvider *provider = m_providers[i];
@@ -144,11 +154,11 @@ void EthernetDevice::markDisconnected()
 	}
 }
 void EthernetDevice::markConnected()
-{	
+{
 	m_connected = true;
 	logInfo("Connected");
 	m_lastRecvPacketId = 0;
-
+	
 	for (size_t i = 0; i < m_providers.size(); i++)
 	{
 		IProvider *provider = m_providers[i];
@@ -159,10 +169,10 @@ void EthernetDevice::registerDevice()
 {
 	m_sessKey = rand() % (0xffff - 1) + 1;
 	m_lastRecvPacketId = 0;
-
+	
 	ByteBuffer buf;
 	prepareBuffer(buf);
-
+	
 	uint16_t type = 0x0000;
 	uint8_t cmd = 0x01;
 	buf.append(type);
@@ -175,5 +185,5 @@ void EthernetDevice::registerDevice()
 
 void EthernetDevice::logInfo(const string& msg)
 {
-	logger->logInfo(Format("[EthDev {}] {}") << getIP() << msg);
+	logger->logInfo(Format("[{}] {}") << getName() << msg);
 }
