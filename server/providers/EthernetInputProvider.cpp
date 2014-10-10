@@ -1,7 +1,7 @@
 #include "EthernetInputProvider.h"
 
 #include "common.h"
-#include "kutils.h"
+#include "kdutils.h"
 #include <unistd.h>
 
 #include <kdhome.h>

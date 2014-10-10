@@ -1,7 +1,7 @@
 #include "EthernetDevice.h"
 
 #include "common.h"
-#include "kutils.h"
+#include "kdutils.h"
 
 EthernetDevice::EthernetDevice(UdpServer* server, uint32_t id, const string& ip)
 	: m_server(server), m_id(id), m_ip(ip), m_lastPacketTime(0), m_connected(false), m_lastRecvPacketId(0), m_sendPacketId(0),

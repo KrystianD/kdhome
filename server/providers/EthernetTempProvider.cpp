@@ -1,7 +1,7 @@
 #include "EthernetTempProvider.h"
 
 #include "common.h"
-#include "kutils.h"
+#include "kdutils.h"
 #include <unistd.h>
 
 EthernetTempProvider::EthernetTempProvider(EthernetDevice* device, int amount)

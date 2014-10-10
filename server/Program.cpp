@@ -6,7 +6,6 @@
 
 #include "MyLogger.h"
 #include "UdpServer.h"
-#include "Timer.h"
 #include "Controller.h"
 
 using namespace std;
@@ -30,9 +29,5 @@ void Program::run()
 		return;
 	}
 
-	for (;;)
-	{
-		m_controller->execute();
-		usleep(5 * 1000);
-	}
+	m_controller->run();
 }

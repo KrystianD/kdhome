@@ -3,7 +3,8 @@
 
 #include "UdpServer.h"
 #include "3rd/mongoose.h"
-#include <kutils.h>
+#include <kdutils.h>
+#include <LinuxTimer.h>
 
 #include <stdint.h>
 #include <string>
@@ -62,7 +63,7 @@ public:
 	}
 	bool init();
 	void reload();
-	void execute();
+	void run();
 	void savePersistentState(int outputId);
 	
 	void updateNames();
@@ -159,6 +160,7 @@ private:
 	uint32_t m_lastTicks;
 	uint32_t m_startTime;
 	
+	LinuxTimer m_checkTimer;
 	UdpServer m_server;
 	mg_server *m_httpserver;
 	mg_connection *m_currConn;

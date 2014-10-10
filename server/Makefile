@@ -1,6 +1,6 @@
 CXX=g++
 CC=gcc
-KDLIB=../kdlibs
+KDLIB=../kdutils
 
 # INC+=-I/usr/include/libusb-1.0
 # INC+=-I/usr/include/lua5.1
@@ -19,7 +19,7 @@ OBJS+=providers/EthernetOutputProvider.o
 OBJS+=providers/EthernetInputProvider.o
 OBJS+=providers/EthernetTempProvider.o
 OBJS+=providers/EthernetIRProvider.o
-OBJS+=$(KDLIB)/Logger.o $(KDLIB)/kutils.o
+OBJS+=$(KDLIB)/Logger.o $(KDLIB)/kdutils.o
 OBJS+=3rd/format.o
 OBJS+=3rd/mongoose.o
 OBJS+=3rd/libconfig-1.4.9/grammar.o

@@ -3,7 +3,7 @@
 #include "Program.h"
 #include "MyLogger.h"
 #include "StorageEngine.h"
-#include "kutils.h"
+#include "kdutils.h"
 
 #include <zmq.h>
 #include <unistd.h>
@@ -11,6 +11,7 @@
 #include "3rd/mongoose.h"
 
 #include "ICURL.h"
+#include "LinuxTimer.h"
 
 using namespace std;
 using namespace fmt;
@@ -77,9 +78,11 @@ bool Controller::init()
 		m_logger->logError(str(Format("Unable to configure UDP server: {}") << m_server.getLastError()));
 		return false;
 	}
-
+	
+	m_checkTimer.setInterval(0, 100 * 1000);
+	
 	reload();
-
+	
 	return true;
 }
 void Controller::reload()
@@ -296,58 +299,60 @@ string Controller::processREQ(string msg)
 	return "";
 }
 
-void Controller::execute()
+void Controller::run()
 {
-	int res;
-	
-	m_server.process();
-	// mg_poll_server(m_httpserver, 0);
-	
-	// uint32_t ticks = getTicks();
-	// for (int i = m_delayedCode.size() - 1; i >= 0; i--)
-	// {
-		// TDelayedCode &dcode = m_delayedCode[i];
-		// if (dcode.executionTime <= ticks)
-		// {
-			// if (dcode.id.find("nolog") == string::npos)
-				// m_logger->logInfo(Format("[script] Executing delayed code for id '{}'") << dcode.id);
-			// string code = dcode.code;
-			// if (!dcode.repeating)
-				// m_delayedCode.erase(m_delayedCode.begin() + i);
-			// else
-				// dcode.executionTime = getTicks() + dcode.timeout;
-		// }
-	// }
-	
-	uint32_t diff = ticks - m_lastTicks;
-	m_lastTicks = ticks;
-	
-	for (size_t i = 0; i < m_devices.size(); i++)
+	for (;;)
 	{
-		EthernetDevice *dev = m_devices[i];
-		dev->process();
-	}
-	
-	char data[1024];
-	int r = zmq_recv(zsocketREP, data, sizeof(data), ZMQ_DONTWAIT);
-	if (r != -1)
-	{
-		string s(data, r);
+		zmq_pollitem_t items[3];
+		items[0].socket = NULL;
+		items[0].fd = m_server.getFd();
+		items[0].events = ZMQ_POLLIN;
+		items[1].socket = zsocketREP;
+		items[1].events = ZMQ_POLLIN;
+		items[2].socket = NULL;
+		items[2].fd = m_checkTimer.getFd();
+		items[2].events = ZMQ_POLLIN;
+		zmq_poll(items, 3, -1);
 		
-		m_logger->logInfo(Format("ZMQ {}") << s);
-		string rep = processREQ(s);
-		
-		m_logger->logInfo(Format("REP {}") << rep);
-		zmq_send(zsocketREP, rep.data(), rep.size(), 0);
-	}
-	
-	if (!m_initialized)
-	{
-		static uint32_t lastInitTime = 0;
-		if (getTicks() - lastInitTime >= 500)
+		if (items[0].revents & ZMQ_POLLIN)
 		{
-			publish("CTRL:INIT");
-			lastInitTime = getTicks();
+			m_server.process();
+		}
+		if (items[1].revents & ZMQ_POLLIN)
+		{
+			char data[1024];
+			int r = zmq_recv(zsocketREP, data, sizeof(data), ZMQ_DONTWAIT);
+			if (r != -1)
+			{
+				string s(data, r);
+				
+				m_logger->logInfo(Format("ZMQ {}") << s);
+				string rep = processREQ(s);
+				
+				m_logger->logInfo(Format("REP {}") << rep);
+				zmq_send(zsocketREP, rep.data(), rep.size(), 0);
+			}
+		}
+		if (items[2].revents & ZMQ_POLLIN)
+		{
+			if (m_checkTimer.wait())
+			{
+				for (size_t i = 0; i < m_devices.size(); i++)
+				{
+					EthernetDevice *dev = m_devices[i];
+					dev->process();
+				}
+				
+				if (!m_initialized)
+				{
+					static uint32_t lastInitTime = 0;
+					if (getTicks() - lastInitTime >= 500)
+					{
+						publish("CTRL:INIT");
+						lastInitTime = getTicks();
+					}
+				}
+			}
 		}
 	}
 }

@@ -33,6 +33,8 @@ public:
 	{
 		return m_lastErrorStr;
 	}
+
+	int getFd() const { return m_sockfd; }
 	
 private:
 	int m_sockfd;

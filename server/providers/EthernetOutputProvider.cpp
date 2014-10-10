@@ -1,6 +1,6 @@
 #include "EthernetOutputProvider.h"
 
-#include "kutils.h"
+#include "kdutils.h"
 
 EthernetOutputProvider::EthernetOutputProvider(EthernetDevice* device, int amount)
 	: m_device(device)
