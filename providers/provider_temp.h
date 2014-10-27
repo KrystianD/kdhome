@@ -1,10 +1,8 @@
 #ifndef __PROVIDER_TEMP_H__
 #define __PROVIDER_TEMP_H__
 
-#include "buffer.h"
-
 void provTempReset();
-void provTempProcess(TByteBuffer* data);
+void provTempProcess(const void* data, int len);
 void provTempTmr();
 
 void provTempSetValueIntFrac(int num, int16_t integral, uint16_t frac);

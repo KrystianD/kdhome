@@ -3,24 +3,15 @@
 #include "Program.h"
 #include "MyLogger.h"
 #include "StorageEngine.h"
-#include "kdutils.h"
+#include <kdutils.h>
 
 #include <zmq.h>
 #include <unistd.h>
 
-#include "3rd/mongoose.h"
-
-#include "ICURL.h"
 #include "LinuxTimer.h"
 
 using namespace std;
 using namespace fmt;
-
-static int handle_hello(struct mg_connection *conn)
-{
-	Controller *ctrl = (Controller*)conn->server_param;
-	return ctrl->processHttpRequest(conn);
-}
 
 // Controller
 Controller::Controller()
@@ -41,9 +32,6 @@ Controller::~Controller()
 		zmq_close(zsocketREP);
 	if (zcontext)
 		zmq_ctx_destroy(zsocketREP);
-		
-	delete m_storage;
-	mg_destroy_server(&m_httpserver);
 }
 
 bool Controller::init()
@@ -63,13 +51,6 @@ bool Controller::init()
 		m_logger->logError(str(Format("Error during creating REP socket {}") << zmq_strerror(errno)));
 		return false;
 	}
-	
-	m_httpserver = mg_create_server(this);
-	mg_set_option(m_httpserver, "document_root", "");
-	mg_set_option(m_httpserver, "hide_files_patterns", "*");
-	mg_set_option(m_httpserver, "enable_directory_listing", "no");
-	mg_set_option(m_httpserver, "listening_port", "8080");
-	mg_add_uri_handler(m_httpserver, "/", &handle_hello);
 	
 	m_logger->logInfo("Creating UDP server");
 	m_server.setListener(this);
@@ -105,6 +86,7 @@ void Controller::reload()
 	
 	m_inputsNames.clear();
 	m_outputsNames.clear();
+	m_persistentOutputs.clear();
 	
 	for (auto& dev : m_devices)
 	{
@@ -301,17 +283,18 @@ string Controller::processREQ(string msg)
 
 void Controller::run()
 {
+	zmq_pollitem_t items[3];
+	items[0].socket = NULL;
+	items[0].fd = m_server.getFd();
+	items[0].events = ZMQ_POLLIN;
+	items[1].socket = zsocketREP;
+	items[1].events = ZMQ_POLLIN;
+	items[2].socket = NULL;
+	items[2].fd = m_checkTimer.getFd();
+	items[2].events = ZMQ_POLLIN;
+	
 	for (;;)
 	{
-		zmq_pollitem_t items[3];
-		items[0].socket = NULL;
-		items[0].fd = m_server.getFd();
-		items[0].events = ZMQ_POLLIN;
-		items[1].socket = zsocketREP;
-		items[1].events = ZMQ_POLLIN;
-		items[2].socket = NULL;
-		items[2].fd = m_checkTimer.getFd();
-		items[2].events = ZMQ_POLLIN;
 		zmq_poll(items, 3, -1);
 		
 		if (items[0].revents & ZMQ_POLLIN)
@@ -450,7 +433,7 @@ bool Controller::getInput(int num)
 }
 
 // Outputs
-void Controller::setOutput(int num, bool on)
+void Controller::setOutput(int num, bool state)
 {
 	IOutputProvider *p;
 	EthernetDevice *dev;
@@ -459,11 +442,12 @@ void Controller::setOutput(int num, bool on)
 		m_logger->logWarning(str(Format("Unable to find output provider for {}") << num));
 		return;
 	}
-	if (p->getOutputState(num - dev->getID()) != on)
+	if (p->getOutputState(num - dev->getID()) != state)
 	{
-		p->setOutputState(num - dev->getID(), on);
+		p->setOutputState(num - dev->getID(), state);
+		publish(str(Format("OUTPUT:CHANGED:{}:{}") << num << state));
 		
-		if (on)
+		if (state)
 			m_logger->logInfo(Format("[output] Output {} enabled") << getOutputName(num));
 		else
 			m_logger->logInfo(Format("[output] Output {} disabled") << getOutputName(num));
@@ -493,10 +477,12 @@ void Controller::toggleOutput(int num)
 	}
 	p->toggleOutputState(num - dev->getID());
 	
-	if (p->getOutputState(num - dev->getID()))
+	int state = p->getOutputState(num - dev->getID());
+	if (state)
 		m_logger->logInfo(Format("[expander] Output {} enabled(toggled)") << getOutputName(num));
 	else
 		m_logger->logInfo(Format("[expander] Output {} disabled(toggled)") << getOutputName(num));
+	publish(str(Format("OUTPUT:CHANGED:{}:{}") << num << state));
 		
 	savePersistentState(num);
 }
@@ -543,23 +529,6 @@ bool Controller::findProvider(int num, EthernetDevice*& dev, T*& provider)
 		}
 	}
 	return false;
-}
-
-// mongoose
-int Controller::processHttpRequest(mg_connection* conn)
-{
-	// protectLua();
-	// try
-	// {
-	// m_currConn = conn;
-	// if (m_lua) luabind::call_function<void>(m_lua, "onHttpRequest", (string)conn->uri);
-	// }
-	// catch (luabind::error& e)
-	// {
-	// m_logger->logWarning(Format("[script] [onHttpRequest] {}") << getLuaErrorNOPROTECT());
-	// }
-	// unprotectLua();
-	return 1;
 }
 
 // IEthernetDataListener

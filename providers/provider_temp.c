@@ -34,16 +34,16 @@ void provTempReset()
 	memset(&prov_tempData, 0, sizeof(prov_tempData));
 	prov_tempErrors = 0;
 }
-void provTempProcess(TByteBuffer* data)
+void provTempProcess(const void* data, int len)
 {
 	uint8_t cmd;
-	if (BYTEBUFFER_FETCH(data, cmd)) return;
+	// if (BYTEBUFFER_FETCH(data, cmd)) return;
 
-	switch (cmd)
-	{
-	default:
-		break;
-	}
+	// switch (cmd)
+	// {
+	// default:
+		// break;
+	// }
 }
 void provTempTmr()
 {

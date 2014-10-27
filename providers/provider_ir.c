@@ -9,7 +9,7 @@
 void provIRReset()
 {
 }
-void provIRProcess(TByteBuffer* data)
+void provIRProcess(const void* data, int len)
 {
 }
 void provIRTmr()

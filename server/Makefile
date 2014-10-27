@@ -2,9 +2,6 @@ CXX=g++
 CC=gcc
 KDLIB=../kdutils
 
-# INC+=-I/usr/include/libusb-1.0
-# INC+=-I/usr/include/lua5.1
-# INC+=-I/usr/include/mysql
 INC+=-I3rd -I. -I..
 INC+=-I3rd/libconfig-1.4.9
 INC+=-I$(KDLIB)
@@ -21,20 +18,18 @@ OBJS+=providers/EthernetTempProvider.o
 OBJS+=providers/EthernetIRProvider.o
 OBJS+=$(KDLIB)/Logger.o $(KDLIB)/kdutils.o
 OBJS+=3rd/format.o
-OBJS+=3rd/mongoose.o
 OBJS+=3rd/libconfig-1.4.9/grammar.o
 OBJS+=3rd/libconfig-1.4.9/libconfig.o
 OBJS+=3rd/libconfig-1.4.9/scanctx.o
 OBJS+=3rd/libconfig-1.4.9/scanner.o
 OBJS+=3rd/libconfig-1.4.9/strbuf.o
 OBJS+=3rd/libconfig-1.4.9/libconfigcpp.o
-OBJS+=ICURL.o
+# OBJS+=ICURL.o
 
 DEFINES+=-DLIBCONFIG_STATIC
 DEFINES+=-DLIBCONFIGXX_STATIC
 
-LFLAGS=-L/usr/lib -lcurl -lpthread
-LFLAGS+=-lzmq
+LFLAGS=-L/usr/lib -lpthread -lzmq
 CFLAGS=-ggdb -g -O1 $(DEFINES) -std=c++11
 
 kdhome: $(OBJS)

@@ -4,7 +4,6 @@
 #include <stdint.h>
 
 #include "utils.h"
-#include "buffer.h"
 
 uint16_t ethNextPacketPtr;
 uint16_t ethSessKey;

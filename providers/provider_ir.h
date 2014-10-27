@@ -1,10 +1,10 @@
 #ifndef __PROVIDER_IR_H__
 #define __PROVIDER_IR_H__
 
-#include "buffer.h"
+#include <stdint.h>
 
 void provIRReset();
-void provIRProcess(TByteBuffer* data);
+void provIRProcess(const void* data, int len);
 void provIRTmr();
 
 // Notifies ir provider about new IR code

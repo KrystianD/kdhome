@@ -66,9 +66,6 @@ build/Internet_DHCP_dhcp.o: Internet/DHCP/dhcp.c
 build/ethernet.o: ethernet.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-build/buffer.o: buffer.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
 build/__3rd_IRremote.o: ../3rd/IRremote.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -87,6 +84,6 @@ build/__providers_provider_temp.o: ../providers/provider_temp.c
 build/__providers_provider_ir.o: ../providers/provider_ir.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-build/main.elf: build/main.o build/isr.o build/utils.o build/temp.o build/io.o build/ir.o build/stm32-public_delay.o build/stm32-public_myprintf.o build/stm32-public_ow.o build/__kdutils_uclibs_advinputmanager.o build/Ethernet_socket.o build/Ethernet_W5500_w5500.o build/Ethernet_wizchip_conf.o build/Internet_DHCP_dhcp.o build/ethernet.o build/buffer.o build/__3rd_IRremote.o build/__providers_providers.o build/__providers_provider_output.o build/__providers_provider_input.o build/__providers_provider_temp.o build/__providers_provider_ir.o
+build/main.elf: build/main.o build/isr.o build/utils.o build/temp.o build/io.o build/ir.o build/stm32-public_delay.o build/stm32-public_myprintf.o build/stm32-public_ow.o build/__kdutils_uclibs_advinputmanager.o build/Ethernet_socket.o build/Ethernet_W5500_w5500.o build/Ethernet_wizchip_conf.o build/Internet_DHCP_dhcp.o build/ethernet.o build/__3rd_IRremote.o build/__providers_providers.o build/__providers_provider_output.o build/__providers_provider_input.o build/__providers_provider_temp.o build/__providers_provider_ir.o
 	$(CC) $(CFLAGS) $(LFLAGS) $^ -lm -lc -o $@
 
