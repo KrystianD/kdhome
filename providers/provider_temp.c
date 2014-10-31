@@ -26,6 +26,7 @@ struct
 #pragma pack()
 
 uint16_t prov_tempErrors;
+uint8_t prov_tempRealSensorsCount = TEMP_SENSORS_COUNT;
 
 void provTemp_sendData();
 
@@ -36,22 +37,14 @@ void provTempReset()
 }
 void provTempProcess(const void* data, int len)
 {
-	uint8_t cmd;
-	// if (BYTEBUFFER_FETCH(data, cmd)) return;
-
-	// switch (cmd)
-	// {
-	// default:
-		// break;
-	// }
 }
 void provTempTmr()
 {
 	static uint32_t lastSendTime = 0;
-	if (ticks - lastSendTime >= 1000 / TEMP_SENSORS_COUNT)
+	if (ticks - lastSendTime >= 1000 / prov_tempRealSensorsCount)
 	{
 		lastSendTime = ticks;
-
+		
 		provTemp_sendData();
 	}
 }
@@ -65,61 +58,24 @@ void provTemp_sendData()
 	
 	p.header.type = PROVIDER_TYPE_TEMP;
 	p.header.cmd = TEMP_NOTF_TEMP;
-	p.cnt = TEMP_SENSORS_COUNT;
+	p.cnt = prov_tempRealSensorsCount;
 	p.num = num;
 	p.flags = modes[num];
 	p.value.value = prov_tempData[num].value.value;
 	
 	provSendPacket(&p, sizeof(p));
-
-	if (num >= TEMP_SENSORS_COUNT)
+	
+	num++;
+	if (num >= prov_tempRealSensorsCount)
 		num = 0;
-
-	// TByteBuffer b;
-	// if (!ethPrepareBuffer(&b, 2 + 1 + 1 + 2 + 2 + TEMP_SENSORS_COUNT * 4))
-		// return;
-	// uint16_t type = PROVIDER_TYPE_TEMP;
-	// BYTEBUFFER_APPEND(&b, type);
-
-	// uint8_t cmd = TEMP_NOTF_TEMP;
-	// BYTEBUFFER_APPEND(&b, cmd);
-
-	// uint8_t cnt = TEMP_SENSORS_COUNT;
-	// BYTEBUFFER_APPEND(&b, cnt);
-
-	// uint16_t flags = 
-		// (TEMP_SENSOR0_MODE << 0) |
-		// (TEMP_SENSOR1_MODE << 1) |
-		// (TEMP_SENSOR2_MODE << 2) |
-		// (TEMP_SENSOR3_MODE << 3) |
-		// (TEMP_SENSOR4_MODE << 4) |
-		// (TEMP_SENSOR5_MODE << 5) |
-		// (TEMP_SENSOR6_MODE << 6) |
-		// (TEMP_SENSOR7_MODE << 7) |
-		// (TEMP_SENSOR8_MODE << 8) |
-		// (TEMP_SENSOR9_MODE << 9) |
-		// (TEMP_SENSOR10_MODE << 10) |
-		// (TEMP_SENSOR11_MODE << 11) |
-		// (TEMP_SENSOR12_MODE << 12) |
-		// (TEMP_SENSOR13_MODE << 13) |
-		// (TEMP_SENSOR14_MODE << 14) |
-		// (TEMP_SENSOR15_MODE << 15);
-	// BYTEBUFFER_APPEND(&b, flags);
-
-	// uint16_t errors = prov_tempErrors;
-	// BYTEBUFFER_APPEND(&b, errors);
-
-	// int i;
-	// for (i = 0; i < TEMP_SENSORS_COUNT; i++)
-	// {
-		// BYTEBUFFER_APPEND(&b, prov_tempData[i].value.value);
-	// }
-
-	// ethSendPacket(&b);
-
-	// ethFreeBuffer(&b);
 }
 
+void provTempSetRealSensorsCount(int cnt)
+{
+	if (cnt > TEMP_SENSORS_COUNT)
+		cnt = TEMP_SENSORS_COUNT;
+	prov_tempRealSensorsCount = cnt;
+}
 void provTempSetValueIntFrac(int num, int16_t integral, uint16_t frac)
 {
 	prov_tempData[num].value.spl.integral = integral;
