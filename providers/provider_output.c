@@ -3,12 +3,21 @@
 
 #include <kdhome.h>
 #include <myprintf.h>
+#include "ethernet.h"
+#include "providers.h"
 
 void provOutputReset()
 {
 }
 void provOutputRegister()
 {
+	myprintf("REGISTER OUTPUT\r\n");
+	TProvOutputRegisterPacket p;
+	provPrepareHeader((TProvHeader*)&p);
+	p.header.type = PROVIDER_TYPE_OUTPUT;
+	p.header.cmd = OUTPUT_CMD_REGISTER;
+	p.cnt = OUTPUTS_COUNT;
+	provSendPacket(&p, sizeof(p));
 }
 void provOutputProcess(const void* data, int len)
 {

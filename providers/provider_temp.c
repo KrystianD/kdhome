@@ -37,6 +37,13 @@ void provTempReset()
 }
 void provTempRegister()
 {
+	myprintf("REGISTER TEMP\r\n");
+	TProvTempRegisterPacket p;
+	provPrepareHeader((TProvHeader*)&p);
+	p.header.type = PROVIDER_TYPE_TEMP;
+	p.header.cmd = TEMP_CMD_REGISTER;
+	p.cnt = prov_tempRealSensorsCount;
+	provSendPacket(&p, sizeof(p));
 }
 void provTempProcess(const void* data, int len)
 {

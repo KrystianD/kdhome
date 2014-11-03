@@ -60,3 +60,8 @@ void EthernetOutputProvider::preparePacket(TSrvHeader* packet, uint8_t command)
 	packet->type = getType();
 	packet->cmd = command;
 }
+
+string EthernetOutputProvider::getOutputID(int num)
+{
+	return str(Format("{}-{}") << getDevice()->getName() << num);
+}

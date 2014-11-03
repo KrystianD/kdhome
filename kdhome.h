@@ -15,7 +15,6 @@ typedef struct
 	uint8_t cmd;
 } TSrvHeader;
 
-
 #define PROVIDER_TYPE_CONTROL 0x0000
 #define PROVIDER_TYPE_OUTPUT  0x0001
 #define PROVIDER_TYPE_INPUT   0x0002
@@ -23,7 +22,7 @@ typedef struct
 #define PROVIDER_TYPE_TEMP    0x0004
 
 // Control
-#define CONTROL_CMD_REGISTER    0x01
+#define CONTROL_CMD_REGISTER    0x00
 typedef struct
 {
 	TSrvHeader header;

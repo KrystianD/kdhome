@@ -37,6 +37,8 @@ public:
 	{
 		m_listener = listener;
 	}
+
+	string getInputID(int num);
 	
 private:
 	struct TInput
@@ -65,7 +67,7 @@ private:
 	{
 		m_device->sendData(data, len);
 	}
-	
+
 	void logInfo(const string& msg);
 };
 

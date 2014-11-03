@@ -12,6 +12,7 @@ public:
 	virtual bool getOutputState (int num) = 0;
 	virtual void setOutputState (int num, bool on) = 0;
 	virtual void toggleOutputState (int num) = 0;
+	virtual string getOutputID(int num) = 0;
 };
 
 #endif

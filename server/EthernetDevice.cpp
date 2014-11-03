@@ -3,9 +3,14 @@
 #include "common.h"
 #include "kdutils.h"
 
-EthernetDevice::EthernetDevice(UdpServer* server, uint32_t id, const string& ip)
-	: m_server(server), m_id(id), m_ip(ip), m_lastPacketTime(0), m_connected(false), m_lastRecvPacketId(0), m_sendPacketId(0),
-	  m_sessKey(0), m_registrationDataSendTime(0)
+#include "providers/EthernetInputProvider.h"
+#include "providers/EthernetOutputProvider.h"
+#include "providers/EthernetIRProvider.h"
+#include "providers/EthernetTempProvider.h"
+
+EthernetDevice::EthernetDevice(UdpServer* server, uint32_t id, const string& ip, const string& name)
+	: m_server(server), m_id(id), m_ip(ip), m_name(name), m_lastPacketTime(0), m_connected(false), m_lastRecvPacketId(0), m_sendPacketId(0),
+	  m_sessKey(0), m_registrationDataSendTime(0), m_inputListener(0)
 {
 }
 EthernetDevice::~EthernetDevice()
@@ -36,7 +41,7 @@ IProvider* EthernetDevice::getProvider(uint16_t type)
 
 string EthernetDevice::getName() const
 {
-	return str(Format("EthDev {}") << getIP());
+	return m_name;
 }
 
 void EthernetDevice::processData(ByteBuffer& buffer)
@@ -44,44 +49,29 @@ void EthernetDevice::processData(ByteBuffer& buffer)
 	m_lastPacketTime = getTicks();
 	checkConnection();
 	
-	uint16_t packetId, sessKey, type;
-	buffer.fetch(packetId);
-	buffer.fetch(sessKey);
-	buffer.fetch(type);
+	TProvHeader *header = (TProvHeader*)buffer.data();
 	
-	logInfo(str(Format("Packet #{} received - type: {} sessKey: {}") << packetId << type << sessKey));
+	logInfo(str(Format("Packet #{} received - type: {} cmd: {} sessKey: {}") << header->packetId << header->type << (int)header->cmd << header->sessKey));
 	
 	if (m_connected)
 	{
-		if (m_sessKey == 0 || m_sessKey != sessKey)
+		if (m_sessKey == 0 || m_sessKey != header->sessKey)
 		{
 			markDisconnected();
 			registerDevice();
 			return;
 		}
 		
-		if (packetId <= m_lastRecvPacketId && packetId - m_lastRecvPacketId > 10) // prevent disconnecting on wrap
+		if (header->packetId <= m_lastRecvPacketId && header->packetId - m_lastRecvPacketId > 10) // prevent disconnecting on wrap
 		{
 			markDisconnected();
 			registerDevice();
 			return;
-		}
-		
-		m_lastRecvPacketId = packetId;
-		
-		for (size_t i = 0; i < m_providers.size(); i++)
-		{
-			IProvider *provider = m_providers[i];
-			if (provider->getType() == type)
-			{
-				provider->processData(buffer);
-				break;
-			}
 		}
 	}
 	else // if not connected
 	{
-		if (m_sessKey == sessKey)
+		if (m_sessKey == header->sessKey)
 		{
 			markConnected();
 		}
@@ -90,6 +80,71 @@ void EthernetDevice::processData(ByteBuffer& buffer)
 			if (getTicks() - m_registrationDataSendTime > REGISTRATION_DATA_DELAY)
 			{
 				registerDevice();
+			}
+		}
+	}
+	
+	if (m_connected)
+	{
+		m_lastRecvPacketId = header->packetId;
+		
+		if (header->type == 0)
+		{
+			logInfo(str(Format("cmd: {}") << (int)header->cmd));
+		}
+		else
+		{
+			if (header->cmd == 0x00)
+			{
+				switch(header->type)
+				{
+				case PROVIDER_TYPE_INPUT:
+				{
+					TProvInputRegisterPacket *p = (TProvInputRegisterPacket*)buffer.data();
+					EthernetInputProvider *prov = new EthernetInputProvider(this, p->cnt);
+					prov->setListener(m_inputListener);
+					addProvider(prov);
+					logInfo(str(Format("Added input provider to device #{} with {} inputs") << 0 << (int)p->cnt));
+					break;
+				}
+				case PROVIDER_TYPE_OUTPUT:
+				{
+					TProvOutputRegisterPacket *p = (TProvOutputRegisterPacket*)buffer.data();
+					EthernetOutputProvider *prov = new EthernetOutputProvider(this, p->cnt);
+					addProvider(prov);
+					logInfo(str(Format("Added output provider to device #{} with {} outputs") << 0 << (int)p->cnt));
+					break;
+				}
+				case PROVIDER_TYPE_IR:
+				{
+					TProvIRRegisterPacket *p = (TProvIRRegisterPacket*)buffer.data();
+					EthernetIRProvider *prov = new EthernetIRProvider(this);
+					addProvider(prov);
+					logInfo(str(Format("Added IR provider to device #{}") << 0));
+					break;
+				}
+				case PROVIDER_TYPE_TEMP:
+				{
+					TProvTempRegisterPacket *p = (TProvTempRegisterPacket*)buffer.data();
+					EthernetTempProvider *prov = new EthernetTempProvider(this, p->cnt);
+					addProvider(prov);
+					logInfo(str(Format("Added temp provider to device #{} with {} sensors") << 0 << (int)p->cnt));
+					break;
+				}
+				}
+				// logInfo(str(Format("Registering provider of type: {}") << (int)header->type));
+			}
+			else
+			{
+				for (size_t i = 0; i < m_providers.size(); i++)
+				{
+					IProvider *provider = m_providers[i];
+					if (provider->getType() == header->type)
+					{
+						provider->processData(buffer);
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -173,8 +228,8 @@ void EthernetDevice::registerDevice()
 	ByteBuffer buf;
 	prepareBuffer(buf);
 	
-	uint16_t type = 0x0000;
-	uint8_t cmd = 0x01;
+	uint16_t type = PROVIDER_TYPE_CONTROL;
+	uint8_t cmd = CONTROL_CMD_REGISTER;
 	buf.append(type);
 	buf.append(cmd);
 	buf.append(m_sessKey);

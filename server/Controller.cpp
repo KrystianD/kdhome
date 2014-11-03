@@ -79,7 +79,7 @@ void Controller::reload()
 		int outputId = it.first;
 		int state = m_storage->getInt("output", outputId, 1);
 		// m_logger->logInfo(Format("out {} {}") << outputId << state);
-		setOutput(outputId, state);
+		//TODO// setOutput(outputId, state);
 	}
 	
 	m_initialized = false;
@@ -131,54 +131,16 @@ string Controller::processREQ(string msg)
 		}
 		else if (cmd == "REGISTER-ETHERNET-DEVICE")
 		{
-			if (p.size() < 6)
+			if (p.size() < 7)
 				return "";
 				
 			int id = atoi(p[2].c_str());
 			string ip = p[3];
 			int port = atoi(p[4].c_str());
+			string name = p[5];
 			
-			int dev = registerEthernetDevice(id, ip);
+			int dev = registerEthernetDevice(id, ip, name);
 			return str(Format("{}") << dev);
-		}
-		else if (cmd == "ADD-INPUT-PROVIDER")
-		{
-			if (p.size() < 5)
-				return "";
-				
-			int id = atoi(p[2].c_str());
-			int cnt = atoi(p[3].c_str());
-			
-			addInputProvider(id, cnt);
-		}
-		else if (cmd == "ADD-OUTPUT-PROVIDER")
-		{
-			if (p.size() < 5)
-				return "";
-				
-			int id = atoi(p[2].c_str());
-			int cnt = atoi(p[3].c_str());
-			
-			addOutputProvider(id, cnt);
-		}
-		else if (cmd == "ADD-IR-PROVIDER")
-		{
-			if (p.size() < 4)
-				return "";
-				
-			int id = atoi(p[2].c_str());
-			
-			addIRProvider(id);
-		}
-		else if (cmd == "ADD-TEMP-PROVIDER")
-		{
-			if (p.size() < 5)
-				return "";
-				
-			int id = atoi(p[2].c_str());
-			int cnt = atoi(p[3].c_str());
-			
-			addTempProvider(id, cnt);
 		}
 	}
 	else if (type == "MESSAGE")
@@ -203,10 +165,10 @@ string Controller::processREQ(string msg)
 			if (p.size() < 5)
 				return "";
 				
-			int num = atoi(p[2].c_str());
+			string name = p[2];
 			int value = atoi(p[3].c_str());
 			
-			setOutput(num, value);
+			setOutput(name, value);
 			return "";
 		}
 		else if (cmd == "TOGGLE")
@@ -214,9 +176,9 @@ string Controller::processREQ(string msg)
 			if (p.size() < 4)
 				return "";
 				
-			int num = atoi(p[2].c_str());
+			string name = p[2];
 			
-			toggleOutput(num);
+			toggleOutput(name);
 			return "";
 		}
 		else if (cmd == "GET")
@@ -224,20 +186,20 @@ string Controller::processREQ(string msg)
 			if (p.size() < 4)
 				return "";
 				
-			int num = atoi(p[2].c_str());
+			string name = p[2];
 			
-			int val = getOutput(num);
+			int val = getOutput(name);
 			return str(Format("{}") << val);
 		}
 		else if (cmd == "SET-NAME")
 		{
-			if (p.size() < 4)
+			if (p.size() < 5)
 				return "";
 				
-			int num = atoi(p[2].c_str());
+			string id = p[2];
 			string name = p[3];
-			
-			m_outputsNames[num] = name;
+			m_outputsNames[id] = name;
+			m_outputNameToId[name] = id;
 			
 			return "";
 		}
@@ -250,20 +212,24 @@ string Controller::processREQ(string msg)
 			if (p.size() < 4)
 				return "";
 				
-			int num = atoi(p[2].c_str());
+			string name = p[2];
 			
-			int val = getInput(num);
+			int val = getInput(name);
 			return str(Format("{}") << val);
 		}
 		else if (cmd == "SET-NAME")
 		{
-			if (p.size() < 4)
+			if (p.size() < 5)
 				return "";
 				
-			int num = atoi(p[2].c_str());
+			// int num = atoi(p[2].c_str());
+			// string name = p[3];
+			string id = p[2];
 			string name = p[3];
+			m_inputsNames[id] = name;
+			m_inputNameToId[name] = id;
 			
-			m_inputsNames[num] = name;
+			// m_inputsNames[num] = name;
 			
 			return "";
 		}
@@ -276,9 +242,9 @@ string Controller::processREQ(string msg)
 			if (p.size() < 4)
 				return "";
 				
-			int num = atoi(p[2].c_str());
+			string name = p[2];
 			
-			float val = getTemp(num);
+			float val = getTemp(name);
 			return str(Format("{}") << val);
 		}
 		else if (cmd == "IS-VALID")
@@ -286,10 +252,22 @@ string Controller::processREQ(string msg)
 			if (p.size() < 4)
 				return "";
 				
-			int num = atoi(p[2].c_str());
+			string name = p[2];
 			
-			int val = isTempValid(num);
+			int val = isTempValid(name);
 			return str(Format("{}") << val);
+		}
+		else if (cmd == "SET-NAME")
+		{
+			if (p.size() < 5)
+				return "";
+				
+			string id = p[2];
+			string name = p[3];
+			m_tempsNames[id] = name;
+			m_tempNameToId[name] = id;
+			
+			return "";
 		}
 	}
 	return "";
@@ -353,196 +331,223 @@ void Controller::run()
 		}
 	}
 }
-void Controller::savePersistentState(int outputId)
+void Controller::savePersistentState(const string& name)
 {
 	map<int, int>::iterator it;
 	// for (it = m_persistentOutputs.begin(); it != m_persistentOutputs.end(); it++)
 	{
 		// int outputId = it->first;
-		bool state = getOutput(outputId);
-		m_storage->setInt("output", outputId, state);
+		bool state = getOutput(name);
+		// m_storage->setInt("output", name, state); TODO
 	}
 	m_storage->save();
 }
 
 // Registering devices and proviers
-int Controller::registerEthernetDevice(uint32_t id, const std::string& ip)
+int Controller::registerEthernetDevice(uint32_t id, const string& ip, const string& name)
 {
-	EthernetDevice *dev = new EthernetDevice(&m_server, id, ip);
+	EthernetDevice *dev = new EthernetDevice(&m_server, id, ip, name);
+	dev->setInputListener(this);
 	int idx = m_devices.size();
 	m_devices.push_back(dev);
 	m_logger->logInfo(Format("Registered ethernet device #{} with IP {}") << idx << ip);
 	return idx;
 }
-void Controller::addOutputProvider(int dev, int outputsCount)
-{
-	if (dev >= m_devices.size())
-	{
-		m_logger->logWarning(str(Format("Bad device index: {}") << dev));
-		return;
-	}
-	EthernetDevice *device = m_devices[dev];
-	EthernetOutputProvider *out = new EthernetOutputProvider(device, outputsCount);
-	// out->getStorage()->setPath(str(Format("data/output_{}") << dev));
-	// out->getStorage()->load();
-	device->addProvider(out);
-	m_logger->logInfo(Format("Added output provider to device #{}") << dev);
-}
-void Controller::addInputProvider(int dev, int inputsCount)
-{
-	if (dev >= m_devices.size())
-	{
-		m_logger->logWarning(str(Format("Bad device index: {}") << dev));
-		return;
-	}
-	EthernetDevice *device = m_devices[dev];
-	EthernetInputProvider *inp = new EthernetInputProvider(device, inputsCount);
-	// inp->getStorage()->setPath(str(Format("data/input_{}") << dev));
-	// inp->getStorage()->load();
-	inp->setListener(this);
-	device->addProvider(inp);
-	m_logger->logInfo(Format("Added input provider to device #{}") << dev);
-}
-void Controller::addIRProvider(int dev)
-{
-	if (dev >= m_devices.size())
-	{
-		m_logger->logWarning(str(Format("Bad device index: {}") << dev));
-		return;
-	}
-	EthernetDevice *device = m_devices[dev];
-	EthernetIRProvider *ir = new EthernetIRProvider(device);
-	// ir->getStorage()->setPath(str(Format("data/ir_{}") << dev));
-	// ir->getStorage()->load();
-	ir->setListener(this);
-	device->addProvider(ir);
-	m_logger->logInfo(Format("Added IR provider to device #{}") << dev);
-}
-void Controller::addTempProvider(int dev, int sensorsCount)
-{
-	if (dev >= m_devices.size())
-	{
-		m_logger->logWarning(str(Format("Bad device index: {}") << dev));
-		return;
-	}
-	EthernetDevice *device = m_devices[dev];
-	EthernetTempProvider *temp = new EthernetTempProvider(device, sensorsCount);
-	// temp->getStorage()->setPath(str(Format("data/temp_{}") << dev));
-	// temp->getStorage()->load();
-	device->addProvider(temp);
-	m_logger->logInfo(Format("Added temperature provider to device #{}") << dev);
-}
+// void Controller::addOutputProvider(int dev, int outputsCount)
+// {
+// if (dev >= m_devices.size())
+// {
+// m_logger->logWarning(str(Format("Bad device index: {}") << dev));
+// return;
+// }
+// EthernetDevice *device = m_devices[dev];
+// EthernetOutputProvider *out = new EthernetOutputProvider(device, outputsCount);
+// // out->getStorage()->setPath(str(Format("data/output_{}") << dev));
+// // out->getStorage()->load();
+// device->addProvider(out);
+// m_logger->logInfo(Format("Added output provider to device #{}") << dev);
+// }
+// void Controller::addInputProvider(int dev, int inputsCount)
+// {
+// if (dev >= m_devices.size())
+// {
+// m_logger->logWarning(str(Format("Bad device index: {}") << dev));
+// return;
+// }
+// EthernetDevice *device = m_devices[dev];
+// EthernetInputProvider *inp = new EthernetInputProvider(device, inputsCount);
+// // inp->getStorage()->setPath(str(Format("data/input_{}") << dev));
+// // inp->getStorage()->load();
+// inp->setListener(this);
+// device->addProvider(inp);
+// m_logger->logInfo(Format("Added input provider to device #{}") << dev);
+// }
+// void Controller::addIRProvider(int dev)
+// {
+// if (dev >= m_devices.size())
+// {
+// m_logger->logWarning(str(Format("Bad device index: {}") << dev));
+// return;
+// }
+// EthernetDevice *device = m_devices[dev];
+// EthernetIRProvider *ir = new EthernetIRProvider(device);
+// // ir->getStorage()->setPath(str(Format("data/ir_{}") << dev));
+// // ir->getStorage()->load();
+// ir->setListener(this);
+// device->addProvider(ir);
+// m_logger->logInfo(Format("Added IR provider to device #{}") << dev);
+// }
+// void Controller::addTempProvider(int dev, int sensorsCount)
+// {
+// if (dev >= m_devices.size())
+// {
+// m_logger->logWarning(str(Format("Bad device index: {}") << dev));
+// return;
+// }
+// EthernetDevice *device = m_devices[dev];
+// EthernetTempProvider *temp = new EthernetTempProvider(device, sensorsCount);
+// // temp->getStorage()->setPath(str(Format("data/temp_{}") << dev));
+// // temp->getStorage()->load();
+// device->addProvider(temp);
+// m_logger->logInfo(Format("Added temperature provider to device #{}") << dev);
+// }
 
 // Inputs
-bool Controller::getInput(int num)
+bool Controller::getInput(const string& name)
 {
-	IInputProvider *p;
 	EthernetDevice *dev;
-	if (!findProvider(num, dev, p))
+	IInputProvider *p;
+	int num;
+	if (!findProvider(name, m_inputNameToId, dev, p, num))
 	{
-		m_logger->logWarning(str(Format("Unable to find input provider for {}") << num));
+		m_logger->logWarning(str(Format("Unable to find input provider for {}") << name));
 		return false;
 	}
-	return p->getInputState(num - dev->getID());
+	return p->getInputState(num);
 }
 
 // Outputs
-void Controller::setOutput(int num, bool state)
+void Controller::setOutput(const string& name, bool state)
 {
 	IOutputProvider *p;
 	EthernetDevice *dev;
-	if (!findProvider(num, dev, p))
+	int num;
+	if (!findProvider(name, m_outputNameToId, dev, p, num))
 	{
 		m_logger->logWarning(str(Format("Unable to find output provider for {}") << num));
 		return;
 	}
-	if (p->getOutputState(num - dev->getID()) != state)
+	if (p->getOutputState(num) != state)
 	{
-		p->setOutputState(num - dev->getID(), state);
-		publish(str(Format("OUTPUT:CHANGED:{}:{}") << num << state));
+		p->setOutputState(num, state);
+		string id = p->getOutputID(num);
+		publish(str(Format("OUTPUT:CHANGED:{}:{}:{}") << id << getOutputName(id) << state));
 		
 		if (state)
-			m_logger->logInfo(Format("[output] Output {} enabled") << getOutputName(num));
+			m_logger->logInfo(Format("[output] Output {} enabled") << getOutputName(id));
 		else
-			m_logger->logInfo(Format("[output] Output {} disabled") << getOutputName(num));
+			m_logger->logInfo(Format("[output] Output {} disabled") << getOutputName(id));
 	}
 	
-	savePersistentState(num);
+	savePersistentState(name);
 }
-bool Controller::getOutput(int num)
+bool Controller::getOutput(const string& name)
 {
 	IOutputProvider *p;
 	EthernetDevice *dev;
-	if (!findProvider(num, dev, p))
+	int num;
+	if (!findProvider(name, m_outputNameToId, dev, p, num))
 	{
 		m_logger->logWarning(str(Format("Unable to find output provider for {}") << num));
 		return false;
 	}
-	return p->getOutputState(num - dev->getID());
+	return p->getOutputState(num);
 }
-void Controller::toggleOutput(int num)
+void Controller::toggleOutput(const string& name)
 {
 	IOutputProvider *p;
 	EthernetDevice *dev;
-	if (!findProvider(num, dev, p))
+	int num;
+	if (!findProvider(name, m_outputNameToId, dev, p, num))
 	{
 		m_logger->logWarning(str(Format("Unable to find output provider for {}") << num));
 		return;
 	}
-	p->toggleOutputState(num - dev->getID());
+	p->toggleOutputState(num);
 	
-	int state = p->getOutputState(num - dev->getID());
+	string id = p->getOutputID(num);
+	int state = p->getOutputState(num);
 	if (state)
-		m_logger->logInfo(Format("[expander] Output {} enabled(toggled)") << getOutputName(num));
+		m_logger->logInfo(Format("[expander] Output {} enabled(toggled)") << getOutputName(id));
 	else
-		m_logger->logInfo(Format("[expander] Output {} disabled(toggled)") << getOutputName(num));
-	publish(str(Format("OUTPUT:CHANGED:{}:{}") << num << state));
-		
-	savePersistentState(num);
+		m_logger->logInfo(Format("[expander] Output {} disabled(toggled)") << getOutputName(id));
+	publish(str(Format("OUTPUT:CHANGED:{}:{}:{}") << id << getOutputName(id) << state));
+	
+	savePersistentState(name);
 }
-void Controller::setOutputAsPersistent(int num)
+void Controller::setOutputAsPersistent(const string& name)
 {
-	m_persistentOutputs[num] = 1;
+	// m_persistentOutputs[num] = 1;
 }
 
 // Temperatures
-bool Controller::isTempValid(int num)
+bool Controller::isTempValid(const string& name)
 {
 	ITempProvider *p;
 	EthernetDevice *dev;
-	if (!findProvider(num, dev, p))
+	int num;
+	if (!findProvider(name, m_tempNameToId, dev, p, num))
 	{
 		m_logger->logWarning(str(Format("Unable to find temperature provider for {}") << num));
 		return false;
 	}
-	return p->isTempValid(num - dev->getID());
+	return p->isTempValid(num);
 }
-float Controller::getTemp(int num)
+float Controller::getTemp(const string& name)
 {
 	ITempProvider *p;
 	EthernetDevice *dev;
-	if (!findProvider(num, dev, p))
+	int num;
+	if (!findProvider(name, m_tempNameToId, dev, p, num))
 	{
 		m_logger->logWarning(str(Format("Unable to find temperature provider for {}") << num));
 		return 0;
 	}
-	return p->getTemp(num - dev->getID());
+	return p->getTemp(num);
 }
 
 template<typename T>
-bool Controller::findProvider(int num, EthernetDevice*& dev, T*& provider)
+bool Controller::findProvider(const string& name, const map<string,string>& idMap, EthernetDevice*& dev, T*& provider, int& num)
+{
+	string id = name;
+	auto v = idMap.find(id);
+	if (v != idMap.end())
+		id = v->second;
+
+	size_t del = id.find_first_of("-");
+	if (del == string::npos)
+		return false;
+	string devName = id.substr(0, del);
+	string numStr = id.substr(del + 1);
+	num = atoi(numStr.c_str());
+	dev = findDevice(devName);
+	
+	if (!dev || !dev->hasProvider(T::getTypeStatic()))
+		return false;
+		
+	provider = dynamic_cast<T*>(dev->getProvider(T::getTypeStatic()));
+	
+	if (provider && num < provider->getAmount())
+		return true;
+		
+	return false;
+}
+EthernetDevice* Controller::findDevice(const string& name)
 {
 	for (int i = 0; i < m_devices.size(); i++)
-	{
-		dev = m_devices[i];
-		if (dev->hasProvider(T::getTypeStatic()))
-		{
-			provider = dynamic_cast<T*>(dev->getProvider(T::getTypeStatic()));
-			if (provider && num >= dev->getID() && num < dev->getID() + provider->getAmount())
-				return true;
-		}
-	}
-	return false;
+		if (m_devices[i]->getName() == name)
+			return m_devices[i];
+	return 0;
 }
 
 // IEthernetDataListener
@@ -560,14 +565,15 @@ void Controller::onEthernetDataReceived(const string& ip, ByteBuffer& buffer)
 }
 
 // IInputProviderListener
-void Controller::onInputChanged(IInputProvider* provider, int num, int state)
+void Controller::onInputChanged(IInputProvider* provider, const string& id, int state)
 {
+	EthernetDevice *dev = provider->getDevice();
 	if (state)
-		m_logger->logInfo(str(Format("Input {} changed 0->1") << getInputName(provider->getDevice()->getID() + num)));
+		m_logger->logInfo(str(Format("Input {} changed 0->1") << getInputName(id)));
 	else
-		m_logger->logInfo(str(Format("Input {} changed 1->0") << getInputName(provider->getDevice()->getID() + num)));
+		m_logger->logInfo(str(Format("Input {} changed 1->0") << getInputName(id)));
 		
-	publish(str(Format("INPUT:CHANGED:{}:{}") << num << state));
+	publish(str(Format("INPUT:CHANGED:{}:{}:{}") << id << getInputName(id) << state));
 }
 
 // IIRProviderListener
@@ -584,18 +590,18 @@ void Controller::onIRButtonReleased(IIRProvider* provider, uint32_t code)
 	publish(str(Format("IR:RELEASED:{}") << code));
 }
 
-string Controller::getInputName(int num)
+string Controller::getInputName(const string& id)
 {
-	auto v = m_inputsNames.find(num);
+	auto v = m_inputsNames.find(id);
 	if (v != m_inputsNames.end())
 		return v->second;
-	return str(Format("{}") << num);
+	return str(Format("{}") << id);
 }
-string Controller::getOutputName(int num)
+string Controller::getOutputName(const string& id)
 {
-	auto v = m_outputsNames.find(num);
+	auto v = m_outputsNames.find(id);
 	if (v != m_outputsNames.end())
 		return v->second;
-	return str(Format("{}") << num);
+	return str(Format("{}") << id);
 }
 

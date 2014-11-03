@@ -35,6 +35,8 @@ public:
 	void setOutputState(int num, bool on);
 	void toggleOutputState(int num);
 	
+	string getOutputID(int num);
+
 private:
 	EthernetDevice *m_device;
 	

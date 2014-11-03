@@ -31,7 +31,7 @@ void provProcess(const char* data, int len)
 	
 	// uint16_t type;
 	// if (BYTEBUFFER_FETCH(data,type)) return;
-	// myprintf("type: 0x%04x\r\n", header->type);
+	myprintf("type: 0x%04x cmd: %d\r\n", header->type, header->cmd);
 	
 	switch (header->type)
 	{

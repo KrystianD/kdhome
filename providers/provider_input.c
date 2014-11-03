@@ -17,6 +17,7 @@ void provInputReset()
 }
 void provInputRegister()
 {
+	myprintf("REGISTER INPUT\r\n");
 	TProvInputRegisterPacket p;
 	provPrepareHeader((TProvHeader*)&p);
 	p.header.type = PROVIDER_TYPE_INPUT;

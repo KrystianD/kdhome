@@ -114,6 +114,7 @@ void ethProcess()
 		provPrepareHeader(&header);
 		
 		header.type = PROVIDER_TYPE_CONTROL;
+		header.cmd = 0;
 		provSendPacket(&header, sizeof(header));
 		
 		DHCP_time_handler();

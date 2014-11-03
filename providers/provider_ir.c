@@ -11,6 +11,12 @@ void provIRReset()
 }
 void provIRRegister()
 {
+	myprintf("REGISTER IR\r\n");
+	TProvIRRegisterPacket p;
+	provPrepareHeader((TProvHeader*)&p);
+	p.header.type = PROVIDER_TYPE_IR;
+	p.header.cmd = IR_CMD_REGISTER;
+	provSendPacket(&p, sizeof(p));
 }
 void provIRProcess(const void* data, int len)
 {

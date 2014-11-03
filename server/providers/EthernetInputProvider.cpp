@@ -29,21 +29,18 @@ void EthernetInputProvider::init()
 }
 void EthernetInputProvider::processData(ByteBuffer& buffer)
 {
-	// TProvInputStatePacket
-	uint8_t cmd;
-	if (!buffer.fetch(cmd)) return;
+	TProvHeader *header = (TProvHeader*)buffer.data();
 
-	switch(cmd)
+	switch(header->cmd)
 	{
 	case INPUT_NOTF_NEWSTATE:
 		{
-			uint8_t cnt;
-			if (!buffer.fetch(cnt)) return;
-			for (int i = 0; i < cnt; i++)
+			TProvInputStatePacket *p = (TProvInputStatePacket*)buffer.data();
+			for (int i = 0; i < p->cnt; i++)
 			{
 				uint8_t low, high;
-				if (!buffer.fetch(high)) return;
-				if (!buffer.fetch(low)) return;
+				low = p->inputs[i].low;
+				high = p->inputs[i].high;
 
 				TInput &inp = m_inputs[i];
 
@@ -55,7 +52,7 @@ void EthernetInputProvider::processData(ByteBuffer& buffer)
 						inp.low++;
 						if (m_hasFirstData)
 						{
-							if (m_listener) m_listener->onInputChanged(this, i, 0);
+							if (m_listener) m_listener->onInputChanged(this, getInputID(i), 0);
 						}
 					}
 					if (inp.high != high)
@@ -63,7 +60,7 @@ void EthernetInputProvider::processData(ByteBuffer& buffer)
 						inp.high++;
 						if (m_hasFirstData)
 						{
-							if (m_listener) m_listener->onInputChanged(this, i, 1);
+							if (m_listener) m_listener->onInputChanged(this, getInputID(i), 1);
 						}
 					}
 				}
@@ -92,6 +89,11 @@ void EthernetInputProvider::preparePacket(TSrvHeader* packet, uint8_t command)
 	m_device->preparePacket(packet);
 	packet->type = getType();
 	packet->cmd = command;
+}
+
+string EthernetInputProvider::getInputID(int num)
+{
+	return str(Format("{}-{}") << getDevice()->getName() << num);
 }
 
 void EthernetInputProvider::logInfo(const string& msg)

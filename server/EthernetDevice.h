@@ -9,10 +9,12 @@ using namespace std;
 #include "UdpServer.h"
 #include "kdhome.h"
 
+class IInputProviderListener;
+
 class EthernetDevice
 {
 public:
-	EthernetDevice(UdpServer* server, uint32_t m_id, const string& ip);
+	EthernetDevice(UdpServer* server, uint32_t m_id, const string& ip, const string& name);
 	~EthernetDevice();
 
 	void addProvider(IProvider* provider) { m_providers.push_back(provider); }
@@ -32,8 +34,10 @@ public:
 	void sendData(ByteBuffer& data);
 	void sendData(const void* data, int len);
 
+	void setInputListener(IInputProviderListener* listener) { m_inputListener = listener; }
+
 private:
-	string m_ip;
+	string m_ip, m_name;
 	uint32_t m_id;
 	UdpServer *m_server;
 	uint32_t m_lastPacketTime, m_registrationDataSendTime;
@@ -43,6 +47,8 @@ private:
 	uint16_t m_sessKey;
 
 	vector<IProvider*> m_providers;
+
+	IInputProviderListener *m_inputListener;
 
 	void markDisconnected();
 	void markConnected();

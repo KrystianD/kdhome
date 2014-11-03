@@ -43,12 +43,13 @@ public:
 	bool init();
 	void reload();
 	void run();
-	void savePersistentState(int outputId);
+	void savePersistentState(const string& name);
 	
 	void updateNames();
 	
 	template<typename T>
-	bool findProvider(int num, EthernetDevice*& dev, T*& provider);
+	bool findProvider(const string& name, const map<string, string>& idMap, EthernetDevice*& dev, T*& provider, int& num);
+	EthernetDevice* findDevice(const string& name);
 	
 	// Expander
 	// void freezeExpander() { m_expander->freeze(); }
@@ -60,27 +61,27 @@ public:
 	}
 	
 	// Devices
-	int registerEthernetDevice(uint32_t id, const std::string& ip);
-	void addOutputProvider(int dev, int outputsCount);
-	void addInputProvider(int dev, int inputsCount);
-	void addIRProvider(int dev);
-	void addTempProvider(int dev, int sensorsCount);
+	int registerEthernetDevice(uint32_t id, const string& ip, const string& name);
+	// void addOutputProvider(int dev, int outputsCount);
+	// void addInputProvider(int dev, int inputsCount);
+	// void addIRProvider(int dev);
+	// void addTempProvider(int dev, int sensorsCount);
 	
 	// Inputs
-	bool getInput(int num);
+	bool getInput(const string& name);
 	
 	// Outputs
-	void setOutput(int num, bool on);
-	bool getOutput(int num);
-	void toggleOutput(int num);
-	void setOutputAsPersistent(int num);
+	void setOutput(const string& name, bool on);
+	bool getOutput(const string& name);
+	void toggleOutput(const string& name);
+	void setOutputAsPersistent(const string& name);
 	
 	// Temperature
-	bool isTempValid(int num);
-	float getTemp(int num);
+	bool isTempValid(const string& name);
+	float getTemp(const string& name);
 	
 	// Handlers
-	bool onExternalCommand(const std::vector<std::string>& parts, std::string& res);
+	bool onExternalCommand(const vector<string>& parts, string& res);
 	void onIRCode(uint32_t code);
 	void onIRButtonPressed(uint32_t code);
 	void onIRButtonReleased(uint32_t code);
@@ -96,7 +97,7 @@ public:
 	void onEthernetDataReceived(const string& ip, ByteBuffer& buffer);
 	
 	// IInputProviderListener
-	void onInputChanged(IInputProvider* provider, int num, int state);
+	void onInputChanged(IInputProvider* provider, const string& id, int state);
 	
 	// IIRProviderListener
 	void onIRCodeReceived(IIRProvider* provider, uint32_t code);
@@ -113,8 +114,15 @@ private:
 	StorageEngine *m_storage;
 	
 	vector<EthernetDevice*> m_devices;
-
-	map<int,string> m_inputsNames, m_outputsNames;
+	
+	// struct TEntryMap
+	// {
+	// EthernetDevice *device;
+	// int num;
+	// };
+	map<string, string> m_inputsNames, m_outputsNames, m_tempsNames;
+	map<string, string> m_inputNameToId, m_outputNameToId, m_tempNameToId;
+	// map<TEntryMap,string> m_inputsNames, m_outputsNames;
 	
 	map<int, int> m_persistentOutputs;
 	
@@ -126,8 +134,8 @@ private:
 	void publish(string msg);
 	string processREQ(string msg);
 	
-	string getInputName(int num);
-	string getOutputName(int num);
+	string getInputName(const string& id);
+	string getOutputName(const string& id);
 };
 
 #endif
