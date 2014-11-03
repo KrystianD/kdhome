@@ -7,6 +7,9 @@
 void provOutputReset()
 {
 }
+void provOutputRegister()
+{
+}
 void provOutputProcess(const void* data, int len)
 {
 	TSrvHeader *header = (TSrvHeader*)data;

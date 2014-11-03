@@ -9,6 +9,9 @@
 void provIRReset()
 {
 }
+void provIRRegister()
+{
+}
 void provIRProcess(const void* data, int len)
 {
 }

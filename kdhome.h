@@ -31,7 +31,13 @@ typedef struct
 } TSrvCmdRegister;
 
 // Output provider
-#define OUTPUT_CMD_SET_OUTPUTS  0x00
+#define OUTPUT_CMD_REGISTER     0x00
+typedef struct
+{
+	TProvHeader header;
+	uint8_t cnt;
+} TProvOutputRegisterPacket;
+#define OUTPUT_CMD_SET_OUTPUTS  0x01
 typedef struct
 {
 	TSrvHeader header;
@@ -40,8 +46,14 @@ typedef struct
 } TSrvOutputSetOutputsPacket;
 
 // Input provider
-#define INPUT_NOTF_NEWSTATE     0x00
-#define INPUT_REQ_SENDSTATE     0x01
+#define INPUT_CMD_REGISTER      0x00
+typedef struct
+{
+	TProvHeader header;
+	uint8_t cnt;
+} TProvInputRegisterPacket;
+#define INPUT_NOTF_NEWSTATE     0x01
+#define INPUT_REQ_SENDSTATE     0x02
 typedef struct
 {
 	TProvHeader header;
@@ -53,7 +65,12 @@ typedef struct
 } TProvInputStatePacket;
 
 // IR provider
-#define IR_NOTF_NEWCODE         0x00
+#define IR_CMD_REGISTER         0x00
+typedef struct
+{
+	TProvHeader header;
+} TProvIRRegisterPacket;
+#define IR_NOTF_NEWCODE         0x01
 typedef struct
 {
 	TProvHeader header;
@@ -61,7 +78,13 @@ typedef struct
 } TProvIRCodePacket;
 
 // Temperature provider
-#define TEMP_NOTF_TEMP          0x00
+#define TEMP_CMD_REGISTER       0x00
+typedef struct
+{
+	TProvHeader header;
+	uint8_t cnt;
+} TProvTempRegisterPacket;
+#define TEMP_NOTF_TEMP          0x01
 typedef struct
 {
 	TProvHeader header;

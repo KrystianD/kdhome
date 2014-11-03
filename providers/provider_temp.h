@@ -2,6 +2,7 @@
 #define __PROVIDER_TEMP_H__
 
 void provTempReset();
+void provTempRegister();
 void provTempProcess(const void* data, int len);
 void provTempTmr();
 

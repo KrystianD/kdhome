@@ -181,6 +181,20 @@ string Controller::processREQ(string msg)
 			addTempProvider(id, cnt);
 		}
 	}
+	else if (type == "MESSAGE")
+	{
+		string cmd = p[1];
+		if (cmd == "BROADCAST")
+		{
+			if (p.size() < 3)
+				return "";
+				
+			string msg = p[2];
+			
+			publish(str(Format("MESSAGE:BROADCAST:{}") << msg));
+			return "OK";
+		}
+	}
 	else if (type == "OUTPUT")
 	{
 		string cmd = p[1];

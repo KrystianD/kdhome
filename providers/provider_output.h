@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include "kdhome.h"
 
-
 void provOutputReset();
+void provOutputRegister();
 void provOutputProcess(const void* data, int len);
 void provOutputTmr();
 

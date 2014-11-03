@@ -35,6 +35,9 @@ void provTempReset()
 	memset(&prov_tempData, 0, sizeof(prov_tempData));
 	prov_tempErrors = 0;
 }
+void provTempRegister()
+{
+}
 void provTempProcess(const void* data, int len)
 {
 }

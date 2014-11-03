@@ -15,6 +15,15 @@ void provInputReset()
 	memset(&prov_inputHigh, 0, sizeof(prov_inputHigh));
 	provInputResetState();
 }
+void provInputRegister()
+{
+	TProvInputRegisterPacket p;
+	provPrepareHeader((TProvHeader*)&p);
+	p.header.type = PROVIDER_TYPE_INPUT;
+	p.header.cmd = INPUT_CMD_REGISTER;
+	p.cnt = INPUTS_COUNT;
+	provSendPacket(&p, sizeof(p));
+}
 void provInputProcess(const void* data, int len)
 {
 	TSrvHeader *header = (TSrvHeader*)data;

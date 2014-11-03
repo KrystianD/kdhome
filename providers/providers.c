@@ -55,6 +55,12 @@ void provProcess(const char* data, int len)
 			provIRReset();
 #endif
 			provTempReset();
+
+			// register providers
+			provOutputRegister();
+			provInputRegister();
+			provIRRegister();
+			provTempRegister();
 		}
 	}
 	break;

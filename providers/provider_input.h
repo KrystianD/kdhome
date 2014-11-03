@@ -5,6 +5,7 @@
 #include "kdhome.h"
 
 void provInputReset();
+void provInputRegister();
 void provInputProcess(const void* data, int len);
 void provInputTmr();
 void provInputSendState();
