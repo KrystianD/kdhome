@@ -86,6 +86,10 @@ void Controller::reload()
 	
 	m_inputsNames.clear();
 	m_outputsNames.clear();
+	m_tempsNames.clear();
+	m_inputNameToId.clear();
+	m_outputNameToId.clear();
+	m_tempNameToId.clear();
 	m_persistentOutputs.clear();
 	
 	for (auto& dev : m_devices)

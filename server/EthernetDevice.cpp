@@ -131,6 +131,9 @@ void EthernetDevice::processData(ByteBuffer& buffer)
 					logInfo(str(Format("Added temp provider to device #{} with {} sensors") << 0 << (int)p->cnt));
 					break;
 				}
+				default:
+					logInfo("Unknown provider type");
+					break;
 				}
 				// logInfo(str(Format("Registering provider of type: {}") << (int)header->type));
 			}
