@@ -111,7 +111,6 @@ int main(int argc, char** argv)
 		if (status & RFM70_STATUS_RX_DR)
 		{
 			rfm70ReadRxPayload((uint8_t*)&data, 12);
-			printf("%u %u %u \n", data.counter, data.time, data.vdd);
 			
 			rfm70WriteRegisterValue(RFM70_STATUS, status);
 			rfm70SPISendCommand(RFM70_FLUSH_RX, 0, 0);
@@ -124,7 +123,11 @@ int main(int argc, char** argv)
 			
 			float power = 3600 * 1000 / (float)diff / 2 * cntDiff;
 			
-			printf("%.2f\r\n", power);
+			char stars[] = "++++++++++++++++++++++++++";
+			if (cntDiff < 10)
+				stars[cntDiff] = 0;
+				
+			printf("counter: %u Vcc: %.3f V power: %.2f Wh diff: %.2f s %s\n", data.counter, data.vdd / 1000.0f, power, diff / 1000.0f, stars);
 		}
 		// rfm70PrintStatus();
 		// printf("\n\n%llu\n\n", t1);
