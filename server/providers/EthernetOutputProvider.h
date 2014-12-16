@@ -50,6 +50,8 @@ private:
 	{
 		m_device->sendData(data, len);
 	}
+
+	void logInfo(const string& msg);
 };
 
 #endif

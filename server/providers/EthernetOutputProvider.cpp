@@ -49,6 +49,7 @@ void EthernetOutputProvider::update()
 		if (getOutputState(i))
 			p.outputs |= (1 << i);
 	}
+	logInfo(str(Format("Sending output provider packet {} {}") << (uint64_t)this << p.outputs));
 	// printf("out: 0x%02x\n", (unsigned int)b);
 	
 	sendData(&p, sizeof(p));
@@ -64,4 +65,9 @@ void EthernetOutputProvider::preparePacket(TSrvHeader* packet, uint8_t command)
 string EthernetOutputProvider::getOutputID(int num)
 {
 	return str(Format("{}-{}") << getDevice()->getName() << num);
+}
+
+void EthernetOutputProvider::logInfo(const string& msg)
+{
+	logger->logInfo(Format("[{} - output] {}") << m_device->getName() << msg);
 }

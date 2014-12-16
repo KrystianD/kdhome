@@ -352,6 +352,7 @@ int Controller::registerEthernetDevice(uint32_t id, const string& ip, const stri
 {
 	EthernetDevice *dev = new EthernetDevice(&m_server, id, ip, name);
 	dev->setInputListener(this);
+	dev->setIRListener(this);
 	int idx = m_devices.size();
 	m_devices.push_back(dev);
 	m_logger->logInfo(Format("Registered ethernet device #{} with IP {}") << idx << ip);
@@ -583,15 +584,15 @@ void Controller::onInputChanged(IInputProvider* provider, const string& id, int 
 // IIRProviderListener
 void Controller::onIRCodeReceived(IIRProvider* provider, uint32_t code)
 {
-	publish(str(Format("IR:NEW-CODE:{}") << code));
+	publish(str(Format("IR:NEW-CODE:0x{0:08x}") << code));
 }
 void Controller::onIRButtonPressed(IIRProvider* provider, uint32_t code)
 {
-	publish(str(Format("IR:PRESSED:{}") << code));
+	publish(str(Format("IR:PRESSED:0x{0:08x}") << code));
 }
 void Controller::onIRButtonReleased(IIRProvider* provider, uint32_t code)
 {
-	publish(str(Format("IR:RELEASED:{}") << code));
+	publish(str(Format("IR:RELEASED:0x{0:08x}") << code));
 }
 
 string Controller::getInputName(const string& id)

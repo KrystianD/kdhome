@@ -119,6 +119,7 @@ void EthernetDevice::processData(ByteBuffer& buffer)
 				{
 					TProvIRRegisterPacket *p = (TProvIRRegisterPacket*)buffer.data();
 					EthernetIRProvider *prov = new EthernetIRProvider(this);
+					prov->setListener(m_irListener);
 					addProvider(prov);
 					logInfo(str(Format("Added IR provider to device #{}") << 0));
 					break;
@@ -155,6 +156,14 @@ void EthernetDevice::processData(ByteBuffer& buffer)
 void EthernetDevice::process()
 {
 	checkConnection();
+	if (m_connected)
+	{
+		for (size_t i = 0; i < m_providers.size(); i++)
+		{
+			IProvider *provider = m_providers[i];
+			provider->process();
+		}
+	}
 }
 void EthernetDevice::checkConnection()
 {
@@ -164,14 +173,6 @@ void EthernetDevice::checkConnection()
 		if (ticks - m_lastPacketTime >= PACKETLOSS_DISCONNECT_DELAY)
 		{
 			markDisconnected();
-		}
-	}
-	if (m_connected)
-	{
-		for (size_t i = 0; i < m_providers.size(); i++)
-		{
-			IProvider *provider = m_providers[i];
-			provider->process();
 		}
 	}
 }
@@ -209,7 +210,9 @@ void EthernetDevice::markDisconnected()
 	{
 		IProvider *provider = m_providers[i];
 		provider->deinit();
+		delete provider;
 	}
+	m_providers.clear();
 }
 void EthernetDevice::markConnected()
 {

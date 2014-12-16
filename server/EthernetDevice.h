@@ -10,6 +10,7 @@ using namespace std;
 #include "kdhome.h"
 
 class IInputProviderListener;
+class IIRProviderListener;
 
 class EthernetDevice
 {
@@ -35,6 +36,7 @@ public:
 	void sendData(const void* data, int len);
 
 	void setInputListener(IInputProviderListener* listener) { m_inputListener = listener; }
+	void setIRListener(IIRProviderListener* listener) { m_irListener = listener; }
 
 private:
 	string m_ip, m_name;
@@ -49,6 +51,7 @@ private:
 	vector<IProvider*> m_providers;
 
 	IInputProviderListener *m_inputListener;
+	IIRProviderListener *m_irListener;
 
 	void markDisconnected();
 	void markConnected();

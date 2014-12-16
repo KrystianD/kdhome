@@ -12,14 +12,15 @@ EthernetIRProvider::EthernetIRProvider(EthernetDevice* device)
 void EthernetIRProvider::processData(ByteBuffer& buffer)
 {
 	uint8_t cmd;
-	if (!buffer.fetch(cmd)) return;
 
-	switch (cmd)
+	TProvHeader *header = (TProvHeader*)buffer.data();
+
+	switch (header->cmd)
 	{
 	case IR_NOTF_NEWCODE:
 		{
-			uint32_t code;
-			if (!buffer.fetch(code)) return;
+			TProvIRCodePacket *p = (TProvIRCodePacket*)buffer.data();
+			uint32_t code = p->code;
 			logger->logInfo(Format("[ir] New code received 0x{:08x}") << code);
 			if (code == 0xffffffff)
 				code = m_lastCode;
