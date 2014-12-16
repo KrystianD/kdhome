@@ -8,7 +8,7 @@
 #include "providers/EthernetIRProvider.h"
 #include "providers/EthernetTempProvider.h"
 
-EthernetDevice::EthernetDevice(UdpServer* server, uint32_t id, const string& ip, const string& name)
+EthernetDevice::EthernetDevice(UdpSocket* server, uint32_t id, const string& ip, const string& name)
 	: m_server(server), m_id(id), m_ip(ip), m_name(name), m_lastPacketTime(0), m_connected(false), m_lastRecvPacketId(0), m_sendPacketId(0),
 	  m_sessKey(0), m_registrationDataSendTime(0), m_inputListener(0)
 {
@@ -44,12 +44,12 @@ string EthernetDevice::getName() const
 	return m_name;
 }
 
-void EthernetDevice::processData(ByteBuffer& buffer)
+void EthernetDevice::processData(const void* buffer, int len)
 {
 	m_lastPacketTime = getTicks();
 	checkConnection();
 	
-	TProvHeader *header = (TProvHeader*)buffer.data();
+	TProvHeader *header = (TProvHeader*)buffer;
 	
 	logInfo(str(Format("Packet #{} received - type: {} cmd: {} sessKey: {}") << header->packetId << header->type << (int)header->cmd << header->sessKey));
 	
@@ -100,7 +100,7 @@ void EthernetDevice::processData(ByteBuffer& buffer)
 				{
 				case PROVIDER_TYPE_INPUT:
 				{
-					TProvInputRegisterPacket *p = (TProvInputRegisterPacket*)buffer.data();
+					TProvInputRegisterPacket *p = (TProvInputRegisterPacket*)buffer;
 					EthernetInputProvider *prov = new EthernetInputProvider(this, p->cnt);
 					prov->setListener(m_inputListener);
 					addProvider(prov);
@@ -109,7 +109,7 @@ void EthernetDevice::processData(ByteBuffer& buffer)
 				}
 				case PROVIDER_TYPE_OUTPUT:
 				{
-					TProvOutputRegisterPacket *p = (TProvOutputRegisterPacket*)buffer.data();
+					TProvOutputRegisterPacket *p = (TProvOutputRegisterPacket*)buffer;
 					EthernetOutputProvider *prov = new EthernetOutputProvider(this, p->cnt);
 					addProvider(prov);
 					logInfo(str(Format("Added output provider to device #{} with {} outputs") << 0 << (int)p->cnt));
@@ -117,7 +117,7 @@ void EthernetDevice::processData(ByteBuffer& buffer)
 				}
 				case PROVIDER_TYPE_IR:
 				{
-					TProvIRRegisterPacket *p = (TProvIRRegisterPacket*)buffer.data();
+					TProvIRRegisterPacket *p = (TProvIRRegisterPacket*)buffer;
 					EthernetIRProvider *prov = new EthernetIRProvider(this);
 					prov->setListener(m_irListener);
 					addProvider(prov);
@@ -126,7 +126,7 @@ void EthernetDevice::processData(ByteBuffer& buffer)
 				}
 				case PROVIDER_TYPE_TEMP:
 				{
-					TProvTempRegisterPacket *p = (TProvTempRegisterPacket*)buffer.data();
+					TProvTempRegisterPacket *p = (TProvTempRegisterPacket*)buffer;
 					EthernetTempProvider *prov = new EthernetTempProvider(this, p->cnt);
 					addProvider(prov);
 					logInfo(str(Format("Added temp provider to device #{} with {} sensors") << 0 << (int)p->cnt));
@@ -145,7 +145,7 @@ void EthernetDevice::processData(ByteBuffer& buffer)
 					IProvider *provider = m_providers[i];
 					if (provider->getType() == header->type)
 					{
-						provider->processData(buffer);
+						provider->processData(buffer, len);
 						break;
 					}
 				}
@@ -177,22 +177,11 @@ void EthernetDevice::checkConnection()
 	}
 }
 
-void EthernetDevice::prepareBuffer(ByteBuffer& buffer)
-{
-	buffer.append(m_sendPacketId);
-	
-	m_sendPacketId++;
-}
 void EthernetDevice::preparePacket(TSrvHeader* packet)
 {
 	packet->packetId = m_sendPacketId;
 	
 	m_sendPacketId++;
-}
-void EthernetDevice::sendData(ByteBuffer& buffer)
-{
-	m_server->sendData(getIP(), buffer);
-	logInfo(str(Format("Packet sent")));
 }
 void EthernetDevice::sendData(const void* data, int len)
 {
@@ -231,16 +220,14 @@ void EthernetDevice::registerDevice()
 	m_sessKey = rand() % (0xffff - 1) + 1;
 	m_lastRecvPacketId = 0;
 	
-	ByteBuffer buf;
-	prepareBuffer(buf);
+	TSrvCmdRegister packet;
+	preparePacket((TSrvHeader*)&packet);
 	
-	uint16_t type = PROVIDER_TYPE_CONTROL;
-	uint8_t cmd = CONTROL_CMD_REGISTER;
-	buf.append(type);
-	buf.append(cmd);
-	buf.append(m_sessKey);
+	packet.header.type = PROVIDER_TYPE_CONTROL;
+	packet.header.cmd = CONTROL_CMD_REGISTER;
+	packet.sessKey = m_sessKey;
 	logInfo(str(Format("Sending registration data... - sessKey: {}") << m_sessKey));
-	sendData(buf);
+	sendData(&packet, sizeof(packet));
 	m_registrationDataSendTime = getTicks();
 }
 

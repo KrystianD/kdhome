@@ -556,14 +556,14 @@ EthernetDevice* Controller::findDevice(const string& name)
 }
 
 // IEthernetDataListener
-void Controller::onEthernetDataReceived(const string& ip, ByteBuffer& buffer)
+void Controller::onEthernetDataReceived(const string& ip, const void* buffer, int len)
 {
 	for (size_t i = 0; i < m_devices.size(); i++)
 	{
 		EthernetDevice *dev = m_devices[i];
 		if (dev->getIP() == ip)
 		{
-			dev->processData(buffer);
+			dev->processData(buffer, len);
 			return;
 		}
 	}

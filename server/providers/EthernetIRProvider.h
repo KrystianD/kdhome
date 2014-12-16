@@ -20,7 +20,7 @@ public:
 	// IProvider
 	void init() { }
 	void deinit() { }
-	void processData(ByteBuffer& buffer);
+	void processData(const void* buffer, int len);
 	void process();
 	EthernetDevice* getDevice()
 	{
@@ -41,11 +41,11 @@ private:
 	uint32_t m_lastCode;
 	
 	void update();
-	void prepareCommand(ByteBuffer& buffer, uint8_t command);
-	void sendData(ByteBuffer& buffer)
-	{
-		m_device->sendData(buffer);
-	}
+	// void prepareCommand(ByteBuffer& buffer, uint8_t command);
+	// void sendData(ByteBuffer& buffer)
+	// {
+		// m_device->sendData(buffer);
+	// }
 };
 
 #endif

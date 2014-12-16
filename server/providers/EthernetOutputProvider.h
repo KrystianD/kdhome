@@ -16,7 +16,7 @@ public:
 	// IProvider
 	void init() { }
 	void deinit() { }
-	void processData(ByteBuffer& buffer);
+	void processData(const void* buffer, int len);
 	void process();
 	EthernetDevice* getDevice()
 	{

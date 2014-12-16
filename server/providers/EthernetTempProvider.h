@@ -14,10 +14,9 @@ public:
 	}
 	
 	// IProvider
-	// uint16_t getType() { return 0x0002; }
 	void init();
 	void deinit() { }
-	void processData(ByteBuffer& buffer);
+	void processData(const void* buffer, int len);
 	void process();
 	EthernetDevice* getDevice()
 	{

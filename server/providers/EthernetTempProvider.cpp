@@ -21,15 +21,15 @@ void EthernetTempProvider::init()
 	// prepareCommand(data, 0x01);
 	// sendData(data);
 }
-void EthernetTempProvider::processData(ByteBuffer& buffer)
+void EthernetTempProvider::processData(const void* buffer, int len)
 {
-	TProvHeader *header = (TProvHeader*)buffer.ptr();
+	TProvHeader *header = (TProvHeader*)buffer;
 	
 	switch (header->cmd)
 	{
 	case TEMP_NOTF_TEMP:
 	{
-		TProvTempValuePacket *p = (TProvTempValuePacket*)buffer.ptr();
+		TProvTempValuePacket *p = (TProvTempValuePacket*)buffer;
 		
 		if (p->num >= m_sensors.size())
 			break;

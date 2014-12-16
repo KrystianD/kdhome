@@ -1,7 +1,7 @@
 #ifndef __CONTROLLER_H__
 #define __CONTROLLER_H__
 
-#include "UdpServer.h"
+#include <UdpSocket.h>
 #include <kdutils.h>
 #include <LinuxTimer.h>
 
@@ -94,7 +94,7 @@ public:
 	}
 	
 	// IEthernetDataListener
-	void onEthernetDataReceived(const string& ip, ByteBuffer& buffer);
+	void onEthernetDataReceived(const string& ip, const void* buffer, int len);
 	
 	// IInputProviderListener
 	void onInputChanged(IInputProvider* provider, const string& id, int state);
@@ -109,7 +109,7 @@ private:
 	uint32_t m_startTime;
 	
 	LinuxTimer m_checkTimer;
-	UdpServer m_server;
+	UdpSocket m_server;
 	MyLogger *m_logger;
 	StorageEngine *m_storage;
 	

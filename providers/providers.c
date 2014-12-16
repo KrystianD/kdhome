@@ -20,31 +20,21 @@ void provInit()
 {
 	ethSessKey = 0;
 	ethPacketId = 1;
-	// provOutputReset();
-	// provInputReset();
-	// prov_irReset();
 }
-// void provProcess(TByteBuffer* data)
 void provProcess(const char* data, int len)
 {
 	TSrvHeader *header = (TSrvHeader*)data;
 	
-	// uint16_t type;
-	// if (BYTEBUFFER_FETCH(data,type)) return;
 	myprintf("type: 0x%04x cmd: %d\r\n", header->type, header->cmd);
 	
 	switch (header->type)
 	{
 	case PROVIDER_TYPE_CONTROL:
 	{
-		// myprintf("PROVIDER_TYPE_CONTROL\r\n");
-		// uint8_t cmd;
-		// if (BYTEBUFFER_FETCH(data,cmd)) return;
 		if (header->cmd == CONTROL_CMD_REGISTER)
 		{
 			TSrvCmdRegister *p = (TSrvCmdRegister*)data;
 			ethSessKey = p->sessKey;
-			// if (BYTEBUFFER_FETCH(data,ethSessKey)) return;
 			myprintf("New sesskey: 0x%04x\r\n", ethSessKey);
 			
 			ethPacketId = 1;
@@ -96,19 +86,8 @@ void provTmr()
 
 void provPrepareHeader(TProvHeader* header)
 {
-	// buffer->p = pbuf_alloc(PBUF_RAW, len + 2 + 2, PBUF_POOL);
-	// // buffer->p = pbuf_alloc(PBUF_TRANSPORT, len + 2 + 2, PBUF_POOL);
-	// if (!buffer->p)
-	// return 0;
-	// buffer->pos = 0;
-	
 	header->packetId = ethPacketId;
 	header->sessKey = ethSessKey;
-
-	// BYTEBUFFER_APPEND(buffer, ethPacketId);
-	// BYTEBUFFER_APPEND(buffer, ethSessKey);
 	
 	ethPacketId++;
-	
-	// return 1;
 }

@@ -10,7 +10,7 @@ EthernetOutputProvider::EthernetOutputProvider(EthernetDevice* device, int amoun
 	m_lastUpdateTime = 0;
 }
 
-void EthernetOutputProvider::processData(ByteBuffer& buffer)
+void EthernetOutputProvider::processData(const void* buffer, int len)
 {
 }
 void EthernetOutputProvider::process()

@@ -19,23 +19,19 @@ void EthernetInputProvider::init()
 	for (int i = 0; i < getAmount(); i++)
 		m_inputs[i] = TInput();
 
-	// ByteBuffer data;
-	// prepareCommand(data, 0x01);
-	// sendData(data);
-
 	TSrvHeader p;
 	preparePacket((TSrvHeader*)&p, INPUT_REQ_SENDSTATE);
 	sendData(&p, sizeof(p));
 }
-void EthernetInputProvider::processData(ByteBuffer& buffer)
+void EthernetInputProvider::processData(const void* buffer, int len)
 {
-	TProvHeader *header = (TProvHeader*)buffer.data();
+	TProvHeader *header = (TProvHeader*)buffer;
 
 	switch(header->cmd)
 	{
 	case INPUT_NOTF_NEWSTATE:
 		{
-			TProvInputStatePacket *p = (TProvInputStatePacket*)buffer.data();
+			TProvInputStatePacket *p = (TProvInputStatePacket*)buffer;
 			for (int i = 0; i < p->cnt; i++)
 			{
 				uint8_t low, high;
@@ -77,12 +73,6 @@ void EthernetInputProvider::process()
 
 void EthernetInputProvider::update()
 {
-}
-void EthernetInputProvider::prepareCommand(ByteBuffer& buffer, uint8_t command)
-{
-	m_device->prepareBuffer(buffer);
-	buffer.append(getType());
-	buffer.append(command);
 }
 void EthernetInputProvider::preparePacket(TSrvHeader* packet, uint8_t command)
 {

@@ -9,17 +9,17 @@ EthernetIRProvider::EthernetIRProvider(EthernetDevice* device)
 {
 }
 
-void EthernetIRProvider::processData(ByteBuffer& buffer)
+void EthernetIRProvider::processData(const void* buffer, int len)
 {
 	uint8_t cmd;
 
-	TProvHeader *header = (TProvHeader*)buffer.data();
+	TProvHeader *header = (TProvHeader*)buffer;
 
 	switch (header->cmd)
 	{
 	case IR_NOTF_NEWCODE:
 		{
-			TProvIRCodePacket *p = (TProvIRCodePacket*)buffer.data();
+			TProvIRCodePacket *p = (TProvIRCodePacket*)buffer;
 			uint32_t code = p->code;
 			logger->logInfo(Format("[ir] New code received 0x{:08x}") << code);
 			if (code == 0xffffffff)
@@ -56,9 +56,9 @@ void EthernetIRProvider::process()
 void EthernetIRProvider::update()
 {
 }
-void EthernetIRProvider::prepareCommand(ByteBuffer& buffer, uint8_t command)
-{
-	m_device->prepareBuffer(buffer);
-	buffer.append(getType());
-	buffer.append(command);
-}
+// void EthernetIRProvider::prepareCommand(ByteBuffer& buffer, uint8_t command)
+// {
+	// m_device->prepareBuffer(buffer);
+	// buffer.append(getType());
+	// buffer.append(command);
+// }

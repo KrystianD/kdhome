@@ -5,7 +5,6 @@
 #include <unistd.h>
 
 #include "MyLogger.h"
-#include "UdpServer.h"
 #include "Controller.h"
 
 using namespace std;

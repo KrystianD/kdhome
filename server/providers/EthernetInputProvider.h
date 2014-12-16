@@ -17,7 +17,7 @@ public:
 	// uint16_t getType() { return 0x0002; }
 	void init();
 	void deinit() { }
-	void processData(ByteBuffer& buffer);
+	void processData(const void* buffer, int len);
 	void process();
 	EthernetDevice* getDevice()
 	{
@@ -57,12 +57,7 @@ private:
 	uint32_t m_lastUpdateTime;
 	
 	void update();
-	void prepareCommand(ByteBuffer& buffer, uint8_t command);
 	void preparePacket(TSrvHeader* packet, uint8_t command);
-	void sendData(ByteBuffer& buffer)
-	{
-		m_device->sendData(buffer);
-	}
 	void sendData(const void* data, int len)
 	{
 		m_device->sendData(data, len);

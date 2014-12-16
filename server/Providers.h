@@ -31,7 +31,7 @@ public:
 	virtual uint16_t getType() = 0;
 	virtual void init() = 0;
 	virtual void deinit() = 0;
-	virtual void processData(ByteBuffer& buffer) = 0;
+	virtual void processData(const void* buffer, int len) = 0;
 	virtual void process() = 0;
 	virtual EthernetDevice* getDevice() = 0;
 
@@ -40,25 +40,5 @@ public:
 protected:
 	StorageEngine *m_storage;
 };
-
-// class IInputProvider
-// {
-// public:
-	// struct TInput
-	// {
-		// uint8_t flags;
-		// bool state;
-		// uint8_t debounceTime;
-		// uint16_t patternTimeout;
-	// };
-
-	// virtual int getInputsAmount () = 0;
-	// virtual int getInputState (int num) = 0;
-	// virtual void setInputDebounceTime (int num, int time) = 0;
-	// virtual void setInputPatternTimeout (int num, int timeout) = 0;
-	// virtual void setInputChangeListener (IInputChangeListener* listener) = 0;
-// };
-
-
 
 #endif
