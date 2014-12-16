@@ -1,17 +1,21 @@
 #include "provider_output.h"
+
+#include "providers.h"
+#include <kdhome.h>
 #include "providers_settings.h"
 
-#include <kdhome.h>
-#include <myprintf.h>
-#include "ethernet.h"
-#include "providers.h"
+#include <string.h>
+
+#ifndef PROVIDER_DEBUG
+#define PROVIDER_DEBUG(x,...)
+#endif
 
 void provOutputReset()
 {
 }
 void provOutputRegister()
 {
-	myprintf("REGISTER OUTPUT\r\n");
+	PROVIDER_DEBUG("REGISTER OUTPUT\r\n");
 	TProvOutputRegisterPacket p;
 	provPrepareHeader((TProvHeader*)&p);
 	p.header.type = PROVIDER_TYPE_OUTPUT;

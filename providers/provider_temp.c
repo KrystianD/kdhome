@@ -1,10 +1,14 @@
-#include "providers.h"
-#include "providers_settings.h"
-#include <myprintf.h>
+#include "provider_temp.h"
 
-#include "ethernet.h"
+#include "providers.h"
 #include <kdhome.h>
+#include "providers_settings.h"
+
 #include <string.h>
+
+#ifndef PROVIDER_DEBUG
+#define PROVIDER_DEBUG(x,...)
+#endif
 
 #if TEMP_SENSORS_COUNT > 16
 #error Maximum number of temperature sensors is 16
@@ -37,7 +41,7 @@ void provTempReset()
 }
 void provTempRegister()
 {
-	myprintf("REGISTER TEMP\r\n");
+	PROVIDER_DEBUG("REGISTER TEMP\r\n");
 	TProvTempRegisterPacket p;
 	provPrepareHeader((TProvHeader*)&p);
 	p.header.type = PROVIDER_TYPE_TEMP;

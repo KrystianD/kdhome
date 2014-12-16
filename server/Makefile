@@ -6,7 +6,7 @@ OUTPUT=kdhome
 
 DEFINES=-DLIBCONFIG_STATIC -DLIBCONFIGXX_STATIC
 INCLUDEPATH=-I. -I.. -I../kdutils -I3rd/ -I3rd/libconfig-1.4.9
-LIBS=-L/usr/lib -lpthread -lzmq -lstdc++
+LIBS=-L/usr/lib -lpthread -lzmq
 
 CFLAGS=-ggdb -Werror=implicit -O1 -fdata-sections -ffunction-sections -std=c++11
 CFLAGS+=$(DEFINES)
@@ -81,5 +81,5 @@ build/3rd_libconfig-1.4.9_libconfigcpp.o: 3rd/libconfig-1.4.9/libconfigcpp.cc
 	$(CXX) $(CFLAGS) -c $< -o $@
 
 build/$(OUTPUT): build/main.o build/Program.o build/Controller.o build/EthernetDevice.o build/StorageEngine.o build/Providers.o build/providers_EthernetOutputProvider.o build/providers_EthernetInputProvider.o build/providers_EthernetTempProvider.o build/providers_EthernetIRProvider.o build/__kdutils_Logger.o build/__kdutils_UdpSocket.o build/__kdutils_kdutils.o build/3rd_format.o build/3rd_libconfig-1.4.9_grammar.o build/3rd_libconfig-1.4.9_libconfig.o build/3rd_libconfig-1.4.9_scanctx.o build/3rd_libconfig-1.4.9_scanner.o build/3rd_libconfig-1.4.9_strbuf.o build/3rd_libconfig-1.4.9_libconfigcpp.o
-	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@
+	$(CXX) $(CFLAGS) $(LFLAGS) $^ -o $@
 

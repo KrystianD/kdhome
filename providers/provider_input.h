@@ -2,7 +2,6 @@
 #define __PROVIDER_INPUT_H__
 
 #include <stdint.h>
-#include "kdhome.h"
 
 void provInputReset();
 void provInputRegister();

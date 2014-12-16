@@ -2,7 +2,6 @@
 #define __PROVIDER_OUTPUT_H__
 
 #include <stdint.h>
-#include "kdhome.h"
 
 void provOutputReset();
 void provOutputRegister();

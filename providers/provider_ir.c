@@ -1,17 +1,21 @@
 #include "provider_ir.h"
-#include "providers_settings.h"
-#include <myprintf.h>
 
 #include "providers.h"
-#include "ethernet.h"
 #include <kdhome.h>
+#include "providers_settings.h"
+
+#include <string.h>
+
+#ifndef PROVIDER_DEBUG
+#define PROVIDER_DEBUG(x,...)
+#endif
 
 void provIRReset()
 {
 }
 void provIRRegister()
 {
-	myprintf("REGISTER IR\r\n");
+	PROVIDER_DEBUG("REGISTER IR\r\n");
 	TProvIRRegisterPacket p;
 	provPrepareHeader((TProvHeader*)&p);
 	p.header.type = PROVIDER_TYPE_IR;

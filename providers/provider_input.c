@@ -1,11 +1,14 @@
 #include "provider_input.h"
-#include "providers_settings.h"
-#include <myprintf.h>
 
-#include "ethernet.h"
 #include "providers.h"
 #include <kdhome.h>
+#include "providers_settings.h"
+
 #include <string.h>
+
+#ifndef PROVIDER_DEBUG
+#define PROVIDER_DEBUG(x,...)
+#endif
 
 uint8_t prov_inputLow[INPUTS_COUNT], prov_inputHigh[INPUTS_COUNT];
 
@@ -17,7 +20,7 @@ void provInputReset()
 }
 void provInputRegister()
 {
-	myprintf("REGISTER INPUT\r\n");
+	PROVIDER_DEBUG("REGISTER INPUT\r\n");
 	TProvInputRegisterPacket p;
 	provPrepareHeader((TProvHeader*)&p);
 	p.header.type = PROVIDER_TYPE_INPUT;
@@ -35,7 +38,7 @@ void provInputProcess(const void* data, int len)
 	case INPUT_NOTF_NEWSTATE:
 		break;
 	case INPUT_REQ_SENDSTATE:
-		myprintf("INPUT REQUESET!!!\r\n");
+		PROVIDER_DEBUG("INPUT REQUESET!!!\r\n");
 		provInputSendState();
 		break;
 	}

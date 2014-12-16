@@ -1,6 +1,8 @@
 #ifndef __PROVIDER_TEMP_H__
 #define __PROVIDER_TEMP_H__
 
+#include <stdint.h>
+
 void provTempReset();
 void provTempRegister();
 void provTempProcess(const void* data, int len);

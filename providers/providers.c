@@ -1,12 +1,11 @@
 #include "providers.h"
-#include <public.h>
-#include <myprintf.h>
-#include <settings.h>
-
-#include "ethernet.h"
 
 #include <kdhome.h>
 #include "providers_settings.h"
+
+#ifndef PROVIDER_DEBUG
+#define PROVIDER_DEBUG(x,...)
+#endif
 
 // PRIVATE
 uint16_t ethNextPacketPtr;
@@ -25,7 +24,7 @@ void provProcess(const char* data, int len)
 {
 	TSrvHeader *header = (TSrvHeader*)data;
 	
-	myprintf("type: 0x%04x cmd: %d\r\n", header->type, header->cmd);
+	PROVIDER_DEBUG("type: 0x%04x cmd: %d\r\n", header->type, header->cmd);
 	
 	switch (header->type)
 	{
@@ -35,7 +34,7 @@ void provProcess(const char* data, int len)
 		{
 			TSrvCmdRegister *p = (TSrvCmdRegister*)data;
 			ethSessKey = p->sessKey;
-			myprintf("New sesskey: 0x%04x\r\n", ethSessKey);
+			PROVIDER_DEBUG("New sesskey: 0x%04x\r\n", ethSessKey);
 			
 			ethPacketId = 1;
 			// reset providers
@@ -69,7 +68,7 @@ void provProcess(const char* data, int len)
 #endif
 		break;
 	case PROVIDER_TYPE_TEMP:
-		myprintf("PROVIDER_TYPE_TEMP\r\n");
+		PROVIDER_DEBUG("PROVIDER_TYPE_TEMP\r\n");
 		// provTempProcess(data);
 		break;
 	}
