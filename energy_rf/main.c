@@ -68,7 +68,7 @@ uint8_t rfm70SPISendCommand(uint8_t cmd, const uint8_t* data, uint8_t len)
 	return 0;
 }
 
-volatile uint32_t counter = 0;
+volatile uint16_t *VREFINT_CAL = 0x1ffff7ba;
 
 void main()
 {
@@ -84,6 +84,7 @@ void main()
 	SysTick->LOAD = SysTick->VAL = (F_CPU / 1000) / 8;
 	SysTick->CTRL = SysTick_CTRL_ENABLE_Msk | SysTick_CTRL_TICKINT_Msk;
 	
+	data.counter = 0;
 	// for(;;);
 	// USART1->BRR = USART_BRR(115200);
 	// USART1->CR1 = USART_CR1_UE | USART_CR1_TE | USART_CR1_RE | USART_CR1_RXNEIE;
@@ -118,14 +119,16 @@ void main()
 	  SPI_CR1_MSTR | SPI_CR1_SPE | SPI_CR1_SSM | SPI_CR1_SSI;
 	  
 	rfm70Init();
-	rfm70EnableChip();
+	// rfm70EnableChip();
 	rfm70EnableFeatures();
-	rfm70PowerUp();
+	// rfm70PowerUp();
 	
 	uint8_t val;
 	rfm70EnableCRC();
+	rfm70Set2Mbps();
+	rfm70SetCRC2bytes();
 	rfm70WriteRegisterValue(RFM70_SETUP_RETR, 0xff);
-	rfm70WriteRegisterValue(RFM70_RF_CH, 10);
+	rfm70WriteRegisterValue(RFM70_RF_CH, 30);
 	rfm70WriteRegisterValue(RFM70_RX_PW_P0, 12);
 	
 	rfm70SetTxAddress("\xe7\xe7\xe7\xe7\xe7", 5);
@@ -142,19 +145,17 @@ void main()
 	ADC1->CR = ADC_CR_ADCAL;
 	while (ADC1->CR & ADC_CR_ADCAL);
 	
-	ADC1->CR = ADC_CR_ADEN;
 	ADC1->SMPR = 0x07;
 	ADC1->CHSELR = ADC_CHSELR_CHSEL17;
-	while (!(ADC1->ISR & ADC_ISR_ADRDY));
-	ADC->CCR = ADC_CCR_VREFEN;
+
+	
+	myprintf("VREFINT_CAL: %d\r\n", *VREFINT_CAL);
 	
 	// for (;;)
 	// {
 	
-		// // volatile uint16_t *VREFINT_CAL = 0x1ffff7ba;
-		// // myprintf("%d\r\n", *VREFINT_CAL);
-		
-		// _delay_ms(100);
+	
+	// _delay_ms(100);
 	// }
 	
 	
@@ -169,10 +170,11 @@ void main()
 	// RCC->APB1ENR &= ~(RCC_APB1ENR_PWREN);
 	rfm70PowerDown();
 	rfm70DisableChip();
-	rfm70PrintStatus();
+	// rfm70PrintStatus();
 	// ADC->CCR &= ~ADC_CCR_VREFEN;
 	// ADC1->CR = 0;
 	// RCC->APB2ENR &= ~RCC_APB2ENR_ADC1EN;
+	myprintf("GO\r\n");
 	for (;;)
 	{
 		PWR->CR |= PWR_CR_CWUF;
@@ -180,7 +182,6 @@ void main()
 		__WFI();
 	}
 	
-	myprintf("AawSD\r\n");
 	uint8_t d[3];
 	int state = 1;
 	int delay = 0;
@@ -278,6 +279,11 @@ void EXTI0_1_Handler()
 	EXTI->PR = 1;
 	
 	data.counter++;
+
+	ADC1->CR = ADC_CR_ADEN;
+	while (!(ADC1->ISR & ADC_ISR_ADRDY));
+	ADC1->ISR = ADC_ISR_ADRDY;
+	ADC->CCR = ADC_CCR_VREFEN;
 	
 	RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
 	ADC1->CR = ADC_CR_ADSTART;
@@ -285,15 +291,16 @@ void EXTI0_1_Handler()
 	rfm70PowerUp();
 	rfm70EnableChip();
 	rfm70SwitchToTxMode();
-	rfm70WriteRegisterValue(RFM70_SETUP_RETR, 0xff);
+	rfm70WriteRegisterValue(RFM70_SETUP_RETR, 0x1a);
+	rfm70WriteRegisterValue(RFM70_RF_CH, 30);
 	rfm70SPISendCommand(RFM70_FLUSH_TX, 0, 0);
 	// rfm70WriteTxPayloadNOACK((uint8_t*)&counter, 3);
-	rfm70WriteTxPayloadNOACK((uint8_t*)&data, 12);
+	rfm70WriteTxPayload((uint8_t*)&data, 12);
 	
 	uint8_t s;
 	do
 	{
-		rfm70DataSent(&s);
+		rfm70DataSentOrMaxRetr(&s);
 	}
 	while (!s);
 	
@@ -302,7 +309,10 @@ void EXTI0_1_Handler()
 	
 	while (!(ADC1->ISR & ADC_ISR_EOC));
 	uint32_t d = ADC1->DR;
-	uint32_t vdd = 12 * 4096 * 1000 / d / 10;
-	myprintf("%d\r\n", vdd);
+	uint32_t vdd = *VREFINT_CAL * 3300 / d;
+	myprintf("vdd %d\r\n", vdd);
 	data.vdd = vdd;
+
+	ADC1->CR = ADC_CR_ADDIS;
+	while (ADC1->CR & ADC_CR_ADEN);
 }

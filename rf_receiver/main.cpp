@@ -7,6 +7,8 @@
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/select.h>
 
 #include <settings.h>
 #include <RFM70.h>
@@ -85,12 +87,19 @@ int main(int argc, char** argv)
 	// rfm70PowerDown();
 	// rfm70PrintStatus();
 	
-	uint8_t val;
-	rfm70ReadRegisterValue(RFM70_RF_SETUP, &val);
+	// rfm70WriteRegisterValue(RFM70_CONFIG, 0x00);
+	uint8_t val = 0;
+	// rfm70ReadRegisterValue(RFM70_CONFIG, &val);
 	val |= (1 << 3);
-	rfm70WriteRegisterValue(RFM70_RF_SETUP, val);
+	// val |= (1 << 5);
+	// val |= (1 << 4);
+	rfm70WriteRegisterValue(RFM70_CONFIG, val);
+	
+	rfm70Set2Mbps();
+	rfm70SetCRC2bytes();
+	
 	rfm70WriteRegisterValue(RFM70_SETUP_RETR, 0xff);
-	rfm70WriteRegisterValue(RFM70_RF_CH, 10);
+	rfm70WriteRegisterValue(RFM70_RF_CH, 30);
 	rfm70WriteRegisterValue(RFM70_RX_PW_P0, 12);
 	
 	rfm70SetTxAddress("\xe7\xe7\xe7\xe7\xe8", 5);
@@ -98,8 +107,11 @@ int main(int argc, char** argv)
 	
 	rfm70SwitchToRxMode();
 	rfm70PowerUp();
-	rfm70PrintStatus();
 	rfm70EnableChip();
+	
+	rfm70PrintStatus();
+	
+	int fdirq = open("/dev/uio0", O_RDONLY);
 	
 	uint32_t lastTick = 0;
 	uint32_t lastCounter = 0;
@@ -107,14 +119,34 @@ int main(int argc, char** argv)
 	for (;;)
 	{
 		uint32_t t1 = getTicks();
+		
+		char c[4];
+		fd_set set;
+		FD_ZERO(&set); /* clear the set */
+		FD_SET(fdirq, &set); /* add our file descriptor to the set */
+		
+		struct timeval timeout;
+		timeout.tv_sec = 0;
+		timeout.tv_usec = 100000;
+		int rv = select(fdirq + 1, &set, NULL, NULL, &timeout);
+		if (rv == -1)
+			perror("select"); /* an error accured */
+		// else if (rv == 0)
+			// printf("timeout\r\n"); /* a timeout occured */
+		else if (rv > 0)
+			read(fdirq, c, 4);
+			
+		// usleep(100000);
 		rfm70ReadStatus(&status);
+		// printf("test 0x%02x\r\n", status);
+		// rfm70ClearStatus();
 		if (status & RFM70_STATUS_RX_DR)
 		{
+			rfm70ClearStatus();
 			rfm70ReadRxPayload((uint8_t*)&data, 12);
 			
 			rfm70WriteRegisterValue(RFM70_STATUS, status);
 			rfm70SPISendCommand(RFM70_FLUSH_RX, 0, 0);
-			
 			
 			uint32_t diff = t1 - lastTick;
 			lastTick = t1;
@@ -127,71 +159,7 @@ int main(int argc, char** argv)
 			if (cntDiff < 10)
 				stars[cntDiff] = 0;
 				
-			printf("counter: %u Vcc: %.3f V power: %.2f Wh diff: %.2f s %s\n", data.counter, data.vdd / 1000.0f, power, diff / 1000.0f, stars);
+			printf("counter: %u Vcc: %.3f V power: %.2f W diff: %.2f s %s\n", data.counter, data.vdd / 1000.0f, power, diff / 1000.0f, stars);
 		}
-		// rfm70PrintStatus();
-		// printf("\n\n%llu\n\n", t1);
-		// usleep(1000000);
 	}
-	
-	// uint32_t t1 = getTicks();
-	// uint8_t dd[32];
-	// memset(dd, 0, 32);
-	// for (;;)
-	// {
-	// char c = mygetch();
-	// if (c == 'q')
-	// {
-	// rfm70PrintStatus();
-	// }
-	// if (c == 's')
-	// {
-// sendmore:
-	// printf("\n%d\n", time(0));
-	// printf("Flushing TX...\n");
-	// rfm70WriteRegisterValue(RFM70_SETUP_RETR, 0xff);
-	// rfm70WriteRegisterValue(RFM70_RF_CH, 60);
-	// rfm70SPISendCommand(RFM70_FLUSH_TX, 0, 0);
-	// printf("Sending payload...\n");
-	// rfm70WriteTxPayload(dd, 32);
-	// usleep(10 * 1000);
-	// // rfm70PrintStatus ();
-// more:
-	// val = rfm70ReadRegisterValue(RFM70_STATUS);
-	// // printf("status: %s\n", bin(val));
-	// if (val & (1 << 4)) // MAX_RT
-	// {
-	// printf("MAX_RT!!!\n");
-	// // rfm70PrintStatus ();
-	// // rfm70WriteRegisterValue (RFM70_SETUP_RETR, 0xff);
-	// // rfm70WriteRegisterValue (RFM70_RF_CH, 60);
-	// rfm70WriteRegisterValue(RFM70_STATUS, val);
-	// // rfm70PrintStatus ();
-	// // rfm70WriteRegisterValue (RFM70_RF_CH, 60);
-	// goto more;
-	// // continue;
-	// }
-	// if (!(val & (1 << 5))) // TX_DS
-	// {
-	// printf("still sending!!!\n");
-	// usleep(1000000);
-	// goto more;
-	// }
-	// rfm70WriteRegisterValue(RFM70_STATUS, val);
-	// (*((uint32_t*)dd))++;
-	// }
-	// usleep(10000);
-	// }
-	// rfm70EnableChip ();
-	// RFM70_disableChip ();
-	
-	// usleep(100 * 1000);
-	// rfm70PrintStatus();
-	// uint32_t t2 = getTicks();
-	// printf("%u\n", t2 - t1);
-	
-	
-	// // // libusb_close (dev);
-	
-	// libusb_exit (0);
 }
