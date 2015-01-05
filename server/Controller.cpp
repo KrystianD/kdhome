@@ -54,6 +54,7 @@ bool Controller::init()
 	
 	m_logger->logInfo("Creating UDP server");
 	m_server.setListener(this);
+	m_server.setPort(9999);
 	if (!m_server.init())
 	{
 		m_logger->logError(str(Format("Unable to configure UDP server: {}") << m_server.getLastError()));
