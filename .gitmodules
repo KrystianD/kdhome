@@ -7,3 +7,9 @@
 [submodule "kdutils"]
 	path = kdutils
 	url = https://github.com/KrystianD/kdutils
+[submodule "expander8/stm32-utils"]
+	path = expander8/stm32-utils
+	url = git@github.com:KrystianD/stm32-utils.git
+[submodule "expander16/stm32-utils"]
+	path = expander16/stm32-utils
+	url = git@github.com:KrystianD/stm32-utils.git
