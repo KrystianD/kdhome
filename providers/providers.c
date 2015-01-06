@@ -8,20 +8,60 @@
 #endif
 
 // PRIVATE
-uint16_t ethNextPacketPtr;
-uint16_t ethSessKey = 0;
-uint16_t ethPacketId = 1;
+static uint16_t sessKey = 0;
+static uint16_t packetId = 1;
+
+static uint32_t lastPresenceSendTime = 0;
+
+// registration
+// #define OUTPUT_NUM 0
+// #define INPUT_NUM  1
+// #define IR_NUM     2
+// #define TEMP_NUM   3
+// struct TProviderInfo
+// {
+	// void (*resetFunc)();
+	// void (*registerFunc)();
+	// void (*processFunc)(const void* data, int len);
+	// void (*tmrFunc)();
+	// int enabled;
+// } providers[] =
+// {
+	// // Output
+	// {
+		// .resetFunc = provOutputReset, .registerFunc = provOutputRegister, .processFunc = provOutputProcess, .tmrFunc = provOutputTmr,
+		// .enabled = OUTPUT_PROVIDER_ENABLED
+	// },
+	// // Input
+	// {
+		// .resetFunc = provInputReset, .registerFunc = provInputRegister, .processFunc = provInputProcess, .tmrFunc = provInputTmr,
+		// .enabled = INPUT_PROVIDER_ENABLED
+	// },
+	// // IR
+	// {
+		// .resetFunc = provIRReset, .registerFunc = provIRRegister, .processFunc = provIRProcess, .tmrFunc = provIRTmr,
+		// .enabled = IR_PROVIDER_ENABLED
+	// },
+	// // Temp
+	// {
+		// .resetFunc = provTempReset, .registerFunc = provTempRegister, .processFunc = provTempProcess, .tmrFunc = provTempTmr,
+		// .enabled = TEMP_PROVIDER_ENABLED
+	// },
+// };
+// const int PROVIDERS_COUNT = sizeof(providers) / sizeof(providers[0]);
 
 // ------------------------- IMPLEMENTATION ------------------------------
 
 // PUBLIC
 void provInit()
 {
-	ethSessKey = 0;
-	ethPacketId = 1;
+	sessKey = 0;
+	packetId = 1;
 }
-void provProcess(const char* data, int len)
+void provProcess(const void* data, int len)
 {
+	int i;
+
 	TSrvHeader *header = (TSrvHeader*)data;
 	
 	PROVIDER_DEBUG("type: 0x%04x cmd: %d\r\n", header->type, header->cmd);
@@ -33,60 +73,96 @@ void provProcess(const char* data, int len)
 		if (header->cmd == CONTROL_CMD_REGISTER)
 		{
 			TSrvCmdRegister *p = (TSrvCmdRegister*)data;
-			ethSessKey = p->sessKey;
-			PROVIDER_DEBUG("New sesskey: 0x%04x\r\n", ethSessKey);
+			sessKey = p->sessKey;
+			PROVIDER_DEBUG("New sesskey: 0x%04x\r\n", sessKey);
 			
-			ethPacketId = 1;
+			packetId = 1;
 			// reset providers
+			
+			// for (i = 0; i < PROVIDERS_COUNT; i++)
+			// {
+				// if (providers[i].enabled)
+				// {
+					// providers[i].resetFunc();
+				// }
+			// }
+#ifdef OUTPUT_PROVIDER_ENABLED
 			provOutputReset();
-			provInputReset();
-#ifdef ENABLE_IR_PROVIDER
-			provIRReset();
-#endif
-			provTempReset();
-
-			// register providers
 			provOutputRegister();
+#endif
+#ifdef INPUT_PROVIDER_ENABLED
+			provInputReset();
 			provInputRegister();
+#endif
+#ifdef IR_PROVIDER_ENABLED
+			provIRReset();
 			provIRRegister();
+#endif
+#ifdef TEMP_PROVIDER_ENABLED
+			provTempReset();
 			provTempRegister();
+#endif
 		}
 	}
 	break;
 	case PROVIDER_TYPE_OUTPUT:
+#ifdef OUTPUT_PROVIDER_ENABLED
 		// myprintf("PROVIDER_TYPE_OUTPUT\r\n");
 		provOutputProcess(data, len);
+#endif
 		break;
 	case PROVIDER_TYPE_INPUT:
+#ifdef INPUT_PROVIDER_ENABLED
 		// myprintf("PROVIDER_TYPE_INPUT\r\n");
 		provInputProcess(data, len);
+#endif
 		break;
 	case PROVIDER_TYPE_IR:
+#ifdef IR_PROVIDER_ENABLED
 		// myprintf("PROVIDER_TYPE_IR\r\n");
-#ifdef ENABLE_IR_PROVIDER
 		// provIRProcess(data);
 #endif
 		break;
 	case PROVIDER_TYPE_TEMP:
+#ifdef TEMP_PROVIDER_ENABLED
 		PROVIDER_DEBUG("PROVIDER_TYPE_TEMP\r\n");
 		// provTempProcess(data);
+#endif
 		break;
 	}
 }
 void provTmr()
 {
+	if (getTicks() - lastPresenceSendTime >= 1000)
+	{
+		lastPresenceSendTime = getTicks();
+		
+		TProvHeader header;
+		provPrepareHeader(&header);
+		
+		header.type = PROVIDER_TYPE_CONTROL;
+		header.cmd = 0;
+		provSendPacket(&header, sizeof(header));
+	}
+	
+#ifdef OUTPUT_PROVIDER_ENABLED
 	provOutputTmr();
+#endif
+#ifdef INPUT_PROVIDER_ENABLED
 	provInputTmr();
-#ifdef ENABLE_IR_PROVIDER
+#endif
+#ifdef IR_PROVIDER_ENABLED
 	provIRTmr();
 #endif
+#ifdef TEMP_PROVIDER_ENABLED
 	provTempTmr();
+#endif
 }
 
 void provPrepareHeader(TProvHeader* header)
 {
-	header->packetId = ethPacketId;
-	header->sessKey = ethSessKey;
+	header->packetId = packetId;
+	header->sessKey = sessKey;
 	
-	ethPacketId++;
+	packetId++;
 }

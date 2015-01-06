@@ -8,8 +8,8 @@
 #include "providers/EthernetIRProvider.h"
 #include "providers/EthernetTempProvider.h"
 
-EthernetDevice::EthernetDevice(UdpSocket* server, uint32_t id, const string& ip, const string& name)
-	: m_server(server), m_id(id), m_ip(ip), m_name(name), m_lastPacketTime(0), m_connected(false), m_lastRecvPacketId(0), m_sendPacketId(0),
+EthernetDevice::EthernetDevice(UdpSocket* server, uint32_t id, const string& ip, uint16_t port, const string& name)
+	: m_server(server), m_id(id), m_ip(ip), m_port(port), m_name(name), m_lastPacketTime(0), m_connected(false), m_lastRecvPacketId(0), m_sendPacketId(0),
 	  m_sessKey(0), m_registrationDataSendTime(0), m_inputListener(0)
 {
 }
@@ -185,8 +185,8 @@ void EthernetDevice::preparePacket(TSrvHeader* packet)
 }
 void EthernetDevice::sendData(const void* data, int len)
 {
-	m_server->sendData(getIP(), data, len);
-	logInfo(str(Format("Packet sent")));
+	m_server->sendData(getIP(), getPort(), data, len);
+	logInfo(str(Format("Packet sent to {}:{}") << getIP() << getPort()));
 }
 
 void EthernetDevice::markDisconnected()

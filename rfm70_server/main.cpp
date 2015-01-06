@@ -17,7 +17,7 @@
 SPI spi;
 int fdGP;
 
-struct
+static struct
 {
 	uint32_t counter, time, vdd;
 } data;
@@ -134,7 +134,10 @@ int main(int argc, char** argv)
 		// else if (rv == 0)
 			// printf("timeout\r\n"); /* a timeout occured */
 		else if (rv > 0)
+		{
+			// printf("intr!\r\n");
 			read(fdirq, c, 4);
+		}
 			
 		// usleep(100000);
 		rfm70ReadStatus(&status);

@@ -1,6 +1,10 @@
 #ifndef __PROVIDERS_H__
 #define __PROVIDERS_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 // #include "utils.h"
@@ -11,14 +15,18 @@
 #include "provider_temp.h"
 #include "kdhome.h"
 
-extern volatile uint32_t ticks;
+extern volatile uint32_t getTicks();
 
 void provInit();
-void provProcess(const char* data, int len);
+void provProcess(const void* data, int len);
 void provTmr();
 
 void provPrepareHeader(TProvHeader* header);
 // extern
 void provSendPacket(const void* buffer, int len);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

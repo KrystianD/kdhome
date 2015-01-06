@@ -1,6 +1,10 @@
 #ifndef __PROVIDER_INPUT_H__
 #define __PROVIDER_INPUT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 void provInputReset();
@@ -16,5 +20,9 @@ void provInputSendState();
 
 // [callback] Reset state based on current state (pin values), calls above functions
 void provInputResetState();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

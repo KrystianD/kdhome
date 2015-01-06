@@ -61,7 +61,7 @@ public:
 	}
 	
 	// Devices
-	int registerEthernetDevice(uint32_t id, const string& ip, const string& name);
+	int registerEthernetDevice(uint32_t id, const string& ip, uint16_t port, const string& name);
 	// void addOutputProvider(int dev, int outputsCount);
 	// void addInputProvider(int dev, int inputsCount);
 	// void addIRProvider(int dev);

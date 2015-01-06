@@ -60,6 +60,11 @@ bool Controller::init()
 		m_logger->logError(str(Format("Unable to configure UDP server: {}") << m_server.getLastError()));
 		return false;
 	}
+	if (!m_server.bind())
+	{
+		m_logger->logError(str(Format("Unable to bind UDP server: {}") << m_server.getLastError()));
+		return false;
+	}
 	
 	m_checkTimer.setInterval(0, 100 * 1000);
 	
@@ -144,7 +149,7 @@ string Controller::processREQ(string msg)
 			int port = atoi(p[4].c_str());
 			string name = p[5];
 			
-			int dev = registerEthernetDevice(id, ip, name);
+			int dev = registerEthernetDevice(id, ip, port, name);
 			return str(Format("{}") << dev);
 		}
 	}
@@ -349,9 +354,9 @@ void Controller::savePersistentState(const string& name)
 }
 
 // Registering devices and proviers
-int Controller::registerEthernetDevice(uint32_t id, const string& ip, const string& name)
+int Controller::registerEthernetDevice(uint32_t id, const string& ip, uint16_t port, const string& name)
 {
-	EthernetDevice *dev = new EthernetDevice(&m_server, id, ip, name);
+	EthernetDevice *dev = new EthernetDevice(&m_server, id, ip, port, name);
 	dev->setInputListener(this);
 	dev->setIRListener(this);
 	int idx = m_devices.size();

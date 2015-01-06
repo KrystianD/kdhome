@@ -15,7 +15,7 @@ class IIRProviderListener;
 class EthernetDevice
 {
 public:
-	EthernetDevice(UdpSocket* server, uint32_t m_id, const string& ip, const string& name);
+	EthernetDevice(UdpSocket* server, uint32_t m_id, const string& ip, uint16_t port, const string& name);
 	~EthernetDevice();
 
 	void addProvider(IProvider* provider) { m_providers.push_back(provider); }
@@ -23,6 +23,7 @@ public:
 	IProvider* getProvider(uint16_t type);
 
 	const string& getIP () const { return m_ip; }
+	uint16_t getPort() const { return m_port; }
 	uint32_t getID () const { return m_id; }
 	string getName () const;
 
@@ -38,6 +39,7 @@ public:
 
 private:
 	string m_ip, m_name;
+	uint16_t m_port;
 	uint32_t m_id;
 	UdpSocket *m_server;
 	uint32_t m_lastPacketTime, m_registrationDataSendTime;

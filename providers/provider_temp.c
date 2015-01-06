@@ -30,7 +30,7 @@ struct
 #pragma pack()
 
 uint16_t prov_tempErrors;
-uint8_t prov_tempRealSensorsCount = TEMP_SENSORS_COUNT;
+uint8_t prov_tempRealSensorsCount = 0;
 
 void provTemp_sendData();
 
@@ -55,9 +55,9 @@ void provTempProcess(const void* data, int len)
 void provTempTmr()
 {
 	static uint32_t lastSendTime = 0;
-	if (prov_tempRealSensorsCount > 0 && ticks - lastSendTime >= 1000 / prov_tempRealSensorsCount)
+	if (prov_tempRealSensorsCount > 0 && getTicks() - lastSendTime >= 1000 / prov_tempRealSensorsCount)
 	{
-		lastSendTime = ticks;
+		lastSendTime = getTicks();
 		
 		provTemp_sendData();
 	}

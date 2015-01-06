@@ -1,6 +1,10 @@
 #ifndef __PROVIDER_TEMP_H__
 #define __PROVIDER_TEMP_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 void provTempReset();
@@ -12,5 +16,9 @@ void provTempSetRealSensorsCount(int cnt);
 void provTempSetValueIntFrac(int num, int16_t integral, uint16_t frac);
 void provTempSetValueFloat(int num, float value);
 void provTempSetError(int num);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
