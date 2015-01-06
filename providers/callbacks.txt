@@ -1,0 +1,12 @@
+// general
+void provSendPacket(const void* buffer, int len);
+
+// input
+// [callback] Reset state based on current state (pin values), calls above functions
+void provInputResetState();
+
+// output
+// [callback] Function called when output update is requested
+extern void provOutputSetOutput(int num, int enable);
+// [callback] Function called after all outputs have been set
+extern void provOutputUpdate();
