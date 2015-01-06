@@ -55,7 +55,7 @@ void provTempProcess(const void* data, int len)
 void provTempTmr()
 {
 	static uint32_t lastSendTime = 0;
-	if (ticks - lastSendTime >= 1000 / prov_tempRealSensorsCount)
+	if (prov_tempRealSensorsCount > 0 && ticks - lastSendTime >= 1000 / prov_tempRealSensorsCount)
 	{
 		lastSendTime = ticks;
 		

@@ -22,18 +22,18 @@ void ioProcess()
 void onInputLow(uint8_t idx)
 {
 	myprintf("low %d\r\n", idx);
-#ifdef ETHERNET
+// #ifdef ETHERNET
 	provInputSetState(idx, 0);
 	provInputSendState();
-#endif
+// #endif
 }
 void onInputHigh(uint8_t idx)
 {
 	myprintf("high %d\r\n", idx);
-#ifdef ETHERNET
+// #ifdef ETHERNET
 	provInputSetState(idx, 1);
 	provInputSendState();
-#endif
+// #endif
 }
 
 // Output provider callbacks

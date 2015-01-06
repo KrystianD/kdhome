@@ -69,7 +69,7 @@ void tempReadTemperature()
 	for (i = 0; i < 8; i++)
 		OW_UART_writeByte(tempRoms[tempSensorIdx][i]);
 	OW_UART_writeByte(OW_READ_SCRATCHPAD);
-		
+	
 	uint8_t r[8];
 	uint8_t crc = 0;
 	for (i = 0; i < 8; i++)
@@ -96,7 +96,7 @@ void tempReadTemperature()
 	tempSensorIdx++;
 	if (tempSensorIdx == tempSensorsCnt)
 		tempSensorIdx = 0;
-
+		
 	tempSetupNextRead();
 }
 
@@ -114,15 +114,16 @@ void tempInit()
 	while (tempSensorsCnt < 8)
 	{
 		res = OW_UART_romSearch(&buf);
-		if (res == 0)
+		if (res == 0 || res == 2)
 		{
-			memcpy(&tempRoms[tempSensorsCnt], buf.rom, 8);
-			tempSensorsCnt++;
+			if (buf.rom[0] != 0)
+			{
+				memcpy(&tempRoms[tempSensorsCnt], buf.rom, 8);
+				tempSensorsCnt++;
+			}
 		}
-		else if (res == 2)
+		if (res == 2)
 		{
-			memcpy(&tempRoms[tempSensorsCnt], buf.rom, 8);
-			tempSensorsCnt++;
 			break;
 		}
 	}
@@ -135,7 +136,7 @@ void tempInit()
 			myprintf("%02x|", tempRoms[i][j]);
 		myprintf("\r\n");
 	}
-
+	
 	provTempSetRealSensorsCount(tempSensorsCnt);
 }
 void tempProcess()
