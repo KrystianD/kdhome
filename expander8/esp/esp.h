@@ -8,6 +8,7 @@
 
 void espInit();
 void espProcess();
+void espUsartHandler();
 
 void espSendPacket(unsigned char cmd, const unsigned char* buf, int len);
 

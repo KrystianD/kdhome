@@ -6,11 +6,17 @@
 #include <ow.h>
 
 #include "utils.h"
-#include "ethernet.h"
 #include "ir.h"
 #include "io.h"
 #include "temp.h"
 #include "providers.h"
+
+#ifdef ETHERNET
+#include "ethernet.h"
+#endif
+#ifdef ESP
+#include "esp.h"
+#endif
 
 volatile uint32_t ticks = 0;
 int dodump = 0;
@@ -49,7 +55,9 @@ void main()
 	SysTick->CTRL = /*SysTick_CTRL_CLKSOURCE |*/ SysTick_CTRL_ENABLE | SysTick_CTRL_TICKINT;
 	
 	_delay_init();
-	_delay_ms(500);
+	_delay_ms(1000);
+
+	myprintf("starting...\r\n");
 	
 	IO_PUSH_PULL(LED);
 	IO_HIGH(LED);
@@ -85,7 +93,9 @@ void main()
 #ifdef ETHERNET
 	ethInit();
 #endif
-	
+#ifdef ESP
+	espInit();
+#endif
 	
 	uint8_t b;
 	uint32_t lastCheck = 0;
@@ -99,6 +109,9 @@ void main()
 		provTmr();
 #ifdef ETHERNET
 		ethProcess();
+#endif
+#ifdef ESP
+		espProcess();
 #endif
 	}
 }
@@ -114,6 +127,12 @@ void USART1_Handler()
 			while (1);
 		}
 	}
+}
+void USART2_Handler()
+{
+#ifdef ESP
+	espUsartHandler();
+#endif
 }
 
 void SysTick_Handler()

@@ -133,7 +133,7 @@ pfnISR VectorTable[] =
 	/* 35 */ 0, // SPI1_Handler,
 	/* 36 */ 0, // SPI2_Handler,
 	/* 37 */ USART1_Handler,
-	/* 38 */ 0, // USART2_Handler,
+	/* 38 */ USART2_Handler,
 	/* 39 */ 0, // USART3_Handler,
 	/* 40 */ 0, // EXTI15_10_Handler,
 	/* 41 */ 0, // RTCAlarm_Handler,

@@ -14,7 +14,77 @@ uint32_t tempNextReadTime;
 uint8_t tempRoms[8][8];
 uint8_t tempSensorsCnt, tempSensorIdx;
 
-void tempSetupNextRead()
+void temp_setupNextRead();
+void temp_readTemperature();
+
+void tempInit()
+{
+	tempStatus = TEMP_NOSENSOR;
+	
+	tempSensorsCnt = 0;
+	tempSensorIdx = 0;
+	
+	struct TOWUARTSearchBuffer buf;
+	
+	OW_UART_romSearchInit(&buf);
+	uint8_t res;
+	do
+	{
+		res = OW_UART_romSearch(&buf);
+		if (res == OW_ROMSEARCH_ROM || res == OW_ROMSEARCH_ROMEND)
+		{
+			if (buf.rom[0] == 0x28)
+			{
+				memcpy(&tempRoms[tempSensorsCnt], buf.rom, 8);
+				tempSensorsCnt++;
+			}
+		}
+	}
+	while (tempSensorsCnt < 8 && res != OW_ROMSEARCH_ROMEND && res != OW_ROMSEARCH_NOSENSORS);
+	
+	myprintf("[temp] found %d sensors\r\n", tempSensorsCnt);
+	int i, j;
+	for (i = 0; i < tempSensorsCnt; i++)
+	{
+		for (j = 0; j < 8; j++)
+			myprintf("%02x|", tempRoms[i][j]);
+		myprintf("\r\n");
+	}
+	
+	provTempSetRealSensorsCount(tempSensorsCnt);
+}
+void tempProcess()
+{
+	uint8_t res;
+	
+	if (tempSensorsCnt == 0)
+		return;
+		
+	switch (tempStatus)
+	{
+	case TEMP_NOSENSOR:
+		//myprintf ("TEMP_NOSENSOR\r\n");
+		
+		OW_UART_set9600();
+		res = OW_UART_resetPulse();
+		if (res == OW_RESET_PRESENT)
+		{
+			temp_setupNextRead();
+		}
+		break;
+		
+	case TEMP_SENSORWAITFORREAD:
+		//myprintf ("TEMP_SENSORWAITFORREAD\r\n");
+		
+		if (ticks >= tempNextReadTime)
+		{
+			temp_readTemperature();
+		}
+		break;
+	}
+}
+
+void temp_setupNextRead()
 {
 	uint8_t res;
 	int i;
@@ -53,7 +123,7 @@ void tempSetupNextRead()
 	tempStatus = TEMP_SENSORWAITFORREAD;
 	tempNextReadTime = ticks + 1000;
 }
-void tempReadTemperature()
+void temp_readTemperature()
 {
 	uint8_t i, res;
 	
@@ -97,72 +167,5 @@ void tempReadTemperature()
 	if (tempSensorIdx == tempSensorsCnt)
 		tempSensorIdx = 0;
 		
-	tempSetupNextRead();
-}
-
-void tempInit()
-{
-	tempStatus = TEMP_NOSENSOR;
-	
-	tempSensorsCnt = 0;
-	tempSensorIdx = 0;
-	
-	struct TOWUARTSearchBuffer buf;
-	
-	OW_UART_romSearchInit(&buf);
-	uint8_t res;
-	while (tempSensorsCnt < 8)
-	{
-		res = OW_UART_romSearch(&buf);
-		if (res == 0 || res == 2)
-		{
-			if (buf.rom[0] != 0)
-			{
-				memcpy(&tempRoms[tempSensorsCnt], buf.rom, 8);
-				tempSensorsCnt++;
-			}
-		}
-		if (res == 2)
-		{
-			break;
-		}
-	}
-	
-	myprintf("[temp] found %d sensors\r\n", tempSensorsCnt);
-	int i, j;
-	for (i = 0; i < tempSensorsCnt; i++)
-	{
-		for (j = 0; j < 8; j++)
-			myprintf("%02x|", tempRoms[i][j]);
-		myprintf("\r\n");
-	}
-	
-	provTempSetRealSensorsCount(tempSensorsCnt);
-}
-void tempProcess()
-{
-	uint8_t res;
-	
-	switch (tempStatus)
-	{
-	case TEMP_NOSENSOR:
-		//myprintf ("TEMP_NOSENSOR\r\n");
-		
-		OW_UART_set9600();
-		res = OW_UART_resetPulse();
-		if (res == 1)
-		{
-			tempSetupNextRead();
-		}
-		break;
-		
-	case TEMP_SENSORWAITFORREAD:
-		//myprintf ("TEMP_SENSORWAITFORREAD\r\n");
-		
-		if (ticks >= tempNextReadTime)
-		{
-			tempReadTemperature();
-		}
-		break;
-	}
+	temp_setupNextRead();
 }

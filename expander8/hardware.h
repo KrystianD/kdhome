@@ -7,12 +7,6 @@
 #define OW GPIOB,10
 #define IR GPIOB,11 // TIM2_CH4
 
-#define SCK GPIOB,13
-#define MISO GPIOB,14
-#define MOSI GPIOB,15
-#define W_CS GPIOA,8
-#define INT_ETH GPIOB,12
-
 #define IN1 GPIOA,14
 #define IN2 GPIOA,15
 #define IN3 GPIOB,3
@@ -23,23 +17,38 @@
 #define IN8 GPIOB,8
 
 #if VERSION == 1
-#define OUT1 GPIOB,11
-#define OUT2 GPIOB,1
-#define OUT3 GPIOB,0
-#define OUT4 GPIOA,7
-#define OUT5 GPIOA,6
-#define OUT6 GPIOA,5
-#define OUT7 GPIOA,4
-#define OUT8 GPIOB,9
+#  define OUT1 GPIOB,11
+#  define OUT2 GPIOB,1
+#  define OUT3 GPIOB,0
+#  define OUT4 GPIOA,7
+#  define OUT5 GPIOA,6
+#  define OUT6 GPIOA,5
+#  define OUT7 GPIOA,4
+#  define OUT8 GPIOB,9
 #elif VERSION == 2
-#define OUT1 GPIOC,15
-#define OUT2 GPIOB,1
-#define OUT3 GPIOB,0
-#define OUT4 GPIOA,7
-#define OUT5 GPIOA,6
-#define OUT6 GPIOA,5
-#define OUT7 GPIOA,4
-#define OUT8 GPIOB,9
+#  define OUT1 GPIOC,15
+#  define OUT2 GPIOB,1
+#  define OUT3 GPIOB,0
+#  define OUT4 GPIOA,7
+#  define OUT5 GPIOA,6
+#  define OUT6 GPIOA,5
+#  define OUT7 GPIOA,4
+#  define OUT8 GPIOB,9
+#endif
+
+#ifdef ETHERNET
+#  define SCK GPIOB,13
+#  define MISO GPIOB,14
+#  define MOSI GPIOB,15
+#  define W_CS GPIOA,8
+#  define INT_ETH GPIOB,12
+#endif
+
+#ifdef ESP
+#  define ESP_TX    GPIOA,2
+#  define ESP_RX    GPIOA,3
+#  define ESP_RST   GPIOA,11
+#  define ESP_CH_PD GPIOA,12
 #endif
 
 #endif
