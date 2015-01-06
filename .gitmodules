@@ -1,12 +1,6 @@
 [submodule "server/3rd/json4lua"]
 	path = server/3rd/json4lua
 	url = git@github.com:craigmj/json4lua.git
-[submodule "expander16/stm32-public"]
-	path = expander16/stm32-public
-	url = git@github.com:KrystianD/stm32-public.git
-[submodule "expander8/stm32-public"]
-	path = expander8/stm32-public
-	url = git@github.com:KrystianD/stm32-public.git
 [submodule "3rd/Arduino-IRremote"]
 	path = 3rd/Arduino-IRremote
 	url = https://github.com/shirriff/Arduino-IRremote.git
