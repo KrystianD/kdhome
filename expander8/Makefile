@@ -8,7 +8,7 @@ F_CPU=8000000
 RAMSIZE=20480
 
 DEFINES=-DVERSION=2 -DESP -DSTM32F10X_MD -DPRINTF -DF_CPU=$(F_CPU) -DRAMSIZE=$(RAMSIZE)
-INCLUDEPATH=-Iesp -I. -I.. -I../providers -Ikdusb -Istm32-public -I../kdutils/uclibs -I../kdutils
+INCLUDEPATH=-Iesp -I. -I.. -I../providers -Ikdusb -Istm32-utils -I../kdutils/uclibs -I../kdutils
 LIBS=-lm -lc
 
 CFLAGS=-mcpu=cortex-m3 -march=armv7-m -mfix-cortex-m3-ldrd -msoft-float -mthumb -nostartfiles -ggdb -Werror=implicit -Os -fdata-sections -ffunction-sections
@@ -16,6 +16,8 @@ CFLAGS+=$(DEFINES)
 CFLAGS+=$(INCLUDEPATH)
 LFLAGS=-Wl,--relax,--gc-sections -Wl,-gc-sections -Wl,-Map=build/$(OUTPUT).map -Wl,-T main.ld
 LFLAGS+=$(LIBS)
+
+STM32_FLASHER=stm32-flasher
 
 all: prepare build/$(OUTPUT)
 	arm-none-eabi-objcopy -O binary build/$(OUTPUT) build/$(OUTPUT).bin
@@ -44,13 +46,13 @@ build/io.o: io.c
 build/ir.o: ir.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-build/stm32-public_delay.o: stm32-public/delay.c
+build/stm32-utils_delay.o: stm32-utils/delay.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-build/stm32-public_myprintf.o: stm32-public/myprintf.c
+build/stm32-utils_myprintf.o: stm32-utils/myprintf.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-build/stm32-public_ow.o: stm32-public/ow.c
+build/stm32-utils_ow.o: stm32-utils/ow.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 build/__kdutils_uclibs_advinputmanager.o: ../kdutils/uclibs/advinputmanager.c
@@ -77,6 +79,11 @@ build/__providers_provider_temp.o: ../providers/provider_temp.c
 build/__providers_provider_ir.o: ../providers/provider_ir.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-build/$(OUTPUT): build/main.o build/isr.o build/utils.o build/temp.o build/io.o build/ir.o build/stm32-public_delay.o build/stm32-public_myprintf.o build/stm32-public_ow.o build/__kdutils_uclibs_advinputmanager.o build/esp_esp.o build/__3rd_IRremote.o build/__providers_providers.o build/__providers_provider_output.o build/__providers_provider_input.o build/__providers_provider_temp.o build/__providers_provider_ir.o
-	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@
+build/$(OUTPUT): build/main.o build/isr.o build/utils.o build/temp.o build/io.o build/ir.o build/stm32-utils_delay.o build/stm32-utils_myprintf.o build/stm32-utils_ow.o build/__kdutils_uclibs_advinputmanager.o build/esp_esp.o build/__3rd_IRremote.o build/__providers_providers.o build/__providers_provider_output.o build/__providers_provider_input.o build/__providers_provider_temp.o build/__providers_provider_ir.o
+	$(CC) $(CFLAGS) $^ $(LFLAGS) -o $@
 
+flash:
+ifndef port
+	$(error port must be specified (eg. /dev/ttyUSB0))
+endif
+	$(STM32_FLASHER) --device=$(port) --speed=230400 --erase --flash  build/$(OUTPUT).bin

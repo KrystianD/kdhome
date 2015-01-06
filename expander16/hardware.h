@@ -3,7 +3,7 @@
 
 #define UART_TX GPIOA,9
 
-#define I2C_OBJ I2C2
+#define EXP_I2C I2C2
 #define SCL GPIOB,10
 #define SDA GPIOB,11
 #define INT GPIOB,1

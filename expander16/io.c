@@ -1,4 +1,5 @@
 #include "io.h"
+#include <public.h>
 #include <settings.h>
 #include <hardware.h>
 #include <i2c.h>
@@ -14,7 +15,7 @@ uint16_t io_getOutMask(int idx);
 
 void ioInit()
 {
-	i2cInit();
+	i2cInit100kHz(EXP_I2C);
 	IO_INPUT(INT);
 
 	ioOutputs = 0;
@@ -71,8 +72,8 @@ void provOutputSetOutput(int num, int enable)
 }
 void provOutputUpdate()
 {
-	i2cWriteDataNoReg(PCF_ADDR | PCF_OUT0, (uint8_t*)&ioOutputs, 1);
-	i2cWriteDataNoReg(PCF_ADDR | PCF_OUT1, (uint8_t*)&ioOutputs + 1, 1);
+	i2cWriteDataNoReg(EXP_I2C, PCF_ADDR | PCF_OUT0, (uint8_t*)&ioOutputs, 1);
+	i2cWriteDataNoReg(EXP_I2C, PCF_ADDR | PCF_OUT1, (uint8_t*)&ioOutputs + 1, 1);
 }
 
 // Input provider callbacks
@@ -93,7 +94,7 @@ void provInputResetState()
 uint8_t io_readPCF(uint8_t addr)
 {
 	char d[1];
-	i2cReadDataNoReg(PCF_ADDR | addr, d, 1);
+	i2cReadDataNoReg(EXP_I2C, PCF_ADDR | addr, d, 1);
 	return d[0];
 }
 

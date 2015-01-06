@@ -12,6 +12,8 @@
 // #define ADVIM_PATTERNENABLED
 // #define ADVIM_PATTERNMAX 20
 
+#define PCLK1_FREQ F_CPU
+
 
 #define OW_USART       USART2
 #define OW_USART_APB   APB1ENR
