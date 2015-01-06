@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 	// val |= (1 << 4);
 	rfm70WriteRegisterValue(RFM70_CONFIG, val);
 	
-	rfm70Set2Mbps();
+	rfm70Set1Mbps();
 	rfm70SetCRC2bytes();
 	
 	rfm70WriteRegisterValue(RFM70_SETUP_RETR, 0xff);

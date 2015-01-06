@@ -27,7 +27,6 @@ struct
 void myputchar(int c)
 {
 	USART1->TDR = c;
-	// while (!(USART1->SR & USART_SR_TC));
 	while (!(USART1->ISR & USART_ISR_TC));
 }
 
@@ -46,7 +45,7 @@ uint8_t rfm70_SPI_RW(uint8_t val)
 	*(volatile uint8_t*)&SPI1->DR = val;
 	while (!(SPI1->SR & SPI_SR_TXE));
 	while (!(SPI1->SR & SPI_SR_RXNE));
-	return SPI1->DR;//q & 0xff;
+	return SPI1->DR;
 }
 
 uint8_t rfm70SPIReadCommand(uint8_t cmd, uint8_t* data, uint8_t len)
@@ -74,26 +73,21 @@ void main()
 {
 	SYSCFG->CFGR1 = 0;
 	
-	// RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
-	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_USART1EN;// | RCC_APB2ENR_ADC1EN;
+	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_USART1EN;
 	RCC->APB1ENR |= RCC_APB1ENR_PWREN;
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 	RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
-	RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
+	// RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
 	
 	SysTick->LOAD = SysTick->VAL = (F_CPU / 1000) / 8;
 	SysTick->CTRL = SysTick_CTRL_ENABLE_Msk | SysTick_CTRL_TICKINT_Msk;
 	
 	data.counter = 0;
-	// for(;;);
-	// USART1->BRR = USART_BRR(115200);
-	// USART1->CR1 = USART_CR1_UE | USART_CR1_TE | USART_CR1_RE | USART_CR1_RXNEIE;
 	
 	IO_ALT_PUSH_PULL(UART_TX);
 	IO_ALT_PUSH_PULL(UART_RX);
 	IO_ALT_SET(UART_TX, 1);
 	IO_ALT_SET(UART_RX, 1);
-	// IO_PULLUP(UART_RX);
 	USART1->BRR = USART_BRR(115200);
 	USART1->CR1 = USART_CR1_UE | USART_CR1_TE | USART_CR1_RE | USART_CR1_RXNEIE;
 	USART1->CR3 = USART_CR3_OVRDIS;
@@ -101,7 +95,7 @@ void main()
 	ENABLE_INTERRUPT(EXTI0_1_IRQn);
 	_delay_init();
 	_delay_ms(500);
-	myprintf("ASD\r\n");
+	myprintf("START\r\n");
 	
 	IO_PUSH_PULL(CSN);
 	IO_PUSH_PULL(CE);
@@ -115,17 +109,14 @@ void main()
 	
 	RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
 	SPI1->CR2 = SPI_CR2_DS_0 | SPI_CR2_DS_1 | SPI_CR2_DS_2 | SPI_CR2_FRXTH;
-	SPI1->CR1 = //SPI_CR1_BR_0 | //SPI_CR1_BR_1 | SPI_CR1_BR_0 |
-	  SPI_CR1_MSTR | SPI_CR1_SPE | SPI_CR1_SSM | SPI_CR1_SSI;
+	SPI1->CR1 = SPI_CR1_MSTR | SPI_CR1_SPE | SPI_CR1_SSM | SPI_CR1_SSI;
 	  
 	rfm70Init();
-	// rfm70EnableChip();
 	rfm70EnableFeatures();
-	// rfm70PowerUp();
 	
 	uint8_t val;
 	rfm70EnableCRC();
-	rfm70Set2Mbps();
+	rfm70Set1Mbps();
 	rfm70SetCRC2bytes();
 	rfm70WriteRegisterValue(RFM70_SETUP_RETR, 0xff);
 	rfm70WriteRegisterValue(RFM70_RF_CH, 30);
@@ -138,7 +129,6 @@ void main()
 	
 	rfm70PrintStatus();
 	
-	
 	RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
 	
 	ADC1->CR = 0;
@@ -147,102 +137,20 @@ void main()
 	
 	ADC1->SMPR = 0x07;
 	ADC1->CHSELR = ADC_CHSELR_CHSEL17;
-
 	
 	myprintf("VREFINT_CAL: %d\r\n", *VREFINT_CAL);
-	
-	// for (;;)
-	// {
-	
-	
-	// _delay_ms(100);
-	// }
-	
 	
 	EXTI->IMR |= 1;
 	EXTI->FTSR |= 1;
 	
-	// PWR->CR |= PWR_CR_PDDS;
-	// PWR->CR |= PWR_CR_LPSDSR;
-	SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
-	
-	// RCC->APB2ENR &= ~(RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_USART1EN);// | RCC_APB2ENR_ADC1EN;
-	// RCC->APB1ENR &= ~(RCC_APB1ENR_PWREN);
 	rfm70PowerDown();
 	rfm70DisableChip();
-	// rfm70PrintStatus();
-	// ADC->CCR &= ~ADC_CCR_VREFEN;
-	// ADC1->CR = 0;
-	// RCC->APB2ENR &= ~RCC_APB2ENR_ADC1EN;
 	myprintf("GO\r\n");
 	for (;;)
 	{
 		PWR->CR |= PWR_CR_CWUF;
 		SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
 		__WFI();
-	}
-	
-	uint8_t d[3];
-	int state = 1;
-	int delay = 0;
-	for (;;)
-	{
-	
-	
-		// _delay_ms(100);
-	}
-	for (;;)
-	{
-		if (ticks < delay)
-			continue;
-			
-		if (IO_IS_LOW(INPUT))
-		{
-			if (state == 1)
-			{
-				d[0]++;
-				state = 0;
-				
-				rfm70SwitchToTxMode();
-				rfm70WriteRegisterValue(RFM70_SETUP_RETR, 0xff);
-				rfm70SPISendCommand(RFM70_FLUSH_TX, 0, 0);
-				rfm70WriteTxPayloadNOACK((uint8_t*)&data, 12);
-				rfm70PrintStatus();
-				
-				delay = ticks + 100;
-			}
-		}
-		else
-		{
-			if (state == 0)
-			{
-				state = 1;
-			}
-		}
-	}
-	
-	// Enable systick
-	// SysTick->LOAD = SysTick->VAL = (F_CPU / 1000) / 8;
-	// SysTick->CTRL = /*SysTick_CTRL_CLKSOURCE |*/ SysTick_CTRL_ENABLE | SysTick_CTRL_TICKINT;
-	
-	// AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_1;
-	
-#define __IWDG_PERIOD             0x001E8480
-#define __IWDG_PR             (0)
-#define __IWDGCLOCK   (32000UL/4)
-#define __IWGDCLK  (32000UL/(0x04<<__IWDG_PR))
-#define __IWDG_RLR (__IWDG_PERIOD*__IWGDCLK/1000000UL-1)
-	
-	
-	volatile int i = 0;
-	
-	for (;;)
-	{
-		i++;
-		_delay_ms(1000);
-		
-		// myprintf("AD %02x\r\n", IWDG->SR);
-		// rfm70PrintStatus();
 	}
 }
 
@@ -255,10 +163,10 @@ void USART1_Handler()
 	if (USART1->ISR & USART_ISR_RXNE)
 	{
 		uint8_t d = USART1->RDR;
-		if (d == 0x7f)
-		{
-			NVIC_SystemReset();
-		}
+		// if (d == 0x7f)
+		// {
+			// NVIC_SystemReset();
+		// }
 	}
 }
 void SysTick_Handler()
@@ -274,8 +182,6 @@ void _errorloop()
 }
 void EXTI0_1_Handler()
 {
-	// IO_TOGGLE(LED);
-	myprintf("AD %02x\r\n", IWDG->SR);
 	EXTI->PR = 1;
 	
 	data.counter++;
@@ -297,12 +203,15 @@ void EXTI0_1_Handler()
 	// rfm70WriteTxPayloadNOACK((uint8_t*)&counter, 3);
 	rfm70WriteTxPayload((uint8_t*)&data, 12);
 	
+	uint32_t time = ticks;
 	uint8_t s;
 	do
 	{
 		rfm70DataSentOrMaxRetr(&s);
 	}
 	while (!s);
+	time = ticks - time;
+	myprintf("send time: %d\r\n", time);
 	
 	rfm70PowerDown();
 	rfm70DisableChip();
@@ -310,7 +219,7 @@ void EXTI0_1_Handler()
 	while (!(ADC1->ISR & ADC_ISR_EOC));
 	uint32_t d = ADC1->DR;
 	uint32_t vdd = *VREFINT_CAL * 3300 / d;
-	myprintf("vdd %d\r\n", vdd);
+	myprintf("cnd %d vdd %d\r\n", data.counter, vdd);
 	data.vdd = vdd;
 
 	ADC1->CR = ADC_CR_ADDIS;
