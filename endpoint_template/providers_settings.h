@@ -1,9 +1,9 @@
 #include "providers_defines.h"
 
-#define OUTPUT_PROVIDER_ENABLED
+// #define OUTPUT_PROVIDER_ENABLED
 #define INPUT_PROVIDER_ENABLED
-#define IR_PROVIDER_ENABLED
-#define TEMP_PROVIDER_ENABLED
+// #define IR_PROVIDER_ENABLED
+// #define TEMP_PROVIDER_ENABLED
 
 #define INPUTS_COUNT 8
 #define OUTPUTS_COUNT 8

@@ -41,9 +41,6 @@ uint8_t rfm70SPISendCommand(uint8_t cmd, const uint8_t* data, uint8_t len)
 	uint8_t buf[len + 1];
 	buf[0] = cmd;
 	memcpy(buf + 1, data, len);
-	// for (int i = 0; i < sizeof(buf); i++)
-	// printf("0x%02x, ", buf[i]);
-	// printf("\n");
 	return spi.rwData(buf, sizeof(buf), 0, 0) ? 0 : 1;
 }
 
@@ -83,16 +80,9 @@ int main(int argc, char** argv)
 		return 1;
 	rfm70EnableChip();
 	rfm70EnableFeatures();
-	// rfm70DisableChip();
-	// rfm70PowerDown();
-	// rfm70PrintStatus();
 	
-	// rfm70WriteRegisterValue(RFM70_CONFIG, 0x00);
 	uint8_t val = 0;
-	// rfm70ReadRegisterValue(RFM70_CONFIG, &val);
 	val |= (1 << 3);
-	// val |= (1 << 5);
-	// val |= (1 << 4);
 	rfm70WriteRegisterValue(RFM70_CONFIG, val);
 	
 	rfm70Set1Mbps();
@@ -122,23 +112,21 @@ int main(int argc, char** argv)
 		
 		char c[4];
 		fd_set set;
-		FD_ZERO(&set); /* clear the set */
-		FD_SET(fdirq, &set); /* add our file descriptor to the set */
+		FD_ZERO(&set);
+		FD_SET(fdirq, &set);
 		
 		struct timeval timeout;
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 100000;
 		int rv = select(fdirq + 1, &set, NULL, NULL, &timeout);
 		if (rv == -1)
-			perror("select"); /* an error accured */
-		// else if (rv == 0)
-			// printf("timeout\r\n"); /* a timeout occured */
+			perror("select");
 		else if (rv > 0)
 		{
 			// printf("intr!\r\n");
 			read(fdirq, c, 4);
 		}
-			
+		
 		// usleep(100000);
 		rfm70ReadStatus(&status);
 		// printf("test 0x%02x\r\n", status);
@@ -162,7 +150,12 @@ int main(int argc, char** argv)
 			if (cntDiff < 10)
 				stars[cntDiff] = 0;
 				
-			printf("counter: %u Vcc: %.3f V power: %.2f W diff: %.2f s %s\n", data.counter, data.vdd / 1000.0f, power, diff / 1000.0f, stars);
+			time_t current_time;
+			char* c_time_string;
+			current_time = time(NULL);
+			c_time_string = ctime(&current_time);
+			*strchr(c_time_string, '\n') = 0;
+			printf("[%s] counter: %u Vcc: %.3f V power: %.2f W diff: %.2f s %s\n", c_time_string, data.counter, data.vdd / 1000.0f, power, diff / 1000.0f, stars);
 		}
 	}
 }
