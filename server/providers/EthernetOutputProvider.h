@@ -40,6 +40,7 @@ public:
 private:
 	EthernetDevice *m_device;
 	
+	bool m_hasInitialStates;
 	vector<char> m_outputs;
 	
 	uint32_t m_lastUpdateTime;

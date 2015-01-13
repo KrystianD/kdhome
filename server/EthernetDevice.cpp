@@ -3,14 +3,15 @@
 #include "common.h"
 #include "kdutils.h"
 
+#include "Controller.h"
 #include "providers/EthernetInputProvider.h"
 #include "providers/EthernetOutputProvider.h"
 #include "providers/EthernetIRProvider.h"
 #include "providers/EthernetTempProvider.h"
 
-EthernetDevice::EthernetDevice(UdpSocket* server, uint32_t id, const string& ip, uint16_t port, const string& name)
-	: m_server(server), m_id(id), m_ip(ip), m_port(port), m_name(name), m_lastPacketTime(0), m_connected(false), m_lastRecvPacketId(0), m_sendPacketId(0),
-	  m_sessKey(0), m_registrationDataSendTime(0), m_inputListener(0)
+EthernetDevice::EthernetDevice(UdpSocket* server, Controller* controller, uint32_t id, const string& ip, uint16_t port, const string& name)
+	: m_server(server), m_controller(controller), m_id(id), m_ip(ip), m_port(port), m_name(name), m_lastPacketTime(0), m_connected(false), m_lastRecvPacketId(0), m_sendPacketId(0),
+	  m_sessKey(0), m_registrationDataSendTime(0)
 {
 }
 EthernetDevice::~EthernetDevice()
@@ -102,7 +103,7 @@ void EthernetDevice::processData(const void* buffer, int len)
 				{
 					TProvInputRegisterPacket *p = (TProvInputRegisterPacket*)buffer;
 					EthernetInputProvider *prov = new EthernetInputProvider(this, p->cnt);
-					prov->setListener(m_inputListener);
+					prov->setListener(dynamic_cast<IInputProviderListener*>(m_controller));
 					addProvider(prov);
 					logInfo(str(Format("Added input provider to device #{} with {} inputs") << 0 << (int)p->cnt));
 					break;
@@ -111,6 +112,7 @@ void EthernetDevice::processData(const void* buffer, int len)
 				{
 					TProvOutputRegisterPacket *p = (TProvOutputRegisterPacket*)buffer;
 					EthernetOutputProvider *prov = new EthernetOutputProvider(this, p->cnt);
+					prov->setListener(dynamic_cast<IOutputProviderListener*>(m_controller));
 					addProvider(prov);
 					logInfo(str(Format("Added output provider to device #{} with {} outputs") << 0 << (int)p->cnt));
 					break;
@@ -119,7 +121,7 @@ void EthernetDevice::processData(const void* buffer, int len)
 				{
 					TProvIRRegisterPacket *p = (TProvIRRegisterPacket*)buffer;
 					EthernetIRProvider *prov = new EthernetIRProvider(this);
-					prov->setListener(m_irListener);
+					prov->setListener(dynamic_cast<IIRProviderListener*>(m_controller));
 					addProvider(prov);
 					logInfo(str(Format("Added IR provider to device #{}") << 0));
 					break;

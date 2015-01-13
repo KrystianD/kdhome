@@ -30,7 +30,7 @@ struct TProviderEntry
 	int startNumber;
 };
 
-class Controller : public IInputProviderListener, public IEthernetDataListener, public IIRProviderListener
+class Controller : public IInputProviderListener, public IEthernetDataListener, public IIRProviderListener, public IOutputProviderListener
 {
 public:
 	Controller();
@@ -43,7 +43,7 @@ public:
 	bool init();
 	void reload();
 	void run();
-	void savePersistentState(const string& name);
+	void savePersistentState(const string& id);
 	
 	void updateNames();
 	
@@ -86,8 +86,6 @@ public:
 	void onIRButtonPressed(uint32_t code);
 	void onIRButtonReleased(uint32_t code);
 	
-	void execLuaFunc(int num);
-	
 	StorageEngine* getStorage()
 	{
 		return m_storage;
@@ -103,6 +101,9 @@ public:
 	void onIRCodeReceived(IIRProvider* provider, uint32_t code);
 	void onIRButtonPressed(IIRProvider* provider, uint32_t code);
 	void onIRButtonReleased(IIRProvider* provider, uint32_t code);
+
+	// IOutputProviderListener
+	void onInitialStatesRequest(IOutputProvider* provider);
 	
 private:
 	uint32_t m_lastTicks;
@@ -115,16 +116,10 @@ private:
 	
 	vector<EthernetDevice*> m_devices;
 	
-	// struct TEntryMap
-	// {
-	// EthernetDevice *device;
-	// int num;
-	// };
 	map<string, string> m_inputsNames, m_outputsNames, m_tempsNames;
 	map<string, string> m_inputNameToId, m_outputNameToId, m_tempNameToId;
-	// map<TEntryMap,string> m_inputsNames, m_outputsNames;
 	
-	map<int, int> m_persistentOutputs;
+	map<string, int> m_persistentOutputs;
 	
 	// zmq
 	uint32_t m_sessKey;

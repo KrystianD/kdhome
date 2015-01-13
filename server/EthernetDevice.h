@@ -15,7 +15,7 @@ class IIRProviderListener;
 class EthernetDevice
 {
 public:
-	EthernetDevice(UdpSocket* server, uint32_t m_id, const string& ip, uint16_t port, const string& name);
+	EthernetDevice(UdpSocket* server, Controller* controller, uint32_t m_id, const string& ip, uint16_t port, const string& name);
 	~EthernetDevice();
 
 	void addProvider(IProvider* provider) { m_providers.push_back(provider); }
@@ -34,9 +34,6 @@ public:
 	void preparePacket(TSrvHeader* packet);
 	void sendData(const void* data, int len);
 
-	void setInputListener(IInputProviderListener* listener) { m_inputListener = listener; }
-	void setIRListener(IIRProviderListener* listener) { m_irListener = listener; }
-
 private:
 	string m_ip, m_name;
 	uint16_t m_port;
@@ -50,8 +47,7 @@ private:
 
 	vector<IProvider*> m_providers;
 
-	IInputProviderListener *m_inputListener;
-	IIRProviderListener *m_irListener;
+	Controller *m_controller;
 
 	void markDisconnected();
 	void markConnected();

@@ -80,14 +80,6 @@ void Controller::reload()
 	m_storage->setPath("data");
 	m_storage->load();
 	
-	for (auto& it : m_persistentOutputs)
-	{
-		int outputId = it.first;
-		int state = m_storage->getInt("output", outputId, 1);
-		// m_logger->logInfo(Format("out {} {}") << outputId << state);
-		//TODO// setOutput(outputId, state);
-	}
-	
 	m_initialized = false;
 	
 	m_inputsNames.clear();
@@ -210,6 +202,16 @@ string Controller::processREQ(string msg)
 			string name = p[3];
 			m_outputsNames[id] = name;
 			m_outputNameToId[name] = id;
+			
+			return "";
+		}
+		else if (cmd == "SET-PERSISTENT")
+		{
+			if (p.size() < 4)
+				return "";
+				
+			string name = p[2];
+			setOutputAsPersistent(name);
 			
 			return "";
 		}
@@ -341,14 +343,14 @@ void Controller::run()
 		}
 	}
 }
-void Controller::savePersistentState(const string& name)
+void Controller::savePersistentState(const string& id)
 {
 	map<int, int>::iterator it;
 	// for (it = m_persistentOutputs.begin(); it != m_persistentOutputs.end(); it++)
 	{
 		// int outputId = it->first;
-		bool state = getOutput(name);
-		// m_storage->setInt("output", name, state); TODO
+		bool state = getOutput(id);
+		m_storage->setInt("output-" + id, state);
 	}
 	m_storage->save();
 }
@@ -356,9 +358,7 @@ void Controller::savePersistentState(const string& name)
 // Registering devices and proviers
 int Controller::registerEthernetDevice(uint32_t id, const string& ip, uint16_t port, const string& name)
 {
-	EthernetDevice *dev = new EthernetDevice(&m_server, id, ip, port, name);
-	dev->setInputListener(this);
-	dev->setIRListener(this);
+	EthernetDevice *dev = new EthernetDevice(&m_server, this, id, ip, port, name);
 	int idx = m_devices.size();
 	m_devices.push_back(dev);
 	m_logger->logInfo(Format("Registered ethernet device #{} with IP {}") << idx << ip);
@@ -458,9 +458,9 @@ void Controller::setOutput(const string& name, bool state)
 			m_logger->logInfo(Format("[output] Output {} enabled") << getOutputName(id));
 		else
 			m_logger->logInfo(Format("[output] Output {} disabled") << getOutputName(id));
+			
+		savePersistentState(id);
 	}
-	
-	savePersistentState(name);
 }
 bool Controller::getOutput(const string& name)
 {
@@ -494,11 +494,16 @@ void Controller::toggleOutput(const string& name)
 		m_logger->logInfo(Format("[expander] Output {} disabled(toggled)") << getOutputName(id));
 	publish(str(Format("OUTPUT:CHANGED:{}:{}:{}") << id << getOutputName(id) << state));
 	
-	savePersistentState(name);
+	savePersistentState(id);
 }
 void Controller::setOutputAsPersistent(const string& name)
 {
-	// m_persistentOutputs[num] = 1;
+	string id = name;
+	auto v = m_outputNameToId.find(id);
+	if (v != m_outputNameToId.end())
+		id = v->second;
+		
+	m_persistentOutputs[id] = 1;
 }
 
 // Temperatures
@@ -528,13 +533,13 @@ float Controller::getTemp(const string& name)
 }
 
 template<typename T>
-bool Controller::findProvider(const string& name, const map<string,string>& idMap, EthernetDevice*& dev, T*& provider, int& num)
+bool Controller::findProvider(const string& name, const map<string, string>& idMap, EthernetDevice*& dev, T*& provider, int& num)
 {
 	string id = name;
 	auto v = idMap.find(id);
 	if (v != idMap.end())
 		id = v->second;
-
+		
 	size_t del = id.find_first_of("-");
 	if (del == string::npos)
 		return false;
@@ -599,6 +604,21 @@ void Controller::onIRButtonPressed(IIRProvider* provider, uint32_t code)
 void Controller::onIRButtonReleased(IIRProvider* provider, uint32_t code)
 {
 	publish(str(Format("IR:RELEASED:0x{0:08x}") << code));
+}
+
+// IOutputProviderListener
+void Controller::onInitialStatesRequest(IOutputProvider* provider)
+{
+	m_logger->logInfo(str(Format("Initial states requested")));
+
+	for (auto& it : m_persistentOutputs)
+	{
+		const string& outputId = it.first;
+		int state = m_storage->getInt("output-" + outputId, 1);
+		m_logger->logInfo(str(Format("Restoring output {} state to {}") << outputId << state));
+		// m_logger->logInfo(Format("out {} {}") << outputId << state);
+		setOutput(outputId, state);
+	}
 }
 
 string Controller::getInputName(const string& id)

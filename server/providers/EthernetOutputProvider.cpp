@@ -3,7 +3,7 @@
 #include "kdutils.h"
 
 EthernetOutputProvider::EthernetOutputProvider(EthernetDevice* device, int amount)
-	: m_device(device)
+	: m_device(device), m_hasInitialStates(false)
 {
 	for (int i = 0; i < amount; i++)
 		m_outputs.push_back(0);
@@ -15,6 +15,11 @@ void EthernetOutputProvider::processData(const void* buffer, int len)
 }
 void EthernetOutputProvider::process()
 {
+	if (!m_hasInitialStates)
+	{
+		m_listener->onInitialStatesRequest(this);
+		m_hasInitialStates = true;
+	}
 	if (getTicks() - m_lastUpdateTime >= 2000)
 		update();
 }
@@ -43,7 +48,7 @@ void EthernetOutputProvider::update()
 	
 	p.cnt = getAmount();
 	p.outputs = 0;
-
+	
 	for (int i = 0; i < p.cnt; i++)
 	{
 		if (getOutputState(i))
