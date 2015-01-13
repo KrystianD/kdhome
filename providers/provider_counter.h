@@ -18,7 +18,7 @@ void provCounterAdd(int num, int value);
 // Sends current state to server
 void provCounterSendState();
 
-// [callback] Reset state based on current state (pin values), calls above functions
+// [callback] Reset state based on current counter values
 void provCounterResetState();
 
 #ifdef __cplusplus

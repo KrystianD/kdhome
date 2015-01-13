@@ -13,6 +13,7 @@ extern "C" {
 #include "provider_input.h"
 #include "provider_ir.h"
 #include "provider_temp.h"
+#include "provider_counter.h"
 #include "kdhome.h"
 
 extern volatile uint32_t getTicks();

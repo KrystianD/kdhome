@@ -102,6 +102,10 @@ void provProcess(const void* data, int len)
 			provTempReset();
 			provTempRegister();
 #endif
+#ifdef COUNTER_PROVIDER_ENABLED
+			provCounterReset();
+			provCounterRegister();
+#endif
 		}
 	}
 	break;
@@ -126,7 +130,11 @@ void provProcess(const void* data, int len)
 	case PROVIDER_TYPE_TEMP:
 #ifdef TEMP_PROVIDER_ENABLED
 		PROVIDER_DEBUG("PROVIDER_TYPE_TEMP\r\n");
-		// provTempProcess(data);
+#endif
+		break;
+	case PROVIDER_TYPE_COUNTER:
+#ifdef COUNTER_PROVIDER_ENABLED
+		PROVIDER_DEBUG("PROVIDER_TYPE_COUNTER\r\n");
 #endif
 		break;
 	}
@@ -156,6 +164,9 @@ void provTmr()
 #endif
 #ifdef TEMP_PROVIDER_ENABLED
 	provTempTmr();
+#endif
+#ifdef COUNTER_PROVIDER_ENABLED
+	provCounterTmr();
 #endif
 }
 

@@ -38,11 +38,14 @@ build/__providers_provider_output.o: ../providers/provider_output.c
 build/__providers_provider_temp.o: ../providers/provider_temp.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+build/__providers_provider_counter.o: ../providers/provider_counter.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
 build/__kdutils_UdpSocket.o: ../kdutils/UdpSocket.cpp
 	$(CXX) $(CFLAGS) -c $< -o $@
 
 build/__kdutils_kdutils.o: ../kdutils/kdutils.cpp
 	$(CXX) $(CFLAGS) -c $< -o $@
 
-build/$(OUTPUT): build/main.o build/__providers_providers.o build/__providers_provider_ir.o build/__providers_provider_input.o build/__providers_provider_output.o build/__providers_provider_temp.o build/__kdutils_UdpSocket.o build/__kdutils_kdutils.o
+build/$(OUTPUT): build/main.o build/__providers_providers.o build/__providers_provider_ir.o build/__providers_provider_input.o build/__providers_provider_output.o build/__providers_provider_temp.o build/__providers_provider_counter.o build/__kdutils_UdpSocket.o build/__kdutils_kdutils.o
 	$(CXX) $(CFLAGS) $^ $(LFLAGS) -o $@

@@ -32,6 +32,8 @@ public:
 			socket1.process();
 			provTmr();
 			usleep(10000);
+
+			provCounterAdd(0,1);
 		}
 	}
 	

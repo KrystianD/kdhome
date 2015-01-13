@@ -10,3 +10,6 @@ void provInputResetState();
 extern void provOutputSetOutput(int num, int enable);
 // [callback] Function called after all outputs have been set
 extern void provOutputUpdate();
+
+// counter
+void provCounterResetState();
