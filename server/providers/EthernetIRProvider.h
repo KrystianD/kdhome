@@ -38,7 +38,7 @@ private:
 	IIRProviderListener *m_listener;
 	
 	map<uint32_t, uint32_t> m_codes;
-	uint32_t m_lastCode;
+	uint32_t m_lastCode, m_lastCodeTime;
 	
 	void update();
 	// void prepareCommand(ByteBuffer& buffer, uint8_t command);
