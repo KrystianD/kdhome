@@ -282,6 +282,22 @@ string Controller::processREQ(string msg)
 			return "";
 		}
 	}
+	else if (type == "COUNTER")
+	{
+		string cmd = p[1];
+		if (cmd == "SET-NAME")
+		{
+			if (p.size() < 5)
+				return "";
+				
+			string id = p[2];
+			string name = p[3];
+			m_countersNames[id] = name;
+			m_counterNameToId[name] = id;
+			
+			return "";
+		}
+	}
 	return "";
 }
 
