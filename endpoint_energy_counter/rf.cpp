@@ -1,3 +1,10 @@
+/*
+ * rf.cpp
+ * Copyright (C) 2015 Krystian Dużyński <krystian.duzynski@gmail.com>
+ */
+
+// #include "rf.h"
+
 #include <cstdlib>
 #include <fcntl.h>
 #include <stdio.h>
@@ -16,6 +23,9 @@
 #include <spi.h>
 SPI spi;
 int fdGP;
+int fdirq;
+
+void rfNewCounterValue(int val);
 
 static struct
 {
@@ -64,7 +74,8 @@ int mygetch()
 	tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
 	return ch;
 }
-int main(int argc, char** argv)
+
+int rfInit()
 {
 	if (!spi.open("/dev/spitinyusb.0"))
 		return 1;
@@ -101,61 +112,63 @@ int main(int argc, char** argv)
 	
 	rfm70PrintStatus();
 	
-	int fdirq = open("/dev/uio0", O_RDONLY);
-	
-	uint32_t lastTick = 0;
-	uint32_t lastCounter = 0;
+	fdirq = open("/dev/uio0", O_RDONLY);
+	return 0;
+}
+uint32_t lastTick = 0;
+uint32_t lastCounter = 0;
+void rfProcess()
+{
 	uint8_t status;
-	for (;;)
+	uint32_t t1 = getTicks();
+	
+	char c[4];
+	fd_set set;
+	FD_ZERO(&set);
+	FD_SET(fdirq, &set);
+	
+	struct timeval timeout;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 100000;
+	int rv = select(fdirq + 1, &set, NULL, NULL, &timeout);
+	if (rv == -1)
+		perror("select");
+	else if (rv > 0)
 	{
-		uint32_t t1 = getTicks();
+		// printf("intr!\r\n");
+		read(fdirq, c, 4);
+	}
+	
+	// usleep(100000);
+	rfm70ReadStatus(&status);
+	// printf("test 0x%02x\r\n", status);
+	// rfm70ClearStatus();
+	if (status & RFM70_STATUS_RX_DR)
+	{
+		rfm70ClearStatus();
+		rfm70ReadRxPayload((uint8_t*)&data, 12);
 		
-		char c[4];
-		fd_set set;
-		FD_ZERO(&set);
-		FD_SET(fdirq, &set);
+		rfm70WriteRegisterValue(RFM70_STATUS, status);
+		rfm70SPISendCommand(RFM70_FLUSH_RX, 0, 0);
 		
-		struct timeval timeout;
-		timeout.tv_sec = 0;
-		timeout.tv_usec = 100000;
-		int rv = select(fdirq + 1, &set, NULL, NULL, &timeout);
-		if (rv == -1)
-			perror("select");
-		else if (rv > 0)
-		{
-			// printf("intr!\r\n");
-			read(fdirq, c, 4);
-		}
+		uint32_t diff = t1 - lastTick;
+		lastTick = t1;
+		uint32_t cntDiff = data.counter - lastCounter;
+		lastCounter = data.counter;
 		
-		// usleep(100000);
-		rfm70ReadStatus(&status);
-		// printf("test 0x%02x\r\n", status);
-		// rfm70ClearStatus();
-		if (status & RFM70_STATUS_RX_DR)
-		{
-			rfm70ClearStatus();
-			rfm70ReadRxPayload((uint8_t*)&data, 12);
+		float power = 3600 * 1000 / (float)diff / 2 * cntDiff;
+		
+		char stars[] = "++++++++++++++++++++++++++";
+		if (cntDiff < 10)
+			stars[cntDiff] = 0;
 			
-			rfm70WriteRegisterValue(RFM70_STATUS, status);
-			rfm70SPISendCommand(RFM70_FLUSH_RX, 0, 0);
-			
-			uint32_t diff = t1 - lastTick;
-			lastTick = t1;
-			uint32_t cntDiff = data.counter - lastCounter;
-			lastCounter = data.counter;
-			
-			float power = 3600 * 1000 / (float)diff / 2 * cntDiff;
-			
-			char stars[] = "++++++++++++++++++++++++++";
-			if (cntDiff < 10)
-				stars[cntDiff] = 0;
-				
-			time_t current_time;
-			char* c_time_string;
-			current_time = time(NULL);
-			c_time_string = ctime(&current_time);
-			*strchr(c_time_string, '\n') = 0;
-			printf("[%s] counter: %u Vcc: %.3f V power: %.2f W diff: %.2f s %s\n", c_time_string, data.counter, data.vdd / 1000.0f, power, diff / 1000.0f, stars);
-		}
+		time_t current_time;
+		char* c_time_string;
+		current_time = time(NULL);
+		c_time_string = ctime(&current_time);
+		*strchr(c_time_string, '\n') = 0;
+		printf("[%s] counter: %u Vcc: %.3f V power: %.2f W diff: %.2f s %s\n",
+		       c_time_string, data.counter, data.vdd / 1000.0f, power, diff / 1000.0f, stars);
+		rfNewCounterValue(data.counter);
 	}
 }
