@@ -26811,6 +26811,20 @@ Source: http://focus.ti.com/lit/ds/symlink/ua78l05.pdf</description>
 <wire x1="-670.56" y1="129.54" x2="-650.24" y2="129.54" width="0.1524" layer="91"/>
 </segment>
 </net>
+<net name="ESP_GPIO2" class="0">
+<segment>
+<pinref part="IC1" gate="PORTA_H" pin="PA13"/>
+<wire x1="-510.54" y1="142.24" x2="-515.62" y2="142.24" width="0.1524" layer="91"/>
+<label x="-515.62" y="142.24" size="1.778" layer="95" rot="R180" xref="yes"/>
+</segment>
+<segment>
+<label x="-381" y="119.38" size="1.778" layer="95" xref="yes"/>
+<pinref part="U$1" gate="G$1" pin="GPIO2"/>
+<wire x1="-386.08" y1="119.38" x2="-381" y2="119.38" width="0.1524" layer="91"/>
+<wire x1="-388.62" y1="114.3" x2="-386.08" y2="114.3" width="0.1524" layer="91"/>
+<wire x1="-386.08" y1="114.3" x2="-386.08" y2="119.38" width="0.1524" layer="91"/>
+</segment>
+</net>
 </nets>
 </sheet>
 </sheets>
