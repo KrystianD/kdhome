@@ -32,8 +32,9 @@ public:
 			socket1.process();
 			provTmr();
 			usleep(10000);
-
-			provCounterAdd(0,1);
+			
+			provCounterAdd(0, 1);
+			provCounterSendState();
 		}
 	}
 	
@@ -51,6 +52,10 @@ void provOutputSetOutput(int num, int enable)
 }
 void provOutputUpdate()
 {
+}
+void provCounterResetState()
+{
+	provCounterSet(0, 0);
 }
 
 int main()
