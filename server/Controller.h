@@ -16,6 +16,7 @@ using namespace std;
 #include "providers/EthernetInputProvider.h"
 #include "providers/EthernetIRProvider.h"
 #include "providers/EthernetTempProvider.h"
+#include "providers/CounterProvider.h"
 
 #include <zmq.h>
 
@@ -30,7 +31,11 @@ struct TProviderEntry
 	int startNumber;
 };
 
-class Controller : public IInputProviderListener, public IEthernetDataListener, public IIRProviderListener, public IOutputProviderListener
+class Controller : public IInputProviderListener,
+	public IEthernetDataListener,
+	public IIRProviderListener,
+	public IOutputProviderListener,
+	public ICounterProviderListener
 {
 public:
 	Controller();
@@ -101,9 +106,12 @@ public:
 	void onIRCodeReceived(IIRProvider* provider, uint32_t code);
 	void onIRButtonPressed(IIRProvider* provider, uint32_t code);
 	void onIRButtonReleased(IIRProvider* provider, uint32_t code);
-
+	
 	// IOutputProviderListener
 	void onInitialStatesRequest(IOutputProvider* provider);
+	
+	// ICounterProviderListener
+	void onCounterChanged(ICounterProvider* provider, const string& id, uint32_t value);
 	
 private:
 	uint32_t m_lastTicks;
@@ -116,8 +124,8 @@ private:
 	
 	vector<EthernetDevice*> m_devices;
 	
-	map<string, string> m_inputsNames, m_outputsNames, m_tempsNames;
-	map<string, string> m_inputNameToId, m_outputNameToId, m_tempNameToId;
+	map<string, string> m_inputsNames, m_outputsNames, m_tempsNames, m_countersNames;
+	map<string, string> m_inputNameToId, m_outputNameToId, m_tempNameToId, m_counterNameToId;
 	
 	map<string, int> m_persistentOutputs;
 	
@@ -131,6 +139,8 @@ private:
 	
 	string getInputName(const string& id);
 	string getOutputName(const string& id);
+	string getCounterName(const string& id);
+	string getName(const string& id, const map<string,string>& idMap);
 };
 
 #endif

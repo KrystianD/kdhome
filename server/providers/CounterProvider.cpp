@@ -42,7 +42,8 @@ void CounterProvider::processData(const void* buffer, int len)
 				
 				if (m_hasFirstData)
 				{
-					if (m_listener) m_listener->onCounterChanged(this, getInputID(i), m_counters[i]);
+					if (m_listener)
+						m_listener->onCounterChanged(this, getInputID(i), m_counters[i]);
 				}
 			}
 			// uint8_t low, high;

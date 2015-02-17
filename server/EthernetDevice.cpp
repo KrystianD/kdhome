@@ -8,6 +8,7 @@
 #include "providers/EthernetOutputProvider.h"
 #include "providers/EthernetIRProvider.h"
 #include "providers/EthernetTempProvider.h"
+#include "providers/CounterProvider.h"
 
 EthernetDevice::EthernetDevice(UdpSocket* server, Controller* controller, uint32_t id, const string& ip, uint16_t port, const string& name)
 	: m_server(server), m_controller(controller), m_id(id), m_ip(ip), m_port(port), m_name(name), m_lastPacketTime(0), m_connected(false), m_lastRecvPacketId(0), m_sendPacketId(0),
@@ -132,6 +133,15 @@ void EthernetDevice::processData(const void* buffer, int len)
 					EthernetTempProvider *prov = new EthernetTempProvider(this, p->cnt);
 					addProvider(prov);
 					logInfo(str(Format("Added temp provider to device #{} with {} sensors") << 0 << (int)p->cnt));
+					break;
+				}
+				case PROVIDER_TYPE_COUNTER:
+				{
+					TProvCounterRegisterPacket *p = (TProvCounterRegisterPacket*)buffer;
+					CounterProvider *prov = new CounterProvider(this, p->cnt);
+					prov->setListener(dynamic_cast<ICounterProviderListener*>(m_controller));
+					addProvider(prov);
+					logInfo(str(Format("Added counter provider to device #{} with {} counters") << 0 << (int)p->cnt));
 					break;
 				}
 				default:

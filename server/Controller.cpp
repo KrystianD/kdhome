@@ -610,7 +610,7 @@ void Controller::onIRButtonReleased(IIRProvider* provider, uint32_t code)
 void Controller::onInitialStatesRequest(IOutputProvider* provider)
 {
 	m_logger->logInfo(str(Format("Initial states requested")));
-
+	
 	for (auto& it : m_persistentOutputs)
 	{
 		const string& outputId = it.first;
@@ -621,17 +621,31 @@ void Controller::onInitialStatesRequest(IOutputProvider* provider)
 	}
 }
 
+// ICounterProviderListener
+void Controller::onCounterChanged(ICounterProvider* provider, const string& id, uint32_t value)
+{
+	EthernetDevice *dev = provider->getDevice();
+	m_logger->logInfo(str(Format("Counter {} changed to {}") << getCounterName(id) << value));
+	
+	publish(str(Format("COUNTER:CHANGED:{}:{}:{}") << id << getCounterName(id) << value));
+}
+
 string Controller::getInputName(const string& id)
 {
-	auto v = m_inputsNames.find(id);
-	if (v != m_inputsNames.end())
-		return v->second;
-	return str(Format("{}") << id);
+	return getName(id, m_inputsNames);
 }
 string Controller::getOutputName(const string& id)
 {
-	auto v = m_outputsNames.find(id);
-	if (v != m_outputsNames.end())
+	return getName(id, m_outputsNames);
+}
+string Controller::getCounterName(const string& id)
+{
+	return getName(id, m_countersNames);
+}
+string Controller::getName(const string& id, const map<string,string>& idMap)
+{
+	auto v = idMap.find(id);
+	if (v != idMap.end())
 		return v->second;
 	return str(Format("{}") << id);
 }
