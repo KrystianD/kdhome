@@ -31,7 +31,7 @@ public:
 	}
 	int getInputState(int num)
 	{
-		return m_inputs[num].high > m_inputs[num].low;
+		return m_inputs[num].state == 1;
 	}
 	void setListener(IInputProviderListener* listener)
 	{
@@ -44,8 +44,9 @@ private:
 	struct TInput
 	{
 		uint8_t low, high;
+		int state;
 		
-		TInput() : low(0), high(0) { }
+		TInput() : low(0), high(0), state(0) { }
 	};
 	
 	EthernetDevice *m_device;

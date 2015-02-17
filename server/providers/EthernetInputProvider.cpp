@@ -46,6 +46,7 @@ void EthernetInputProvider::processData(const void* buffer, int len)
 					if (inp.low != low)
 					{
 						inp.low++;
+						inp.state = 0;
 						if (m_hasFirstData)
 						{
 							if (m_listener) m_listener->onInputChanged(this, getInputID(i), 0);
@@ -54,6 +55,7 @@ void EthernetInputProvider::processData(const void* buffer, int len)
 					if (inp.high != high)
 					{
 						inp.high++;
+						inp.state = 1;
 						if (m_hasFirstData)
 						{
 							if (m_listener) m_listener->onInputChanged(this, getInputID(i), 1);
