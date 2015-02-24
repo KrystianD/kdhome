@@ -22,8 +22,13 @@
 
 #include <spi.h>
 SPI spi;
-int fdGP;
-int fdirq;
+int fdGP = -1;
+int fdirq = -1;
+
+uint32_t lastTick = 0;
+uint32_t lastCounter = 0;
+
+bool initialized = false;
 
 void rfNewCounterValue(int val);
 
@@ -77,6 +82,10 @@ int mygetch()
 
 int rfInit()
 {
+	if (fdGP == -1)
+		close(fdGP);
+	if (fdirq == -1)
+		close(fdirq);
 	if (!spi.open("/dev/spitinyusb.0"))
 		return 1;
 		
@@ -113,14 +122,25 @@ int rfInit()
 	rfm70PrintStatus();
 	
 	fdirq = open("/dev/uio0", O_RDONLY);
+	
+	initialized = true;
 	return 0;
 }
-uint32_t lastTick = 0;
-uint32_t lastCounter = 0;
+
+#define ER(x) if(x) { initialized = false; return; }
 void rfProcess()
 {
 	uint8_t status;
 	uint32_t t1 = getTicks();
+	
+	if (!initialized)
+	{
+		if (!rfInit())
+		{
+			usleep(1000000);
+			return;
+		}
+	}
 	
 	char c[4];
 	fd_set set;
@@ -129,27 +149,29 @@ void rfProcess()
 	
 	struct timeval timeout;
 	timeout.tv_sec = 0;
-	timeout.tv_usec = 100000;
+	timeout.tv_usec = 10000;
 	int rv = select(fdirq + 1, &set, NULL, NULL, &timeout);
 	if (rv == -1)
+	{
 		perror("select");
+	}
 	else if (rv > 0)
 	{
-		// printf("intr!\r\n");
+		printf("intr!\r\n");
 		read(fdirq, c, 4);
 	}
 	
 	// usleep(100000);
-	rfm70ReadStatus(&status);
+	ER(rfm70ReadStatus(&status));
 	// printf("test 0x%02x\r\n", status);
 	// rfm70ClearStatus();
 	if (status & RFM70_STATUS_RX_DR)
 	{
-		rfm70ClearStatus();
-		rfm70ReadRxPayload((uint8_t*)&data, 12);
+		ER(rfm70ClearStatus());
+		ER(rfm70ReadRxPayload((uint8_t*)&data, 12));
 		
-		rfm70WriteRegisterValue(RFM70_STATUS, status);
-		rfm70SPISendCommand(RFM70_FLUSH_RX, 0, 0);
+		ER(rfm70WriteRegisterValue(RFM70_STATUS, status));
+		ER(rfm70SPISendCommand(RFM70_FLUSH_RX, 0, 0));
 		
 		uint32_t diff = t1 - lastTick;
 		lastTick = t1;

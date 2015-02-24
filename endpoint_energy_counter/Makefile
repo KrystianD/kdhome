@@ -2,7 +2,7 @@
 
 CC=gcc
 CXX=g++
-OUTPUT=main.elf
+OUTPUT=endpoint_energy_counter
 
 DEFINES=
 INCLUDEPATH=-I. -I.. -I../providers -I../kdutils -I../kdutils/chips -I../kdutils/

@@ -30,8 +30,6 @@ public:
 		socket1.setPort(10000);
 		socket1.bind();
 		socket1.setListener(this);
-		
-		rfInit();
 	}
 	
 	void run()
