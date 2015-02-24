@@ -182,6 +182,23 @@ class KDHome:
 		print("new interval")
 		self.intervals.append(v)
 
+	def hasTimeout(self, id):
+		return self.hasInterval(id)
+
+	def hasInterval(self, id):
+		for v in self.intervals:
+			if v["id"] == id:
+				return True
+		return False
+
+	def removeTimeout(self, id):
+		self.removeInterval(id)
+
+	def removeInterval(self, id):
+		for v in self.intervals:
+			if v["id"] == id:
+				self.intervals.remove(v)
+				return
 
 class InitEvent:
 	pass
