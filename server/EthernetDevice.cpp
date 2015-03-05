@@ -103,50 +103,50 @@ void EthernetDevice::processData(const void* buffer, int len)
 				case PROVIDER_TYPE_INPUT:
 				{
 					TProvInputRegisterPacket *p = (TProvInputRegisterPacket*)buffer;
+					logInfo(str(Format("Adding input provider to device #{} with {} inputs") << 0 << (int)p->cnt));
 					InputProvider *prov = new InputProvider(this, p->cnt);
 					prov->init();
 					prov->setListener(dynamic_cast<IInputProviderListener*>(m_controller));
 					addProvider(prov);
-					logInfo(str(Format("Added input provider to device #{} with {} inputs") << 0 << (int)p->cnt));
 					break;
 				}
 				case PROVIDER_TYPE_OUTPUT:
 				{
 					TProvOutputRegisterPacket *p = (TProvOutputRegisterPacket*)buffer;
+					logInfo(str(Format("Adding output provider to device #{} with {} outputs") << 0 << (int)p->cnt));
 					OutputProvider *prov = new OutputProvider(this, p->cnt);
 					prov->init();
 					prov->setListener(dynamic_cast<IOutputProviderListener*>(m_controller));
 					addProvider(prov);
-					logInfo(str(Format("Added output provider to device #{} with {} outputs") << 0 << (int)p->cnt));
 					break;
 				}
 				case PROVIDER_TYPE_IR:
 				{
 					TProvIRRegisterPacket *p = (TProvIRRegisterPacket*)buffer;
+					logInfo(str(Format("Adding IR provider to device #{}") << 0));
 					IRProvider *prov = new IRProvider(this);
 					prov->init();
 					prov->setListener(dynamic_cast<IIRProviderListener*>(m_controller));
 					addProvider(prov);
-					logInfo(str(Format("Added IR provider to device #{}") << 0));
 					break;
 				}
 				case PROVIDER_TYPE_TEMP:
 				{
 					TProvTempRegisterPacket *p = (TProvTempRegisterPacket*)buffer;
+					logInfo(str(Format("Adding temp provider to device #{} with {} sensors") << 0 << (int)p->cnt));
 					TempProvider *prov = new TempProvider(this, p->cnt);
 					prov->init();
 					addProvider(prov);
-					logInfo(str(Format("Added temp provider to device #{} with {} sensors") << 0 << (int)p->cnt));
 					break;
 				}
 				case PROVIDER_TYPE_COUNTER:
 				{
 					TProvCounterRegisterPacket *p = (TProvCounterRegisterPacket*)buffer;
+					logInfo(str(Format("Adding counter provider to device #{} with {} counters") << 0 << (int)p->cnt));
 					CounterProvider *prov = new CounterProvider(this, p->cnt);
 					prov->init();
 					prov->setListener(dynamic_cast<ICounterProviderListener*>(m_controller));
 					addProvider(prov);
-					logInfo(str(Format("Added counter provider to device #{} with {} counters") << 0 << (int)p->cnt));
 					break;
 				}
 				default:

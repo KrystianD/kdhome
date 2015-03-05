@@ -8,9 +8,10 @@ DEFINES=-DLIBCONFIG_STATIC -DLIBCONFIGXX_STATIC
 INCLUDEPATH=-I. -I.. -I../kdutils -I3rd/ -I3rd/libconfig-1.4.9
 LIBS=-L/usr/lib -lpthread -lzmq
 
-CFLAGS=-ggdb -Werror=implicit -O1 -fdata-sections -ffunction-sections -std=c++11
+CFLAGS=-ggdb -Werror=implicit -O1 -fdata-sections -ffunction-sections
 CFLAGS+=$(DEFINES)
 CFLAGS+=$(INCLUDEPATH)
+CXXFLAGS=$(CFLAGS) -std=c++11
 LFLAGS=-Wl,--relax,--gc-sections -Wl,-gc-sections -Wl,-Map=build/$(OUTPUT).map
 LFLAGS+=$(LIBS)
 
@@ -21,49 +22,49 @@ prepare:
 	mkdir -p build/
 
 build/main.o: main.cpp
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 build/Program.o: Program.cpp
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 build/Controller.o: Controller.cpp
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 build/EthernetDevice.o: EthernetDevice.cpp
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 build/StorageEngine.o: StorageEngine.cpp
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 build/Providers.o: Providers.cpp
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 build/providers_OutputProvider.o: providers/OutputProvider.cpp
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 build/providers_InputProvider.o: providers/InputProvider.cpp
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 build/providers_TempProvider.o: providers/TempProvider.cpp
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 build/providers_IRProvider.o: providers/IRProvider.cpp
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 build/providers_CounterProvider.o: providers/CounterProvider.cpp
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 build/__kdutils_Logger.o: ../kdutils/Logger.cpp
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 build/__kdutils_UdpSocket.o: ../kdutils/UdpSocket.cpp
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 build/__kdutils_kdutils.o: ../kdutils/kdutils.cpp
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 build/3rd_format.o: 3rd/format.cc
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 build/3rd_libconfig-1.4.9_grammar.o: 3rd/libconfig-1.4.9/grammar.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -81,7 +82,12 @@ build/3rd_libconfig-1.4.9_strbuf.o: 3rd/libconfig-1.4.9/strbuf.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 build/3rd_libconfig-1.4.9_libconfigcpp.o: 3rd/libconfig-1.4.9/libconfigcpp.cc
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 build/$(OUTPUT): build/main.o build/Program.o build/Controller.o build/EthernetDevice.o build/StorageEngine.o build/Providers.o build/providers_OutputProvider.o build/providers_InputProvider.o build/providers_TempProvider.o build/providers_IRProvider.o build/providers_CounterProvider.o build/__kdutils_Logger.o build/__kdutils_UdpSocket.o build/__kdutils_kdutils.o build/3rd_format.o build/3rd_libconfig-1.4.9_grammar.o build/3rd_libconfig-1.4.9_libconfig.o build/3rd_libconfig-1.4.9_scanctx.o build/3rd_libconfig-1.4.9_scanner.o build/3rd_libconfig-1.4.9_strbuf.o build/3rd_libconfig-1.4.9_libconfigcpp.o
-	$(CXX) $(CFLAGS) $^ $(LFLAGS) -o $@
+	$(CXX) $^ $(LFLAGS) -o $@
+
+clean:
+	rm -f build/$(OUTPUT) build/$(OUTPUT).map build/main.o build/Program.o build/Controller.o build/EthernetDevice.o build/StorageEngine.o build/Providers.o build/providers_OutputProvider.o build/providers_InputProvider.o build/providers_TempProvider.o build/providers_IRProvider.o build/providers_CounterProvider.o build/__kdutils_Logger.o build/__kdutils_UdpSocket.o build/__kdutils_kdutils.o build/3rd_format.o build/3rd_libconfig-1.4.9_grammar.o build/3rd_libconfig-1.4.9_libconfig.o build/3rd_libconfig-1.4.9_scanctx.o build/3rd_libconfig-1.4.9_scanner.o build/3rd_libconfig-1.4.9_strbuf.o build/3rd_libconfig-1.4.9_libconfigcpp.o
+
+.PHONY: clean

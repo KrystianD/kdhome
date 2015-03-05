@@ -30,6 +30,34 @@ struct TProviderEntry
 	int startNumber;
 };
 
+class IProviderValue
+{
+public:
+	string id, name;
+	uint32_t lastChange;
+	bool initialized;
+};
+
+template<typename T>
+class TProviderValue : public IProviderValue
+{
+public:
+	virtual ~TProviderValue() { };
+	T value;
+
+	void setValue(const T& value)
+	{
+		this->value = value;
+		this->initialized = true;
+		this->lastChange = getTicks();
+	}
+};
+
+typedef TProviderValue<bool> TOutputProviderValue;
+typedef TProviderValue<bool> TInputProviderValue;
+typedef TProviderValue<float> TTempProviderValue;
+typedef TProviderValue<uint32_t> TCounterProviderValue;
+
 class Controller : public IInputProviderListener,
 	public IEthernetDataListener,
 	public IIRProviderListener,
@@ -52,7 +80,7 @@ public:
 	void updateNames();
 	
 	template<typename T>
-	bool findProvider(const string& name, const map<string, string>& idMap, EthernetDevice*& dev, T*& provider, int& num);
+	bool findProvider(const string& id, EthernetDevice*& dev, T*& provider, int& num);
 	EthernetDevice* findDevice(const string& name);
 	
 	// Expander
@@ -124,12 +152,20 @@ private:
 	
 	vector<EthernetDevice*> m_devices;
 	
-	map<string, string> m_inputsNames, m_outputsNames, m_tempsNames, m_countersNames;
-	map<string, string> m_inputNameToId, m_outputNameToId, m_tempNameToId, m_counterNameToId;
+	// map<string, string> m_inputsNames, m_outputsNames, m_tempsNames, m_countersNames;
+	// map<string, string> m_inputNameToId, m_outputNameToId, m_tempNameToId, m_counterNameToId;
 	
-	map<string, int> m_inputValues, m_outputValues;
+	// map<string, int> m_inputValues, m_outputValues;
 	map<string, int> m_persistentOutputs;
 	
+	vector<TInputProviderValue> m_inputs;
+	vector<TOutputProviderValue> m_outputs;
+	vector<TTempProviderValue> m_temps;
+	vector<TCounterProviderValue> m_counters;
+	
+	template<typename T>
+	TProviderValue<T>& findValue(const string& id, vector<TProviderValue<T>>& container);
+
 	// zmq
 	uint32_t m_sessKey;
 	void *zcontext, *zsocket, *zsocketREP;
@@ -137,16 +173,22 @@ private:
 	
 	void publish(string msg);
 	string processREQ(string msg);
-
-	void setOutputProvider(const string& name, bool state);
 	
-	string getInputName(const string& id);
-	string getOutputName(const string& id);
-	string getCounterName(const string& id);
-	string getInputID(const string& name);
-	string getOutputID(const string& name);
-	string getCounterID(const string& name);
-	string getNameOrID(const string& id, const map<string,string>& idMap);
+	void setOutputInProvider(const string& id, bool state);
 };
+
+template<typename T>
+TProviderValue<T>& Controller::findValue(const string& id, vector<TProviderValue<T>>& container)
+{
+	for (auto & v : container)
+		if (v.id == id || v.name == id)
+			return v;
+	TProviderValue<T> val;
+	val.id = id;
+	val.name = id;
+	val.initialized = false;
+	container.push_back(val);
+	return findValue(id, container);
+}
 
 #endif
