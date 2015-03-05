@@ -72,6 +72,10 @@ public:
 	{
 		m_logger = logger;
 	}
+	void setUserLogger(MyLogger* logger)
+	{
+		m_userLogger = logger;
+	}
 	bool init();
 	void reload();
 	void run();
@@ -147,7 +151,7 @@ private:
 	
 	LinuxTimer m_checkTimer;
 	UdpSocket m_server;
-	MyLogger *m_logger;
+	MyLogger *m_logger, *m_userLogger;
 	StorageEngine *m_storage;
 	
 	vector<EthernetDevice*> m_devices;

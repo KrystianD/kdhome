@@ -1,14 +1,16 @@
-import zmq, time, types
+import zmq, time, types, timerfd, os
 
 class KDHome:
 	sub = None
 	req = None
 	sessKey = 0
 	intervals = None
+	timer = None
 
 	def __init__(self):
 		self.context = zmq.Context()
 		self.intervals = []
+		self.timer = timerfd.create(timerfd.CLOCK_REALTIME, 0)
 
 	def connect(self, host, port):
 		self.sub = self.context.socket(zmq.SUB)
@@ -18,12 +20,18 @@ class KDHome:
 		self.req = self.context.socket(zmq.REQ)
 		self.req.connect("tcp://"+host+":10000")
 
-	def poll(self, time, socks):
+	def poll(self, time = -1, socks = []):
 		poller = zmq.Poller()
 		poller.register(self.sub, zmq.POLLIN)
+		poller.register(self.timer, zmq.POLLIN)
 		for v in socks:
 			poller.register(v, zmq.POLLIN)
-		return dict(poller.poll(time))
+		d = dict(poller.poll(time))
+		if self.timer in d:
+			os.read(self.timer, 1024)
+			print("TIMER")
+			timerfd.settime(self.timer, 0,1,0)
+		return d
 
 	def process(self):
 
@@ -42,6 +50,8 @@ class KDHome:
 				if not v["repeating"]:
 					print(v,"ER")
 					self.intervals.remove(v)
+
+				self.setupTimer()
 
 		try:
 			message = self.sub.recv(zmq.NOBLOCK)
@@ -160,6 +170,12 @@ class KDHome:
 	def onMessageEvent(self, msg):
 		pass
 
+	def run(self):
+		while True:
+			self.poll()
+			self.process()
+			sys.stdout.flush()
+			sys.stderr.flush()
 
 	def setTimeout(self, id, interval, code):
 		self.setInterval(id, interval, code, False)
@@ -181,6 +197,7 @@ class KDHome:
 				"code": code }
 		print("new interval")
 		self.intervals.append(v)
+		self.setupTimer()
 
 	def hasTimeout(self, id):
 		return self.hasInterval(id)
@@ -199,6 +216,13 @@ class KDHome:
 			if v["id"] == id:
 				self.intervals.remove(v)
 				return
+	
+	def setupTimer(self):
+		if len(self.intervals) > 0:
+			earliest = min(self.intervals, key = lambda x: x["execTime"])
+			delay = earliest["execTime"] - time.time()
+			print("setting delay " + str(delay))
+			timerfd.settime(self.timer, 0, delay, 0)
 
 class InitEvent:
 	pass

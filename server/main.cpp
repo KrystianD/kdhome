@@ -1,6 +1,7 @@
 #include <getopt.h>
 
 #include "Program.h"
+#include "Controller.h"
 
 #include <kdutils.h>
 
@@ -9,18 +10,21 @@
 
 using namespace std;
 
-MyLogger *logger;
+MyLogger *logger, *userLogger;
 Program *program;
+Controller controller;
 // libusb_context *ctx;
 
 int main(int argc, char** argv)
 {
 	string logFile = "kdhome.log";
+	string userLogFile = "kdhome_user.log";
 	while (1)
 	{
 		static struct option long_options[] =
 		{
 			{ "log",  required_argument, 0, 'l' },
+			{ "user-log",  required_argument, 0, 'u' },
 			{ 0, 0, 0, 0 }
 		};
 		int option_index = 0;
@@ -45,6 +49,10 @@ int main(int argc, char** argv)
 			logFile = optarg;
 			printf("option -l with value `%s'\n", optarg);
 			break;
+		case 'u':
+			userLogFile = optarg;
+			printf("option -u with value `%s'\n", optarg);
+			break;
 		default:
 			abort();
 		}
@@ -59,11 +67,26 @@ int main(int argc, char** argv)
 	logger.addOutput(&out2);
 	
 	::logger = &logger;
+
+	MyLogger userLogger;
+	FileLoggerOutput out3(userLogFile);
+	userLogger.addOutput(&out1);
+	userLogger.addOutput(&out3);
 	
-	Program p;
-	::program = &p;
-	p.setLogger(&logger);
-	p.run();
+	::logger = &logger;
+	::userLogger = &userLogger;
+
+	srand(time(0));
+
+	controller.setLogger(&logger);
+	controller.setUserLogger(&userLogger);
+	if(!controller.init())
+	{
+		logger.logError("Unable to init controller");
+		return 1;
+	}
+
+	controller.run();
 	
 	// libusb_exit (ctx);
 }
