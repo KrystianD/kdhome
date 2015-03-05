@@ -1,4 +1,3 @@
-kdhome.log
 pch.h.gch
 3rd/mongoose-5.0/
 scripts/
@@ -8,3 +7,4 @@ kdhome
 *.swp
 *.swo
 data
+*.log

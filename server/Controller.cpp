@@ -162,6 +162,16 @@ string Controller::processREQ(string msg)
 			publish(str(Format("MESSAGE:BROADCAST:{}") << msg));
 			return "OK";
 		}
+		else if (cmd == "LOG")
+		{
+			if (p.size() < 3)
+				return "";
+				
+			string msg = p[2];
+			
+			m_userLogger->logInfo(msg);
+			return "OK";
+		}
 	}
 	else if (type == "OUTPUT")
 	{

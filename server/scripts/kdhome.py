@@ -1,4 +1,4 @@
-import zmq, time, types, timerfd, os
+import zmq, time, types, timerfd, os, sys
 
 class KDHome:
 	sub = None
@@ -30,7 +30,6 @@ class KDHome:
 		if self.timer in d:
 			os.read(self.timer, 1024)
 			print("TIMER")
-			timerfd.settime(self.timer, 0,1,0)
 		return d
 
 	def process(self):
@@ -107,6 +106,9 @@ class KDHome:
 
 	def broadcast(self, msg):
 		resp = self.request("MESSAGE:BROADCAST:{0}".format(msg))
+		return resp
+	def log(self, msg):
+		resp = self.request("MESSAGE:LOG:{0}".format(msg))
 		return resp
 
 	def registerEthernetDevice(self, id, ip, port, name):
@@ -221,7 +223,7 @@ class KDHome:
 		if len(self.intervals) > 0:
 			earliest = min(self.intervals, key = lambda x: x["execTime"])
 			delay = earliest["execTime"] - time.time()
-			print("setting delay " + str(delay))
+			print("setting delay " + str(delay) + " for interval " + earliest["id"])
 			timerfd.settime(self.timer, 0, delay, 0)
 
 class InitEvent:
