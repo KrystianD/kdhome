@@ -1,4 +1,4 @@
-#include "EthernetInputProvider.h"
+#include "InputProvider.h"
 
 #include "common.h"
 #include "kdutils.h"
@@ -6,14 +6,14 @@
 
 #include <kdhome.h>
 
-EthernetInputProvider::EthernetInputProvider(EthernetDevice* device, int amount)
+InputProvider::InputProvider(EthernetDevice* device, int amount)
 	: m_device(device), m_listener(0), m_lastUpdateTime(0)
 {
 	for (int i = 0; i < amount; i++)
 		m_inputs.push_back(TInput());
 }
 
-void EthernetInputProvider::init()
+void InputProvider::init()
 {
 	m_hasFirstData = 0;
 	for (int i = 0; i < getAmount(); i++)
@@ -23,7 +23,7 @@ void EthernetInputProvider::init()
 	preparePacket((TSrvHeader*)&p, INPUT_REQ_SENDSTATE);
 	sendData(&p, sizeof(p));
 }
-void EthernetInputProvider::processData(const void* buffer, int len)
+void InputProvider::processData(const void* buffer, int len)
 {
 	TProvHeader *header = (TProvHeader*)buffer;
 
@@ -69,26 +69,26 @@ void EthernetInputProvider::processData(const void* buffer, int len)
 		break;
 	}
 }
-void EthernetInputProvider::process()
+void InputProvider::process()
 {
 }
 
-void EthernetInputProvider::update()
+void InputProvider::update()
 {
 }
-void EthernetInputProvider::preparePacket(TSrvHeader* packet, uint8_t command)
+void InputProvider::preparePacket(TSrvHeader* packet, uint8_t command)
 {
 	m_device->preparePacket(packet);
 	packet->type = getType();
 	packet->cmd = command;
 }
 
-string EthernetInputProvider::getInputID(int num)
+string InputProvider::getInputID(int num)
 {
 	return str(Format("{}-{}") << getDevice()->getName() << num);
 }
 
-void EthernetInputProvider::logInfo(const string& msg)
+void InputProvider::logInfo(const string& msg)
 {
 	logger->logInfo(Format("[input] {}") << msg);
 }

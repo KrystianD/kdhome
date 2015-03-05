@@ -4,11 +4,11 @@
 #include "../EthernetDevice.h"
 #include "ITempProvider.h"
 
-class EthernetTempProvider : public ITempProvider
+class TempProvider : public ITempProvider
 {
 public:
-	EthernetTempProvider(EthernetDevice* device, int amount);
-	virtual ~EthernetTempProvider()
+	TempProvider(EthernetDevice* device, int amount);
+	virtual ~TempProvider()
 	{
 		logger->logInfo("Deleting TempProvider");
 	}

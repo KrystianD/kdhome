@@ -4,10 +4,10 @@
 #include "kdutils.h"
 
 #include "Controller.h"
-#include "providers/EthernetInputProvider.h"
-#include "providers/EthernetOutputProvider.h"
-#include "providers/EthernetIRProvider.h"
-#include "providers/EthernetTempProvider.h"
+#include "providers/InputProvider.h"
+#include "providers/OutputProvider.h"
+#include "providers/IRProvider.h"
+#include "providers/TempProvider.h"
 #include "providers/CounterProvider.h"
 
 EthernetDevice::EthernetDevice(UdpSocket* server, Controller* controller, uint32_t id, const string& ip, uint16_t port, const string& name)
@@ -103,7 +103,7 @@ void EthernetDevice::processData(const void* buffer, int len)
 				case PROVIDER_TYPE_INPUT:
 				{
 					TProvInputRegisterPacket *p = (TProvInputRegisterPacket*)buffer;
-					EthernetInputProvider *prov = new EthernetInputProvider(this, p->cnt);
+					InputProvider *prov = new InputProvider(this, p->cnt);
 					prov->setListener(dynamic_cast<IInputProviderListener*>(m_controller));
 					addProvider(prov);
 					logInfo(str(Format("Added input provider to device #{} with {} inputs") << 0 << (int)p->cnt));
@@ -112,7 +112,7 @@ void EthernetDevice::processData(const void* buffer, int len)
 				case PROVIDER_TYPE_OUTPUT:
 				{
 					TProvOutputRegisterPacket *p = (TProvOutputRegisterPacket*)buffer;
-					EthernetOutputProvider *prov = new EthernetOutputProvider(this, p->cnt);
+					OutputProvider *prov = new OutputProvider(this, p->cnt);
 					prov->setListener(dynamic_cast<IOutputProviderListener*>(m_controller));
 					addProvider(prov);
 					logInfo(str(Format("Added output provider to device #{} with {} outputs") << 0 << (int)p->cnt));
@@ -121,7 +121,7 @@ void EthernetDevice::processData(const void* buffer, int len)
 				case PROVIDER_TYPE_IR:
 				{
 					TProvIRRegisterPacket *p = (TProvIRRegisterPacket*)buffer;
-					EthernetIRProvider *prov = new EthernetIRProvider(this);
+					IRProvider *prov = new IRProvider(this);
 					prov->setListener(dynamic_cast<IIRProviderListener*>(m_controller));
 					addProvider(prov);
 					logInfo(str(Format("Added IR provider to device #{}") << 0));
@@ -130,7 +130,7 @@ void EthernetDevice::processData(const void* buffer, int len)
 				case PROVIDER_TYPE_TEMP:
 				{
 					TProvTempRegisterPacket *p = (TProvTempRegisterPacket*)buffer;
-					EthernetTempProvider *prov = new EthernetTempProvider(this, p->cnt);
+					TempProvider *prov = new TempProvider(this, p->cnt);
 					addProvider(prov);
 					logInfo(str(Format("Added temp provider to device #{} with {} sensors") << 0 << (int)p->cnt));
 					break;

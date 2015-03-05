@@ -8,11 +8,11 @@
 
 using namespace std;
 
-class EthernetIRProvider : public IIRProvider
+class IRProvider : public IIRProvider
 {
 public:
-	EthernetIRProvider(EthernetDevice* device);
-	virtual ~EthernetIRProvider()
+	IRProvider(EthernetDevice* device);
+	virtual ~IRProvider()
 	{
 		logger->logInfo("Deleting IRProvider");
 	}

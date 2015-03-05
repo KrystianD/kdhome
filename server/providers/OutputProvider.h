@@ -4,11 +4,11 @@
 #include "../EthernetDevice.h"
 #include "IOutputProvider.h"
 
-class EthernetOutputProvider : public IOutputProvider
+class OutputProvider : public IOutputProvider
 {
 public:
-	EthernetOutputProvider(EthernetDevice* device, int amount);
-	virtual ~EthernetOutputProvider()
+	OutputProvider(EthernetDevice* device, int amount);
+	virtual ~OutputProvider()
 	{
 		logger->logInfo("Deleting OutputProvider");
 	}

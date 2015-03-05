@@ -1,8 +1,8 @@
-#include "EthernetOutputProvider.h"
+#include "OutputProvider.h"
 
 #include "kdutils.h"
 
-EthernetOutputProvider::EthernetOutputProvider(EthernetDevice* device, int amount)
+OutputProvider::OutputProvider(EthernetDevice* device, int amount)
 	: m_device(device), m_hasInitialStates(false)
 {
 	for (int i = 0; i < amount; i++)
@@ -10,10 +10,10 @@ EthernetOutputProvider::EthernetOutputProvider(EthernetDevice* device, int amoun
 	m_lastUpdateTime = 0;
 }
 
-void EthernetOutputProvider::processData(const void* buffer, int len)
+void OutputProvider::processData(const void* buffer, int len)
 {
 }
-void EthernetOutputProvider::process()
+void OutputProvider::process()
 {
 	if (!m_hasInitialStates)
 	{
@@ -24,20 +24,20 @@ void EthernetOutputProvider::process()
 		update();
 }
 
-void EthernetOutputProvider::setOutputState(int num, bool on)
+void OutputProvider::setOutputState(int num, bool on)
 {
 	if (on == m_outputs[num])
 		return;
 	m_outputs[num] = on;
 	update();
 }
-void EthernetOutputProvider::toggleOutputState(int num)
+void OutputProvider::toggleOutputState(int num)
 {
 	m_outputs[num] = !m_outputs[num];
 	update();
 }
 
-void EthernetOutputProvider::update()
+void OutputProvider::update()
 {
 	// TSrvOutputPacket p;
 	// ByteBuffer data;
@@ -60,19 +60,19 @@ void EthernetOutputProvider::update()
 	sendData(&p, sizeof(p));
 	m_lastUpdateTime = getTicks();
 }
-void EthernetOutputProvider::preparePacket(TSrvHeader* packet, uint8_t command)
+void OutputProvider::preparePacket(TSrvHeader* packet, uint8_t command)
 {
 	m_device->preparePacket(packet);
 	packet->type = getType();
 	packet->cmd = command;
 }
 
-string EthernetOutputProvider::getOutputID(int num)
+string OutputProvider::getOutputID(int num)
 {
 	return str(Format("{}-{}") << getDevice()->getName() << num);
 }
 
-void EthernetOutputProvider::logInfo(const string& msg)
+void OutputProvider::logInfo(const string& msg)
 {
 	logger->logInfo(Format("[{} - output] {}") << m_device->getName() << msg);
 }

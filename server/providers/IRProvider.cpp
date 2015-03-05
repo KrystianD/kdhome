@@ -1,15 +1,15 @@
-#include "EthernetIRProvider.h"
+#include "IRProvider.h"
 
 #include "kdutils.h"
 
 #include "../common.h"
 
-EthernetIRProvider::EthernetIRProvider(EthernetDevice* device)
+IRProvider::IRProvider(EthernetDevice* device)
 	: m_device(device), m_listener(0)
 {
 }
 
-void EthernetIRProvider::processData(const void* buffer, int len)
+void IRProvider::processData(const void* buffer, int len)
 {
 	uint8_t cmd;
 	
@@ -41,7 +41,7 @@ void EthernetIRProvider::processData(const void* buffer, int len)
 	break;
 	}
 }
-void EthernetIRProvider::process()
+void IRProvider::process()
 {
 	for (map<uint32_t, uint32_t>::iterator it = m_codes.begin(); it != m_codes.end();)
 	{
@@ -59,10 +59,10 @@ void EthernetIRProvider::process()
 	}
 }
 
-void EthernetIRProvider::update()
+void IRProvider::update()
 {
 }
-// void EthernetIRProvider::prepareCommand(ByteBuffer& buffer, uint8_t command)
+// void IRProvider::prepareCommand(ByteBuffer& buffer, uint8_t command)
 // {
 // m_device->prepareBuffer(buffer);
 // buffer.append(getType());

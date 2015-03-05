@@ -1,17 +1,17 @@
-#include "EthernetTempProvider.h"
+#include "TempProvider.h"
 
 #include "common.h"
 #include "kdutils.h"
 #include <unistd.h>
 
-EthernetTempProvider::EthernetTempProvider(EthernetDevice* device, int amount)
+TempProvider::TempProvider(EthernetDevice* device, int amount)
 	: m_device(device)//, m_listener(0)//, m_lastUpdateTime(0)
 {
 	for (int i = 0; i < amount; i++)
 		m_sensors.push_back(TSensor());
 }
 
-void EthernetTempProvider::init()
+void TempProvider::init()
 {
 	// m_hasFirstData = 0;
 	for (int i = 0; i < getAmount(); i++)
@@ -21,7 +21,7 @@ void EthernetTempProvider::init()
 	// prepareCommand(data, 0x01);
 	// sendData(data);
 }
-void EthernetTempProvider::processData(const void* buffer, int len)
+void TempProvider::processData(const void* buffer, int len)
 {
 	TProvHeader *header = (TProvHeader*)buffer;
 	
@@ -51,11 +51,11 @@ void EthernetTempProvider::processData(const void* buffer, int len)
 	break;
 	}
 }
-void EthernetTempProvider::process()
+void TempProvider::process()
 {
 }
 
-void EthernetTempProvider::logInfo(const string& msg)
+void TempProvider::logInfo(const string& msg)
 {
 	logger->logInfo(Format("[temp] {}") << msg);
 }

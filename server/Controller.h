@@ -11,11 +11,10 @@ using namespace std;
 
 #include "Providers.h"
 #include "EthernetDevice.h"
-#include "providers/IOutputProvider.h"
-#include "providers/EthernetOutputProvider.h"
-#include "providers/EthernetInputProvider.h"
-#include "providers/EthernetIRProvider.h"
-#include "providers/EthernetTempProvider.h"
+#include "providers/OutputProvider.h"
+#include "providers/InputProvider.h"
+#include "providers/IRProvider.h"
+#include "providers/TempProvider.h"
 #include "providers/CounterProvider.h"
 
 #include <zmq.h>
