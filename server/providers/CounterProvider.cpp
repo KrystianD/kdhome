@@ -17,7 +17,7 @@ void CounterProvider::init()
 {
 	m_hasFirstData = 0;
 	for (int i = 0; i < getAmount(); i++)
-		m_counters.push_back(0);
+		m_counters[i] = 0;
 		
 	TSrvHeader p;
 	preparePacket((TSrvHeader*)&p, COUNTER_REQ_SENDSTATE);
@@ -46,33 +46,6 @@ void CounterProvider::processData(const void* buffer, int len)
 						m_listener->onCounterChanged(this, getInputID(i), m_counters[i]);
 				}
 			}
-			// uint8_t low, high;
-			// low = p->inputs[i].low;
-			// high = p->inputs[i].high;
-			
-			// TInput &inp = m_inputs[i];
-			
-			// // printf("%d - %d %d\n", i, low, high);
-			// while (inp.low != low || inp.high != high)
-			// {
-			// if (inp.low != low)
-			// {
-			// inp.low++;
-			// if (m_hasFirstData)
-			// {
-			// if (m_listener) m_listener->onInputChanged(this, getInputID(i), 0);
-			// }
-			// }
-			// if (inp.high != high)
-			// {
-			// inp.high++;
-			// if (m_hasFirstData)
-			// {
-			// if (m_listener) m_listener->onInputChanged(this, getInputID(i), 1);
-			// }
-			// }
-			// }
-			// printf("test: %d - %d %d\n", i, inp.low, inp.high);
 		}
 		m_hasFirstData = true;
 	}
