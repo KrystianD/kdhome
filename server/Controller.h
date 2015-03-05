@@ -75,7 +75,7 @@ public:
 	bool getInput(const string& name);
 	
 	// Outputs
-	void setOutput(const string& name, bool on);
+	void setOutput(const string& name, bool state);
 	bool getOutput(const string& name);
 	void toggleOutput(const string& name);
 	void setOutputAsPersistent(const string& name);
@@ -99,6 +99,7 @@ public:
 	void onEthernetDataReceived(const string& ip, const void* buffer, int len);
 	
 	// IInputProviderListener
+	void onInputInitState(IInputProvider* provider, const string& id, int state);
 	void onInputChanged(IInputProvider* provider, const string& id, int state);
 	
 	// IIRProviderListener
@@ -126,6 +127,7 @@ private:
 	map<string, string> m_inputsNames, m_outputsNames, m_tempsNames, m_countersNames;
 	map<string, string> m_inputNameToId, m_outputNameToId, m_tempNameToId, m_counterNameToId;
 	
+	map<string, int> m_inputValues, m_outputValues;
 	map<string, int> m_persistentOutputs;
 	
 	// zmq
@@ -135,11 +137,16 @@ private:
 	
 	void publish(string msg);
 	string processREQ(string msg);
+
+	void setOutputProvider(const string& name, bool state);
 	
 	string getInputName(const string& id);
 	string getOutputName(const string& id);
 	string getCounterName(const string& id);
-	string getName(const string& id, const map<string,string>& idMap);
+	string getInputID(const string& name);
+	string getOutputID(const string& name);
+	string getCounterID(const string& name);
+	string getNameOrID(const string& id, const map<string,string>& idMap);
 };
 
 #endif

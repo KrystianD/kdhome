@@ -104,6 +104,7 @@ void EthernetDevice::processData(const void* buffer, int len)
 				{
 					TProvInputRegisterPacket *p = (TProvInputRegisterPacket*)buffer;
 					InputProvider *prov = new InputProvider(this, p->cnt);
+					prov->init();
 					prov->setListener(dynamic_cast<IInputProviderListener*>(m_controller));
 					addProvider(prov);
 					logInfo(str(Format("Added input provider to device #{} with {} inputs") << 0 << (int)p->cnt));
@@ -113,6 +114,7 @@ void EthernetDevice::processData(const void* buffer, int len)
 				{
 					TProvOutputRegisterPacket *p = (TProvOutputRegisterPacket*)buffer;
 					OutputProvider *prov = new OutputProvider(this, p->cnt);
+					prov->init();
 					prov->setListener(dynamic_cast<IOutputProviderListener*>(m_controller));
 					addProvider(prov);
 					logInfo(str(Format("Added output provider to device #{} with {} outputs") << 0 << (int)p->cnt));
@@ -122,6 +124,7 @@ void EthernetDevice::processData(const void* buffer, int len)
 				{
 					TProvIRRegisterPacket *p = (TProvIRRegisterPacket*)buffer;
 					IRProvider *prov = new IRProvider(this);
+					prov->init();
 					prov->setListener(dynamic_cast<IIRProviderListener*>(m_controller));
 					addProvider(prov);
 					logInfo(str(Format("Added IR provider to device #{}") << 0));
@@ -131,6 +134,7 @@ void EthernetDevice::processData(const void* buffer, int len)
 				{
 					TProvTempRegisterPacket *p = (TProvTempRegisterPacket*)buffer;
 					TempProvider *prov = new TempProvider(this, p->cnt);
+					prov->init();
 					addProvider(prov);
 					logInfo(str(Format("Added temp provider to device #{} with {} sensors") << 0 << (int)p->cnt));
 					break;
@@ -139,6 +143,7 @@ void EthernetDevice::processData(const void* buffer, int len)
 				{
 					TProvCounterRegisterPacket *p = (TProvCounterRegisterPacket*)buffer;
 					CounterProvider *prov = new CounterProvider(this, p->cnt);
+					prov->init();
 					prov->setListener(dynamic_cast<ICounterProviderListener*>(m_controller));
 					addProvider(prov);
 					logInfo(str(Format("Added counter provider to device #{} with {} counters") << 0 << (int)p->cnt));

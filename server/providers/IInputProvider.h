@@ -6,6 +6,7 @@ class IInputProvider;
 class IInputProviderListener
 {
 public:
+	virtual void onInputInitState(IInputProvider* provider, const string& id, int state) = 0;
 	virtual void onInputChanged(IInputProvider* provider, const string& id, int state) = 0;
 };
 

@@ -18,7 +18,7 @@ void InputProvider::init()
 	m_hasFirstData = 0;
 	for (int i = 0; i < getAmount(); i++)
 		m_inputs[i] = TInput();
-
+		
 	TSrvHeader p;
 	preparePacket((TSrvHeader*)&p, INPUT_REQ_SENDSTATE);
 	sendData(&p, sizeof(p));
@@ -26,47 +26,53 @@ void InputProvider::init()
 void InputProvider::processData(const void* buffer, int len)
 {
 	TProvHeader *header = (TProvHeader*)buffer;
-
-	switch(header->cmd)
+	
+	switch (header->cmd)
 	{
 	case INPUT_NOTF_NEWSTATE:
+	{
+		TProvInputStatePacket *p = (TProvInputStatePacket*)buffer;
+		for (int i = 0; i < p->cnt; i++)
 		{
-			TProvInputStatePacket *p = (TProvInputStatePacket*)buffer;
-			for (int i = 0; i < p->cnt; i++)
+			uint8_t low, high;
+			low = p->inputs[i].low;
+			high = p->inputs[i].high;
+			
+			TInput &inp = m_inputs[i];
+			
+			// printf("%d - %d %d\n", i, low, high);
+			while (inp.low != low || inp.high != high)
 			{
-				uint8_t low, high;
-				low = p->inputs[i].low;
-				high = p->inputs[i].high;
-
-				TInput &inp = m_inputs[i];
-
-				// printf("%d - %d %d\n", i, low, high);
-				while (inp.low != low || inp.high != high)
+				if (inp.low != low)
 				{
-					if (inp.low != low)
+					inp.low++;
+					inp.state = 0;
+					if (m_listener)
 					{
-						inp.low++;
-						inp.state = 0;
 						if (m_hasFirstData)
-						{
-							if (m_listener) m_listener->onInputChanged(this, getInputID(i), 0);
-						}
-					}
-					if (inp.high != high)
-					{
-						inp.high++;
-						inp.state = 1;
-						if (m_hasFirstData)
-						{
-							if (m_listener) m_listener->onInputChanged(this, getInputID(i), 1);
-						}
+							m_listener->onInputChanged(this, getInputID(i), 0);
+						else
+							m_listener->onInputInitState(this, getInputID(i), 0);
 					}
 				}
-				// printf("test: %d - %d %d\n", i, inp.low, inp.high);
+				if (inp.high != high)
+				{
+					inp.high++;
+					inp.state = 1;
+					if (m_listener)
+					{
+						if (m_hasFirstData)
+							m_listener->onInputChanged(this, getInputID(i), 1);
+						else
+							m_listener->onInputInitState(this, getInputID(i), 1);
+					}
+				}
 			}
-			m_hasFirstData = true;
+			// printf("test: %d - %d %d\n", i, inp.low, inp.high);
 		}
-		break;
+		m_hasFirstData = true;
+	}
+	break;
 	}
 }
 void InputProvider::process()
