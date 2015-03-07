@@ -1,4 +1,4 @@
-import zmq, time, types, timerfd, os, sys
+import zmq, time, types, timerfd, os, sys, datetime
 
 class KDHome:
 	sub = None
@@ -29,13 +29,11 @@ class KDHome:
 		d = dict(poller.poll(time))
 		if self.timer in d:
 			os.read(self.timer, 1024)
-			print("TIMER")
+			self.log("TIMER")
 		return d
 
 	def process(self):
-
 		for v in self.intervals:
-			# print(v,time.time())
 			if v["execTime"] <= time.time():
 				if v["repeating"]:
 					v["execTime"] = time.time() + v["interval"]
@@ -47,14 +45,13 @@ class KDHome:
 					eval(v["code"])
 
 				if not v["repeating"]:
-					print(v,"ER")
 					self.intervals.remove(v)
 
 				self.setupTimer()
 
 		try:
 			message = self.sub.recv(zmq.NOBLOCK)
-			print("New ZMQ message: " + message.decode("latin2"))
+			self.log("New ZMQ message: " + message.decode("latin2"))
 			message = message[1:].decode("latin")
 
 			parts = message.split(":")
@@ -64,7 +61,7 @@ class KDHome:
 			if self.sessKey != sessKey:
 				self.onReset()
 				self.sessKey = sessKey
-				print("New session")
+				self.log("New session")
 
 			cmd = parts[1]
 			if type == "CTRL":
@@ -190,14 +187,15 @@ class KDHome:
 				v["repeating"] = repeating
 				v["interval"] = interval
 				v["code"] = code
-				print("update interval")
+				self.log("update interval " + id)
+				self.setupTimer()
 				return
 		v = { "id": id,
 				"execTime": nextTime,
 				"repeating": repeating,
 				"interval": interval,
 				"code": code }
-		print("new interval")
+		self.log("new interval " + id)
 		self.intervals.append(v)
 		self.setupTimer()
 
@@ -222,9 +220,12 @@ class KDHome:
 	def setupTimer(self):
 		if len(self.intervals) > 0:
 			earliest = min(self.intervals, key = lambda x: x["execTime"])
-			delay = earliest["execTime"] - time.time()
-			print("setting delay " + str(delay) + " for interval " + earliest["id"])
+			delay = max(0.001, earliest["execTime"] - time.time())
+			self.log("setting delay " + str(delay) + " for interval " + earliest["id"])
 			timerfd.settime(self.timer, 0, delay, 0)
+	
+	def log(self, msg):
+		print("[{0}] {1}".format(datetime.datetime.now().strftime("%c"), msg))
 
 class InitEvent:
 	pass

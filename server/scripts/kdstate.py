@@ -38,6 +38,8 @@ class KDState:
 	def __str__(self):
 		return "[KDState {0}]".format(self.name)
 
+# Automaticly returns to idleState after idleTimeout (if no other states are set)
+# keepState - prevents from returning to idleState if in one of states provided by keepState
 class KDTimedState(KDState):
 	idleState = None
 	keepStates = None
