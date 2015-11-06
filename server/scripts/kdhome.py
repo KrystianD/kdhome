@@ -29,7 +29,7 @@ class KDHome:
 		d = dict(poller.poll(time))
 		if self.timer in d:
 			os.read(self.timer, 1024)
-			self.log("TIMER")
+			self.internalLog("TIMER")
 		return d
 
 	def process(self):
@@ -51,7 +51,7 @@ class KDHome:
 
 		try:
 			message = self.sub.recv(zmq.NOBLOCK)
-			self.log("New ZMQ message: " + message.decode("latin2"))
+			self.internalLog("New ZMQ message: " + message.decode("latin2"))
 			message = message[1:].decode("latin")
 
 			parts = message.split(":")
@@ -61,7 +61,7 @@ class KDHome:
 			if self.sessKey != sessKey:
 				self.onReset()
 				self.sessKey = sessKey
-				self.log("New session")
+				self.internalLog("New session")
 
 			cmd = parts[1]
 			if type == "CTRL":
@@ -105,6 +105,7 @@ class KDHome:
 		resp = self.request("MESSAGE:BROADCAST:{0}".format(msg))
 		return resp
 	def log(self, msg):
+		self.internalLog(msg)
 		resp = self.request("MESSAGE:LOG:{0}".format(msg))
 		return resp
 
@@ -195,7 +196,7 @@ class KDHome:
 				"repeating": repeating,
 				"interval": interval,
 				"code": code }
-		self.log("new interval " + id)
+		self.internalLog("new interval " + id)
 		self.intervals.append(v)
 		self.setupTimer()
 
@@ -221,10 +222,10 @@ class KDHome:
 		if len(self.intervals) > 0:
 			earliest = min(self.intervals, key = lambda x: x["execTime"])
 			delay = max(0.001, earliest["execTime"] - time.time())
-			self.log("setting delay " + str(delay) + " for interval " + earliest["id"])
+			self.internalLog("setting delay " + str(delay) + " for interval " + earliest["id"])
 			timerfd.settime(self.timer, 0, delay, 0)
 	
-	def log(self, msg):
+	def internalLog(self, msg):
 		print("[{0}] {1}".format(datetime.datetime.now().strftime("%c"), msg))
 
 class InitEvent:
