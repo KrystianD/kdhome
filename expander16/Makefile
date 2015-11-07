@@ -9,7 +9,7 @@ F_CPU=32000000
 RAMSIZE=20480
 
 DEFINES=-DETHERNET -DENC28J60_DEBUG -DSTM32F10X_MD -DPRINTF -DF_CPU=$(F_CPU) -DRAMSIZE=$(RAMSIZE)
-INCLUDEPATH=-I. -I.. -Ikdusb -Istm32-utils -Ikdulibs -I../kdutils -I../3rd/lwip-1.4.1/src/include/ -I../3rd/lwip-1.4.1/src/include/ipv4
+INCLUDEPATH=-I. -I.. -I../providers -Ikdusb -Istm32-utils -Ikdulibs -I../kdutils -I../3rd/lwip-1.4.1/src/include/ -I../3rd/lwip-1.4.1/src/include/ipv4
 LIBS=-lm -lc
 
 CFLAGS=-mcpu=cortex-m3 -march=armv7-m -mfix-cortex-m3-ldrd -msoft-float -mthumb -nostartfiles -ggdb -Werror=implicit -Os -fdata-sections -ffunction-sections
@@ -71,22 +71,22 @@ build/__3rd_IRremote.o: ../3rd/IRremote.c
 build/ethernet.o: ethernet.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-build/providers.o: providers.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
 build/buffer.o: buffer.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-build/provider_output.o: provider_output.c
+build/__providers_providers.o: ../providers/providers.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-build/provider_input.o: provider_input.c
+build/__providers_provider_output.o: ../providers/provider_output.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-build/provider_ir.o: provider_ir.c
+build/__providers_provider_input.o: ../providers/provider_input.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-build/provider_temp.o: provider_temp.c
+build/__providers_provider_temp.o: ../providers/provider_temp.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+build/__providers_provider_ir.o: ../providers/provider_ir.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 build/kdulibs_ENC28J60.o: kdulibs/ENC28J60.c
@@ -155,10 +155,10 @@ build/__3rd_lwip-1.4.1_src_netif_etharp.o: ../3rd/lwip-1.4.1/src/netif/etharp.c
 build/enc28j60if.o: enc28j60if.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-build/$(OUTPUT).elf: build/main.o build/isr.o build/utils.o build/temp.o build/io.o build/ir.o build/stm32-utils_delay.o build/stm32-utils_myprintf.o build/stm32-utils_i2c.o build/stm32-utils_ow.o build/kdulibs_advinputmanager.o build/__3rd_IRremote.o build/ethernet.o build/providers.o build/buffer.o build/provider_output.o build/provider_input.o build/provider_ir.o build/provider_temp.o build/kdulibs_ENC28J60.o build/__3rd_lwip-1.4.1_src_core_def.o build/__3rd_lwip-1.4.1_src_core_dhcp.o build/__3rd_lwip-1.4.1_src_core_ipv4_inet.o build/__3rd_lwip-1.4.1_src_core_ipv4_inet_chksum.o build/__3rd_lwip-1.4.1_src_core_mem.o build/__3rd_lwip-1.4.1_src_core_memp.o build/__3rd_lwip-1.4.1_src_core_netif.o build/__3rd_lwip-1.4.1_src_core_pbuf.o build/__3rd_lwip-1.4.1_src_core_init.o build/__3rd_lwip-1.4.1_src_core_raw.o build/__3rd_lwip-1.4.1_src_core_stats.o build/__3rd_lwip-1.4.1_src_core_sys.o build/__3rd_lwip-1.4.1_src_core_udp.o build/__3rd_lwip-1.4.1_src_core_timers.o build/__3rd_lwip-1.4.1_src_core_ipv4_inet.o build/__3rd_lwip-1.4.1_src_core_ipv4_icmp.o build/__3rd_lwip-1.4.1_src_core_ipv4_ip.o build/__3rd_lwip-1.4.1_src_core_ipv4_ip_addr.o build/__3rd_lwip-1.4.1_src_core_ipv4_ip_frag.o build/__3rd_lwip-1.4.1_src_netif_etharp.o build/enc28j60if.o
+build/$(OUTPUT).elf: build/main.o build/isr.o build/utils.o build/temp.o build/io.o build/ir.o build/stm32-utils_delay.o build/stm32-utils_myprintf.o build/stm32-utils_i2c.o build/stm32-utils_ow.o build/kdulibs_advinputmanager.o build/__3rd_IRremote.o build/ethernet.o build/buffer.o build/__providers_providers.o build/__providers_provider_output.o build/__providers_provider_input.o build/__providers_provider_temp.o build/__providers_provider_ir.o build/kdulibs_ENC28J60.o build/__3rd_lwip-1.4.1_src_core_def.o build/__3rd_lwip-1.4.1_src_core_dhcp.o build/__3rd_lwip-1.4.1_src_core_ipv4_inet.o build/__3rd_lwip-1.4.1_src_core_ipv4_inet_chksum.o build/__3rd_lwip-1.4.1_src_core_mem.o build/__3rd_lwip-1.4.1_src_core_memp.o build/__3rd_lwip-1.4.1_src_core_netif.o build/__3rd_lwip-1.4.1_src_core_pbuf.o build/__3rd_lwip-1.4.1_src_core_init.o build/__3rd_lwip-1.4.1_src_core_raw.o build/__3rd_lwip-1.4.1_src_core_stats.o build/__3rd_lwip-1.4.1_src_core_sys.o build/__3rd_lwip-1.4.1_src_core_udp.o build/__3rd_lwip-1.4.1_src_core_timers.o build/__3rd_lwip-1.4.1_src_core_ipv4_inet.o build/__3rd_lwip-1.4.1_src_core_ipv4_icmp.o build/__3rd_lwip-1.4.1_src_core_ipv4_ip.o build/__3rd_lwip-1.4.1_src_core_ipv4_ip_addr.o build/__3rd_lwip-1.4.1_src_core_ipv4_ip_frag.o build/__3rd_lwip-1.4.1_src_netif_etharp.o build/enc28j60if.o
 	$(CC) $^ $(CXXFLAGS) $(LFLAGS) -o $@
 
 clean:
-	rm -f build/$(OUTPUT).{elf,bin,hex,lst,map} build/main.o build/isr.o build/utils.o build/temp.o build/io.o build/ir.o build/stm32-utils_delay.o build/stm32-utils_myprintf.o build/stm32-utils_i2c.o build/stm32-utils_ow.o build/kdulibs_advinputmanager.o build/__3rd_IRremote.o build/ethernet.o build/providers.o build/buffer.o build/provider_output.o build/provider_input.o build/provider_ir.o build/provider_temp.o build/kdulibs_ENC28J60.o build/__3rd_lwip-1.4.1_src_core_def.o build/__3rd_lwip-1.4.1_src_core_dhcp.o build/__3rd_lwip-1.4.1_src_core_ipv4_inet.o build/__3rd_lwip-1.4.1_src_core_ipv4_inet_chksum.o build/__3rd_lwip-1.4.1_src_core_mem.o build/__3rd_lwip-1.4.1_src_core_memp.o build/__3rd_lwip-1.4.1_src_core_netif.o build/__3rd_lwip-1.4.1_src_core_pbuf.o build/__3rd_lwip-1.4.1_src_core_init.o build/__3rd_lwip-1.4.1_src_core_raw.o build/__3rd_lwip-1.4.1_src_core_stats.o build/__3rd_lwip-1.4.1_src_core_sys.o build/__3rd_lwip-1.4.1_src_core_udp.o build/__3rd_lwip-1.4.1_src_core_timers.o build/__3rd_lwip-1.4.1_src_core_ipv4_inet.o build/__3rd_lwip-1.4.1_src_core_ipv4_icmp.o build/__3rd_lwip-1.4.1_src_core_ipv4_ip.o build/__3rd_lwip-1.4.1_src_core_ipv4_ip_addr.o build/__3rd_lwip-1.4.1_src_core_ipv4_ip_frag.o build/__3rd_lwip-1.4.1_src_netif_etharp.o build/enc28j60if.o
+	rm -f build/$(OUTPUT).{elf,bin,hex,lst,map} build/main.o build/isr.o build/utils.o build/temp.o build/io.o build/ir.o build/stm32-utils_delay.o build/stm32-utils_myprintf.o build/stm32-utils_i2c.o build/stm32-utils_ow.o build/kdulibs_advinputmanager.o build/__3rd_IRremote.o build/ethernet.o build/buffer.o build/__providers_providers.o build/__providers_provider_output.o build/__providers_provider_input.o build/__providers_provider_temp.o build/__providers_provider_ir.o build/kdulibs_ENC28J60.o build/__3rd_lwip-1.4.1_src_core_def.o build/__3rd_lwip-1.4.1_src_core_dhcp.o build/__3rd_lwip-1.4.1_src_core_ipv4_inet.o build/__3rd_lwip-1.4.1_src_core_ipv4_inet_chksum.o build/__3rd_lwip-1.4.1_src_core_mem.o build/__3rd_lwip-1.4.1_src_core_memp.o build/__3rd_lwip-1.4.1_src_core_netif.o build/__3rd_lwip-1.4.1_src_core_pbuf.o build/__3rd_lwip-1.4.1_src_core_init.o build/__3rd_lwip-1.4.1_src_core_raw.o build/__3rd_lwip-1.4.1_src_core_stats.o build/__3rd_lwip-1.4.1_src_core_sys.o build/__3rd_lwip-1.4.1_src_core_udp.o build/__3rd_lwip-1.4.1_src_core_timers.o build/__3rd_lwip-1.4.1_src_core_ipv4_inet.o build/__3rd_lwip-1.4.1_src_core_ipv4_icmp.o build/__3rd_lwip-1.4.1_src_core_ipv4_ip.o build/__3rd_lwip-1.4.1_src_core_ipv4_ip_addr.o build/__3rd_lwip-1.4.1_src_core_ipv4_ip_frag.o build/__3rd_lwip-1.4.1_src_netif_etharp.o build/enc28j60if.o
 
 .PHONY: prepare clean flash

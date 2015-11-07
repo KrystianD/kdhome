@@ -213,14 +213,12 @@ void ethProcess()
 	if (ticks - lastCheck >= 1000) {
 		lastCheck = ticks;
 
-		TByteBuffer b;
-		if (ethPrepareBuffer(&b, 2))
-		{
-			uint16_t type = 0x0000;
-			BYTEBUFFER_APPEND(&b, type);
-			ethSendPacket(&b);
-			ethFreeBuffer(&b);
-		}
+		// TProvHeader header;
+		// provPrepareHeader(&header);
+		
+		// header.type = PROVIDER_TYPE_CONTROL;
+		// header.cmd = 0;
+		// provSendPacket(&header, sizeof(header));
 
 		if (dodump)
 			enc28j60Dump();
@@ -275,30 +273,13 @@ void ethProcess()
 		enc28j60_if_input(&eth_netif);
 	}
 }
-int ethPrepareBuffer(TByteBuffer* buffer, uint16_t len)
+void provSendPacket(const void* buffer, int len)
 {
-	buffer->p = pbuf_alloc(PBUF_RAW, len + 2 + 2, PBUF_POOL);
-	// buffer->p = pbuf_alloc(PBUF_TRANSPORT, len + 2 + 2, PBUF_POOL);
-	if (!buffer->p)
-		return 0;
-	buffer->pos = 0;
-
-	BYTEBUFFER_APPEND(buffer, ethPacketId);
-	BYTEBUFFER_APPEND(buffer, ethSessKey);
-
-	ethPacketId++;
-
-	return 1;
-}
-void ethFreeBuffer(TByteBuffer* buffer)
-{
-	pbuf_free(buffer->p);
-	buffer->p = 0;
-}
-void ethSendPacket(TByteBuffer* buffer)
-{
-	// bufferPrint(buffer);
-	udp_send(eth_udppcb, buffer->p);
+	struct pbuf* p;
+	p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
+	pbuf_take(p, buffer, len);
+	udp_send(eth_udppcb, p);
+	pbuf_free(p);
 }
 
 // private impl
@@ -308,17 +289,15 @@ unsigned long sys_now(void)
 }
 void eth_onUDPDataReceived(void* arg, struct udp_pcb* upcb, struct pbuf* p, struct ip_addr* addr, u16_t port)
 {
-	TByteBuffer buffer;
-	buffer.p = p;
-	buffer.pos = 0;
-
 	char *srcAddr = ipaddr_ntoa(addr);
-	myprintf("src addr: %s\r\n", srcAddr);
+	myprintf("src addr: %s %d\r\n", srcAddr, p->tot_len);
 
 	uint16_t packetId;
-	if (BYTEBUFFER_FETCH(&buffer, packetId)) return;
+	uint8_t d[p->tot_len];
 
-	provProcess(&buffer);
+	pbuf_copy_partial(p, d, p->tot_len, 0);
+
+	provProcess(d, p->tot_len);
 
 	pbuf_free(p);
 }

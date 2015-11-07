@@ -23,6 +23,8 @@ void myputchar(int c)
 	while (!(USART1->SR & USART_SR_TC));
 }
 
+uint32_t getTicks() { return ticks; }
+
 void main()
 {
 	SCB->VTOR = 0x08000000;
@@ -93,11 +95,11 @@ void USART1_Handler()
 	if (USART1->SR & USART_SR_RXNE)
 	{
 		uint8_t d = USART1->DR;
-		// if (d == 0x7f)
-		// {
-			// *((unsigned long*)0x0E000ED0C) = 0x05FA0004;
-			// while(1);
-		// }
+		if (d == 0x7f)
+		{
+			*((unsigned long*)0x0E000ED0C) = 0x05FA0004;
+			while(1);
+		}
 	}
 }
 

@@ -61,7 +61,7 @@ typedef struct
 	struct
 	{
 		uint8_t high, low;
-	} inputs[8];
+	} inputs[16];
 } TProvInputStatePacket;
 
 // IR provider

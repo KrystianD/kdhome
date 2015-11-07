@@ -14,7 +14,7 @@
 #define PBUF_POOL_SIZE                  4
 
 #define LWIP_DBG_TYPES_ON               LWIP_DBG_ON
-#define ETHARP_DEBUG                    LWIP_DBG_OFF
+#define ETHARP_DEBUG                    LWIP_DBG_ON
 #define NETIF_DEBUG                     LWIP_DBG_ON
 #define PBUF_DEBUG                      LWIP_DBG_ON
 #define API_LIB_DEBUG                   LWIP_DBG_ON

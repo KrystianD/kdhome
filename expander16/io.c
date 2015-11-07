@@ -1,11 +1,13 @@
 #include "io.h"
 #include <public.h>
 #include <settings.h>
+#include <delay.h>
 #include <hardware.h>
 #include <i2c.h>
 #include <advinputmanager.h>
 
 #include "providers.h"
+#include "utils.h"
 
 uint16_t ioInputs = 0, ioOutputs = 0;
 
@@ -15,6 +17,42 @@ uint16_t io_getOutMask(int idx);
 
 void ioInit()
 {
+	IO_INPUT(SCL);
+	IO_INPUT(SDA);
+	IO_HIGH(SCL);
+	IO_HIGH(SDA);
+	IO_OPEN_DRAIN(SCL);
+	IO_OPEN_DRAIN(SDA);
+	
+	for (;;)
+	{
+		while (IO_IS_LOW(SDA))
+		{
+			IO_LOW(SCL);
+			_delay_us(10);
+			IO_HIGH(SCL);
+			_delay_us(10);
+			myprintf("w1\r\n");
+		}
+		if (IO_IS_HIGH(SDA))
+		{
+			_delay_us(10);
+			if (IO_IS_HIGH(SDA))
+			{
+				break;
+			}
+		}
+	}
+	
+	// I2C2
+	IO_ALT_OPEN_DRAIN(SCL);
+	IO_ALT_OPEN_DRAIN(SDA);
+	
+	RCC->APB1ENR |= RCC_APB1ENR_I2C2EN;
+	RCC->APB1RSTR |= RCC_APB1RSTR_I2C2RST;
+	_delay_us(1);
+	RCC->APB1RSTR &= ~RCC_APB1RSTR_I2C2RST;
+	_delay_us(1);
 	i2cInit100kHz(EXP_I2C);
 	IO_INPUT(INT);
 
@@ -35,15 +73,16 @@ void ioProcess()
 		ioInputs = io_readPCF(PCF_IN0);
 		ioInputs |= io_readPCF(PCF_IN1) << 8;
 
-		// int i; for (i = 0; i < 16; i++)
-			// myprintf("%d ", !!io_getInp(i));
-		// myprintf("\n%s\r\n", dec2bin16(ioInputs));
+		int i; for (i = 0; i < 16; i++)
+			myprintf("%d ", !!io_getInp(i));
+		myprintf("\n%s\r\n", dec2bin16(ioInputs));
 	}
 	advimProcess(ticks);
 }
 
 void onInputLow(uint8_t idx)
 {
+	myprintf("lo %d\r\n", idx);
 #ifdef ETHERNET
 	provInputSetState(idx, 0);
 	provInputSendState();
@@ -51,6 +90,7 @@ void onInputLow(uint8_t idx)
 }
 void onInputHigh(uint8_t idx)
 {
+	myprintf("hi %d\r\n", idx);
 #ifdef ETHERNET
 	provInputSetState(idx, 1);
 	provInputSendState();
@@ -72,8 +112,11 @@ void provOutputSetOutput(int num, int enable)
 }
 void provOutputUpdate()
 {
-	i2cWriteDataNoReg(EXP_I2C, PCF_ADDR | PCF_OUT0, (uint8_t*)&ioOutputs, 1);
-	i2cWriteDataNoReg(EXP_I2C, PCF_ADDR | PCF_OUT1, (uint8_t*)&ioOutputs + 1, 1);
+	myprintf("out: %x\r\n", ioOutputs);
+	int r = i2cWriteDataNoReg(EXP_I2C, PCF_ADDR | PCF_OUT0, (uint8_t*)&ioOutputs, 1);
+	myprintf("out r: %d\r\n", r);
+	r = i2cWriteDataNoReg(EXP_I2C, PCF_ADDR | PCF_OUT1, (uint8_t*)&ioOutputs + 1, 1);
+	myprintf("out r: %d\r\n", r);
 }
 
 // Input provider callbacks
