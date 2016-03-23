@@ -202,7 +202,7 @@ void EthernetDevice::preparePacket(TSrvHeader* packet)
 }
 void EthernetDevice::sendData(const void* data, int len)
 {
-	m_server->sendData(getIP(), getPort(), data, len);
+	m_server->send(getIP(), getPort(), data, len);
 	logInfo(str(Format("Packet sent to {}:{}") << getIP() << getPort()));
 }
 

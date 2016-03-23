@@ -8,3 +8,4 @@ kdhome
 *.swo
 data
 *.log
+/build/
